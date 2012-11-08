@@ -6,7 +6,7 @@ class ResponseHandler {
   
   ResponseHandler(this._ldapMessage);
   
-  static ResponseOp handleResponse(LDAPMessage m) {
+  static ProtocolOp handleResponse(LDAPMessage m) {
  
     var p = m.protocolOp;
     logger.finest("handle response tag=${_op2String(p.tag)}");
@@ -22,12 +22,15 @@ class ResponseHandler {
         op = new SearchEntryResponse(p);
         break;
         
+      case SEARCH_RESULT_DONE: 
+        op = new SearchResultDone(p);
+        break;
+        
       case EXTENDED_RESPONSE:
          logger.severe("Extended response. ");
          throw "not done";
          //break;
-        
-        
+            
       default: 
         throw "Not done";
     }

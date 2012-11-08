@@ -10,6 +10,7 @@ part 'bind_request.dart';
 part 'bind_response.dart';
 part 'search_request.dart';
 part 'search_entry_response.dart';
+part 'search_result_done.dart';
 part 'search_scope.dart';
 part 'ldap_message.dart';
 part 'ldap_result.dart';
@@ -17,6 +18,8 @@ part 'ldap_exception.dart';
 part 'response_handler.dart';
 part 'ldap_response.dart';
 part 'attribute.dart';
+part 'filter.dart';
+part 'search_result.dart';
 
 
 

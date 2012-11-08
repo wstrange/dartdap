@@ -7,6 +7,8 @@ class SearchEntryResponse extends ProtocolOp {
   
   String get dn => _dn;
   
+  List<Attribute> _attributes = new List();
+  
   SearchEntryResponse(ASN1Sequence s) {
     _protocolOp = s.tag;
         
@@ -23,16 +25,20 @@ class SearchEntryResponse extends ProtocolOp {
     
     seq.elements.forEach( (ASN1Sequence attr)  {
       var attrName = attr.elements[0] as ASN1OctetString;
-      var xx = attrName.stringValue;
-      logger.finest("search attr = ${xx}" );
-      
-      //var valList = xx.elements[1];
-          
+    
+      var vals = attr.elements[1] as ASN1Set;
+      _attributes.add( new Attribute.fromASN1(attrName,vals));
     });
     
     // controls are optional.
+    if( s.elements.length >= 3) {
+      var controls = s.elements[2];
+      logger.finest( "Controls = ${controls}");
+    }
     
-    
-    
+  }
+  
+  String toString() {
+    return "SearchEntry(${_dn}, ${_attributes})";
   }
 }

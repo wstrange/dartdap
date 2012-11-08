@@ -8,7 +8,7 @@ import 'package:logging/logging.dart';
 
 
 import 'package:dartdap/src/protocol/ldap_protocol.dart';
-export 'package:dartdap/src/protocol/ldap_protocol.dart' show LDAPResult, LDAPException;
+export 'package:dartdap/src/protocol/ldap_protocol.dart' show LDAPResult, LDAPException, Filter;
 
 
 

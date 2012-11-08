@@ -33,8 +33,9 @@ main() {
    
    fb.then( (r) { print("Bind happend"); });
    
+   Filter f = new Filter.equalityFilter("objectClass",'inetOrgPerson');
 
-   var sb = c.search("dc=example,dc=com", "(objectClass=*)", attrs);
+   var sb = c.search("dc=example,dc=com", f, attrs);
    /**
    
    var t = new Timer(3000, (Timer t) {

@@ -4,7 +4,7 @@ part of ldapclient;
 
 class PendingOp {
   LDAPMessage message;
-  final Completer<LDAPResult> completer = new Completer<LDAPResult>();
+  final Completer  completer = new Completer();
   
   PendingOp(this.message);
   
@@ -94,7 +94,7 @@ class LDAPConnection {
    * Search Request
    */
   
-  Future<LDAPResult> search(String baseDN, String filter, List<String> attributes) {    
+  Future<LDAPResult> search(String baseDN, Filter filter, List<String> attributes) {    
     var sr = new SearchRequest(baseDN,filter, attributes);
     var m = new LDAPMessage(_nextMessageId++, sr);
     
@@ -110,7 +110,7 @@ class LDAPConnection {
       throw ex;
   }
   
-  Future<LDAPResult> process(LDAPMessage m) {
+  Future process(LDAPMessage m) {
     var op = new PendingOp(m);
     outgoingMessageQueue.add( op);
     sendPendingMessage();
@@ -125,7 +125,6 @@ class LDAPConnection {
       return;
     }
   
-    
     while( messagesToSend() ) {
       var op = outgoingMessageQueue.removeFirst();
       _sendMessage(op);
@@ -184,33 +183,53 @@ class LDAPConnection {
   
   _dataHandler() {  
     int available = _socket.available();
-    if( available <= 0) {
-      logger.info("No data available to read");
-      return;
-    }
+    while( available > 0 ) {
+      var buffer = new Uint8List(available);
       
-    var buffer = new Uint8List(available);
-    
-    var count = _socket.readList(buffer,0, buffer.length);
-    logger.finest("read ${count} bytes");
-    var s = listToHexString(buffer);
-    logger.finest("Bytes read = ${s}");
-    
-    // todo. What if there is more than one message???
-    
+      var count = _socket.readList(buffer,0, buffer.length);
+      logger.finest("read ${count} bytes");
+      var s = listToHexString(buffer);
+      logger.finest("Bytes read = ${s}");
+      
+   
+      var tempBuf = buffer;
+      int bcount = tempBuf.length;
+      
+      while( bcount > 0) {
+        int  bytesRead = _handleMessage(tempBuf);
+        bcount = bcount - bytesRead;
+        if(bcount > 0 )
+          tempBuf = new Uint8List.view( tempBuf.asByteArray(bytesRead,bcount));
+      }
+     
+      sendPendingMessage();
+      available = _socket.available();
+    }
+    logger.finest("No socket data available");
+  }
+  
+  int _handleMessage(Uint8List buffer) {
     // todo: While more totalEncodedBytes
     var m = new LDAPMessage.fromBytes(buffer);
-    logger.fine("Recieved LDAP message ${m} byte length=${m.messageId}");
+    logger.fine("Recieved LDAP message ${m} byte length=${m.messageLength}");
     
-   
     var rop = ResponseHandler.handleResponse(m);
-    var op = pendingMessages.removeFirst();
-  
-   
-   
-    op.completer.complete(rop.ldapResult);
     
-    sendPendingMessage();
-    
+    if( rop is SearchEntryResponse ) {
+      handleSearchOp(rop);
+    }
+    else {
+      var op = pendingMessages.removeFirst();    
+      op.completer.complete(rop.ldapResult);
+    }    
+    return m.messageLength;
   }
+  
+  SearchResult searchResults = new SearchResult();
+  
+  void handleSearchOp(SearchEntryResponse r) {
+    logger.fine("Adding result ${r} ");
+    searchResults.add(r);
+  }
+  
 }
