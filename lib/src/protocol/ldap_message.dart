@@ -50,7 +50,7 @@ class LDAPMessage {
   
   
   LDAPMessage(this._messageId,RequestOp rop) {
-    _protocolTag = rop.protocolOp;
+    _protocolTag = rop.protocolOpCode;
     _obj = rop.toASN1Sequence();
   }
   

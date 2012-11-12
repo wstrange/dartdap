@@ -215,9 +215,17 @@ class LDAPConnection {
     
     var rop = ResponseHandler.handleResponse(m);
     
-    if( rop is SearchEntryResponse ) {
+    if( rop is SearchResultEntry ) {
       handleSearchOp(rop);
     }
+    else if( rop is SearchResultDone ) {
+      logger.fine("Finished Search Results = ${searchResults}");
+      searchResults.ldapResult = rop.ldapResult;
+      var op = pendingMessages.removeFirst();    
+      op.completer.complete(searchResults);
+      searchResults = new SearchResult();
+    }
+    
     else {
       var op = pendingMessages.removeFirst();    
       op.completer.complete(rop.ldapResult);
@@ -227,7 +235,7 @@ class LDAPConnection {
   
   SearchResult searchResults = new SearchResult();
   
-  void handleSearchOp(SearchEntryResponse r) {
+  void handleSearchOp(SearchResultEntry r) {
     logger.fine("Adding result ${r} ");
     searchResults.add(r);
   }

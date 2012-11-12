@@ -27,6 +27,7 @@ main() {
    var c = new LDAPConnection("localhost", 1389,dn,pw);
    c.onError = (e) {
      print("Got exception ${e}");
+     fail("Unexpected exception");
    };
 
    var fb  = c.bind(); 
@@ -36,6 +37,9 @@ main() {
    Filter f = new Filter.equalityFilter("objectClass",'inetOrgPerson');
 
    var sb = c.search("dc=example,dc=com", f, attrs);
+   sb.then( (r) {
+     print("Search Completed r = ${r}");
+   });
    /**
    
    var t = new Timer(3000, (Timer t) {

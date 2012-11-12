@@ -23,4 +23,6 @@ class Attribute {
       _values.add(s.stringValue); 
      });
   }
+  
+  String toString() => "Attr(${_name}, ${_values})";
 }

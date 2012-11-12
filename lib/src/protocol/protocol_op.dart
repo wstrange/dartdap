@@ -9,9 +9,12 @@ class ProtocolOp {
    */
   bool _syncOp = false;
   
-  int get protocolOp  => _protocolOp;
+  int get protocolOpCode  => _protocolOp;
   
   bool get isSync => _syncOp;
+  
+  ProtocolOp(this._protocolOp);
+  
   
   
   /**
@@ -29,7 +32,7 @@ class ProtocolOp {
 abstract class RequestOp extends ProtocolOp {
   
  
-  
+  RequestOp(int opcode): super(opcode);
   
   /**
    * Subclasses must implement this method to convert their 
@@ -51,10 +54,10 @@ class ResponseOp extends ProtocolOp {
   LDAPResult _ldapResult;
   int _opCode;
   
+  
   LDAPResult get ldapResult => _ldapResult;
   
-  ResponseOp.fromSequence(ASN1Sequence s) {
-    _opCode = s.tag;
+  ResponseOp(ASN1Sequence s) : super(s.tag){
     _ldapResult = new LDAPResult.fromSequence(s);
   }
   

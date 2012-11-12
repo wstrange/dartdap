@@ -19,7 +19,7 @@ class ResponseHandler {
         break;
       
       case SEARCH_RESULT_ENTRY:
-        op = new SearchEntryResponse(p);
+        op = new SearchResultEntry(p);
         break;
         
       case SEARCH_RESULT_DONE: 

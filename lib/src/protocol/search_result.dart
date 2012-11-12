@@ -4,9 +4,17 @@ part of ldap_protocol;
 
 class SearchResult {
   
-  List<SearchEntryResponse> _entries = new List();
+  LDAPResult ldapResult;
   
-  add(SearchEntryResponse r) => _entries.add(r);
+  
+  List<SearchResultEntry> _entries = new List();
+  
+  add(SearchResultEntry r) => _entries.add(r);
+  
+  
+  String toString() {
+    return _entries.toString();
+  }
   
 }
 
