@@ -47,7 +47,9 @@ class LDAPConnection {
 
   
   
-  LDAPConnection(this._host,this._port,[this._connectDn ,this._password]);
+  LDAPConnection(this._host,this._port,[this._connectDn ,this._password]) {
+    connect();
+  }
   
   connect() {
     logger.finest("Creating socket to ${_host}:${_port}");
@@ -94,7 +96,7 @@ class LDAPConnection {
    * Search Request
    */
   
-  Future<LDAPResult> search(String baseDN, Filter filter, List<String> attributes) {    
+  Future<SearchResult> search(String baseDN, Filter filter, List<String> attributes) {    
     var sr = new SearchRequest(baseDN,filter, attributes);
     var m = new LDAPMessage(_nextMessageId++, sr);
     
@@ -104,10 +106,13 @@ class LDAPConnection {
   _errorHandler(e) {
     logger.severe("LDAP Error ${e}");
     var ex = new LDAPException(e.toString());
-    if( onError != null)
+    if( onError != null) {
       onError(ex);
-    else 
+    }
+    else {
+      logger.warning("No error handler set for LDAPConnection");
       throw ex;
+    }
   }
   
   Future process(LDAPMessage m) {

@@ -18,6 +18,7 @@ part 'response_handler.dart';
 part 'attribute.dart';
 part 'filter.dart';
 part 'search_result.dart';
+part 'ldap_util.dart';
 
 
 

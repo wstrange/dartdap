@@ -31,7 +31,7 @@ class SearchRequest extends RequestOp {
         ..add(new ASN1Integer(_sizeLimit))
         ..add(new ASN1Integer(_timeLimit))
         ..add(new ASN1Boolean(_typesOnly))
-        ..add(_filter.toASN1Sequence())
+        ..add(_filter.toASN1())
         ..add(attrSet);
     
     
