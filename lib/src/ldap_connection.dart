@@ -1,6 +1,15 @@
 
-part of ldapclient;
+library ldap_connection;
 
+import 'dart:io';
+import 'dart:isolate';
+import 'dart:scalarlist';
+import 'package:logging/logging.dart';
+import 'protocol/ldap_protocol.dart';
+
+import 'filter.dart';
+import 'ldap_exception.dart';
+import 'ldap_result.dart';
 
 class PendingOp {
   LDAPMessage message;
@@ -217,8 +226,8 @@ class LDAPConnection {
 
       var count = _socket.readList(buffer,0, buffer.length);
       logger.finest("read ${count} bytes");
-      var s = listToHexString(buffer);
-      logger.finest("Bytes read = ${s}");
+      //var s = listToHexString(buffer);
+      //logger.finest("Bytes read = ${s}");
 
 
       var tempBuf = buffer;
@@ -266,7 +275,7 @@ class LDAPConnection {
 
   void handleSearchOp(SearchResultEntry r) {
     logger.fine("Adding result ${r} ");
-    searchResults.add(r);
+    searchResults.add(r.searchEntry);
   }
 
 }

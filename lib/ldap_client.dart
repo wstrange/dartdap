@@ -1,20 +1,14 @@
 
 library ldapclient;
 
-import 'dart:scalarlist';
-import 'dart:io';
-import 'dart:isolate';
-import 'package:asn1lib/asn1lib.dart';
 import 'package:logging/logging.dart';
 
 
-import 'package:dartdap/src/protocol/ldap_protocol.dart';
-export 'package:dartdap/src/protocol/ldap_protocol.dart' show LDAPResult, LDAPException, Filter, SubstringFilter, SearchResult;
-
-
-
-part 'ldap_connection.dart';
-
+export 'src/ldap_connection.dart';
+export 'src/ldap_exception.dart';
+export 'src/filter.dart';
+export 'src/attribute.dart';
+export 'src/ldap_result.dart';
 
 Logger logger = new Logger("ldapclient");
 

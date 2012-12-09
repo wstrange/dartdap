@@ -1,21 +1,56 @@
-
 part of ldap_protocol;
 
 
-class SearchResult {
-  
-  LDAPResult ldapResult;
-  
-  
-  List<SearchResultEntry> _entries = new List();
-  
-  add(SearchResultEntry r) => _entries.add(r);
-  
-  
-  String toString() {
-    return _entries.toString();
+/**
+ * LDAP Search Entry represent a single search result item.
+ *
+ * SearchResultEntry is a protocol Op that wraps a
+ * [SearchEntry] object. We do this so that the protocol details
+ * are kept out of SearchEntry for library consumers.
+ */
+
+class SearchResultEntry extends ProtocolOp {
+
+  SearchEntry _searchEntry ;
+
+  SearchEntry get searchEntry => _searchEntry;
+
+  SearchResultEntry(ASN1Sequence s): super(s.tag) {
+
+    var t = s.elements[0] as ASN1OctetString;
+
+    var dn = t.stringValue;
+
+    logger.finest("Search Entry dn=${dn}");
+
+    // embedded sequence is attr list
+    var seq = s.elements[1] as ASN1Sequence;
+
+    _searchEntry = new SearchEntry(dn,[]);
+
+    seq.elements.forEach( (ASN1Sequence attr)  {
+      var attrName = attr.elements[0] as ASN1OctetString;
+
+      var vals = attr.elements[1] as ASN1Set;
+      var valSet =
+      vals.elements.map( (v) =>
+        (v as ASN1OctetString).stringValue);
+
+      searchEntry.attributes.add( new Attribute(attrName.stringValue,valSet));
+    });
+
+    // controls are optional.
+    if( s.elements.length >= 3) {
+      var controls = s.elements[2];
+      logger.finest( "Controls = ${controls}");
+    }
   }
-  
+
+
+  String toString() {
+    return "SearchResultEntry($searchEntry})";
+  }
 }
+
 
 
