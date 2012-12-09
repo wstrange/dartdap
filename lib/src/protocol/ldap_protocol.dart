@@ -1,6 +1,7 @@
 library ldap_protocol;
 
 import 'dart:scalarlist';
+import 'dart:isolate';
 import 'package:asn1lib/asn1lib.dart';
 import 'package:logging/logging.dart';
 
@@ -22,10 +23,10 @@ part 'ldap_util.dart';
 
 
 
-// top level constants 
+// top level constants
 // todo: Should we put these in a class?
 const int BIND_REQUEST    = 0x60;
-const int BIND_RESPONSE   = 0x61; 
+const int BIND_RESPONSE   = 0x61;
 const int UNBIND_REQUEST  = 0x62;
 
 
@@ -72,7 +73,7 @@ String _op2String(int op) {
     case ADD_RESPONSE: return "ADD_RESPONSE";
     // todo ...
     default: return op.toRadixString(16);
-    
+
   }
 }
 

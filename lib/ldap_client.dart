@@ -3,6 +3,7 @@ library ldapclient;
 
 import 'dart:scalarlist';
 import 'dart:io';
+import 'dart:isolate';
 import 'package:asn1lib/asn1lib.dart';
 import 'package:logging/logging.dart';
 

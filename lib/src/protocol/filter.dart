@@ -1,6 +1,10 @@
 part of ldap_protocol;
 
 
+/**
+ * Represents an LDAP search filter
+ */
+
 class Filter {
   
   int _filterType;
