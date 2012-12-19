@@ -1,8 +1,9 @@
-name:  dartdap
-description:  A dart ldap client library
-
+name: dartdap
+version: 0.0.1
+author: warren.strange@gmail.com
+description: A dart ldap client library
 dependencies:
-  unittest: { sdk: unittest }
-  logging: { sdk: logging }
+  unittest: any
+  logging: any
+
 # asn1lib - has to be sym linked for now...
-        

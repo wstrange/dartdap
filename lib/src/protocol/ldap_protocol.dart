@@ -10,15 +10,16 @@ import '../ldap_exception.dart';
 import '../ldap_util.dart';
 import '../ldap_result.dart';
 import '../attribute.dart';
+import '../search_scope.dart';
 
 part 'protocol_op.dart';
 part 'bind_request.dart';
 part 'search_request.dart';
 part 'ldap_responses.dart';
-part 'search_scope.dart';
 part 'ldap_message.dart';
 part 'response_handler.dart';
 part 'search_result.dart';
+part 'add_request.dart';
 
 
 
@@ -70,7 +71,7 @@ String _op2String(int op) {
     case MODIFY_REQUEST:  return "MODIFY_REQUEST";
     case ADD_REQUEST: return "ADD_REQUEST";
     case ADD_RESPONSE: return "ADD_RESPONSE";
-    // todo ...
+    // todo add more...
     default: return op.toRadixString(16);
 
   }

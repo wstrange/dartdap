@@ -1,5 +1,7 @@
-part of ldap_protocol;
+library search_scope;
 
+
+// todo: Do we need this
 class SearchScope {
   static const int BASE_LEVEL = 0;
   static const int ONE_LEVEL = 1;

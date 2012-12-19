@@ -10,10 +10,7 @@ class BindRequest extends RequestOp {
   **/
  const int CRED_TYPE_SIMPLE =  0x80;
 
-  BindRequest(this._bindDN, this._password) :super(BIND_REQUEST) {
-
-    _syncOp = true; // BIND must be syncronous
-  }
+  BindRequest(this._bindDN, this._password) :super(BIND_REQUEST) ;
 
 
   ASN1Sequence toASN1Sequence() {

@@ -25,10 +25,24 @@ class LDAPUtil {
           break;
         default:
           buf.addCharCode(c);
+          break;
       }
 
     });
 
+    return buf.toString();
+  }
+
+  /**
+   * Convert a list of bytes to a hex string with
+   * each byte seperated by a space
+   */
+  static String toHexString(List<int> bytes) {
+    var buf = new StringBuffer();
+
+    bytes.forEach( (b) {
+      buf.add(b.toRadixString(16));
+      buf.add(' '); });
     return buf.toString();
   }
 }

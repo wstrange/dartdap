@@ -7,6 +7,7 @@ import 'filter.dart';
 import 'ldap_exception.dart';
 import 'ldap_result.dart';
 import 'protocol/ldap_protocol.dart';
+import 'search_scope.dart';
 
 
 
@@ -42,9 +43,12 @@ class LDAPConnection {
    */
 
   Future<SearchResult> search(String baseDN, Filter filter,
-      List<String> attributes) =>
-          _cmgr.process(new SearchRequest(baseDN,filter, attributes));
+      List<String> attributes, {int scope: SearchScope.SUB_LEVEL}) =>
+          _cmgr.process(new SearchRequest(baseDN,filter, attributes,scope));
 
+
+  Future<LDAPResult> add(String dn, List<Attribute> attrs) =>
+      _cmgr.process(new AddRequest(dn,attrs));
 
   close({bool immediate:false}) => _cmgr.close(immediate: immediate);
 

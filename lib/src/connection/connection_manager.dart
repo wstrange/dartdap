@@ -20,6 +20,9 @@ import '../ldap_connection.dart';
  * todo: Do we implement timeouts?
  */
 class PendingOp {
+
+  Stopwatch _stopwatch = new Stopwatch()..start();
+
   LDAPMessage message;
   final Completer  completer = new Completer();
 

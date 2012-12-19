@@ -4,14 +4,7 @@ class ProtocolOp {
 
   int _protocolOp;
 
-  /**
-   * All LDAP ops are async excecpt for BIND / Start TLS - which must be synchronous
-   */
-  bool _syncOp = false;
-
   int get protocolOpCode  => _protocolOp;
-
-  bool get isSync => _syncOp;
 
   ProtocolOp(this._protocolOp);
 

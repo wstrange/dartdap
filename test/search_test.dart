@@ -39,6 +39,15 @@ main() {
          print("Search Completed r = ${r}");
        }, count: 1));
 
+   var notFilter = Filter.not(filter);
+
+   sb = c.search("dc=example,dc=com", notFilter, attrs);
+   /*-------------------
+   sb.then( expectAsync1( (SearchResult r) {
+     print("Not Search Completed r = ${r}");
+   }, count: 1));
+
+*/
   c.close();
 
  });

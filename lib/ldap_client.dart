@@ -9,6 +9,7 @@ export 'src/ldap_exception.dart';
 export 'src/filter.dart';
 export 'src/attribute.dart';
 export 'src/ldap_result.dart';
+export 'src/search_scope.dart';
 
 Logger logger = new Logger("ldapclient");
 

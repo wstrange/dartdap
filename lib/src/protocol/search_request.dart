@@ -40,6 +40,8 @@ class SearchRequest extends RequestOp {
 
   /**
    * Convert a Filter expression to ASN1 Object
+   *
+   * This may be called recursively
    */
   ASN1Object _filterToASN1(Filter f) {
     switch (f.filterType)
@@ -74,8 +76,21 @@ class SearchRequest extends RequestOp {
         assert(f.subFilters != null);
         var notObj = f.subFilters[0];
         assert(notObj != null);
+
+        // todo: we need to force encoding to get the bytes.
+        // why?? Should we change asn1object?
+        // or create a ASN1Wrapper object
+        var enc = _filterToASN1(notObj);
+        enc.encode();
+        var xx = LDAPUtil.toHexString(enc.encodedBytes);
+        print("******* NOT encoded bytes = $xx");
+
+        var foo = new ASN1Object.fromTag(Filter.TYPE_NOT,
+            enc.encodedBytes);
+        print("Foo= $foo, bytes = ${foo.encodedBytes}");
         return new ASN1Object.fromTag(Filter.TYPE_NOT,
-            notObj.toASN1().encodedBytes);
+            enc.encodedBytes);
+
 
 
       case Filter.TYPE_SUBSTRING:
@@ -102,8 +117,6 @@ class SearchRequest extends RequestOp {
             "Unexpected filter type = $f.filterType. This should never happen");
 
     }
-
-
   }
 
 }
