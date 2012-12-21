@@ -18,7 +18,7 @@ class SearchRequest extends RequestOp {
 //    /_protocolOp = SEARCH_REQUEST;
   }
 
-  ASN1Sequence toASN1Sequence() {
+  ASN1Object toASN1() {
     var seq = _startSequence();
 
     var attrSet  = new ASN1Sequence();

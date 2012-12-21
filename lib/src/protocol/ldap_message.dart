@@ -40,7 +40,7 @@ class LDAPMessage {
   ASN1Sequence _protocolOp;
   ASN1Sequence _controls;
 
-  ASN1Sequence _obj;
+  ASN1Object _obj;
 
   int get messageId => _messageId;
 
@@ -51,32 +51,33 @@ class LDAPMessage {
 
   LDAPMessage(this._messageId,RequestOp rop) {
     _protocolTag = rop.protocolOpCode;
-    _obj = rop.toASN1Sequence();
+    _obj = rop.toASN1();
   }
 
 
   LDAPMessage.fromBytes(Uint8List bytes) {
-    _obj = new ASN1Sequence.fromBytes(bytes);
+    var o = new ASN1Sequence.fromBytes(bytes);
 
-    if( _obj  == null || _obj.elements.length < 2 || _obj.elements.length > 3)
+    if( o  == null || o.elements.length < 2 || o.elements.length > 3)
       throw new LDAPException("LDAP Message unexpected format. Bytes =${bytes}");
 
 
-    var i = _obj.elements[0] as ASN1Integer;
+    var i = o.elements[0] as ASN1Integer;
     _messageId = i.intValue;
 
-    _protocolOp = _obj.elements[1] as ASN1Sequence;
-    // optional - controls....
+    _protocolOp = o.elements[1] as ASN1Sequence;
+
     _protocolTag = _protocolOp.tag;
 
-    if( _obj.elements.length == 3)
-      _controls = _obj.elements[3] as ASN1Sequence;
+    // optional - controls....
+    if( o.elements.length == 3)
+      _controls = o.elements[3] as ASN1Sequence;
 
 
+    _obj = o; // save this?
     logger.fine("Got LDAP Message. Id = ${messageId} protocolOp = ${protocolOp}");
 
   }
-
 
 
   List<int> toBytes() {

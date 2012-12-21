@@ -15,21 +15,23 @@ class ResponseHandler {
     ProtocolOp op;
     switch(p.tag) {
       case BIND_RESPONSE:
-        op = new BindResponse(p);
-        break;
+        return new BindResponse(p);
+
 
       case SEARCH_RESULT_ENTRY:
-        op = new SearchResultEntry(p);
-        break;
+        return new SearchResultEntry(p);
 
       case SEARCH_RESULT_DONE:
-        op = new SearchResultDone(p);
-        break;
+        return new SearchResultDone(p);
 
       case EXTENDED_RESPONSE:
-         logger.severe("Extended response. ");
-         throw "not done";
-         //break;
+         return new ExtendedResponse(p);
+
+
+      case ADD_RESPONSE:
+      case DELETE_RESPONSE:
+        return new GenericResponse(p);
+
 
       default:
         throw "Not done";

@@ -4,6 +4,7 @@ library ldap_connection;
 import 'package:logging/logging.dart';
 import 'connection/connection_manager.dart';
 import 'filter.dart';
+import 'attribute.dart';
 import 'ldap_exception.dart';
 import 'ldap_result.dart';
 import 'protocol/ldap_protocol.dart';
@@ -50,6 +51,9 @@ class LDAPConnection {
   Future<LDAPResult> add(String dn, List<Attribute> attrs) =>
       _cmgr.process(new AddRequest(dn,attrs));
 
+  Future<LDAPResult> delete(String dn) => _cmgr.process(new DeleteRequest(dn));
+
   close({bool immediate:false}) => _cmgr.close(immediate: immediate);
+
 
 }

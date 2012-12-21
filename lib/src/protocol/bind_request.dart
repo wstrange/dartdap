@@ -13,7 +13,7 @@ class BindRequest extends RequestOp {
   BindRequest(this._bindDN, this._password) :super(BIND_REQUEST) ;
 
 
-  ASN1Sequence toASN1Sequence() {
+  ASN1Object toASN1() {
     var seq = _startSequence();
     var version = new ASN1Integer(3); // alway v3
     seq.add(version);

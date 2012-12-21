@@ -11,7 +11,15 @@ class Attribute {
 
   Set<String> get values => _values;
 
-  Attribute(this._name, this._values);
+  Attribute(this._name);
+
+  Attribute.collection(this._name, Iterable c) {
+    _values.addAll(c);
+  }
+
+  Attribute.simple(this._name, String v) {
+    _values.add(v);
+  }
 
   addValue(String val) => _values.add(val);
 

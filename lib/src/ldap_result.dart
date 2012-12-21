@@ -91,6 +91,8 @@ class LDAPResult {
   LDAPResult(this._resultCode,this._matchedDN,
       this._diagnosticMessage,this._referralURLs);
 
+  String toString() => "LDAPResult code=$resultCode msg=$_diagnosticMessage dn=$matchedDN";
+
 }
 
 

@@ -21,7 +21,7 @@ class AddRequest extends RequestOp {
 
   */
 
-  ASN1Sequence toASN1Sequence() {
+  ASN1Object toASN1() {
     var seq = _startSequence();
     seq.add(new ASN1OctetString(_dn));
 
@@ -35,6 +35,7 @@ class AddRequest extends RequestOp {
        ss.add(new ASN1OctetString(val));
      });
      s.add(ss);
+     attrSeq.add(s);
    });
 
    seq.add(attrSeq);

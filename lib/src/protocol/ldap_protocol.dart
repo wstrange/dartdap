@@ -20,7 +20,7 @@ part 'ldap_message.dart';
 part 'response_handler.dart';
 part 'search_result.dart';
 part 'add_request.dart';
-
+part 'delete_request.dart';
 
 
 // top level constants
