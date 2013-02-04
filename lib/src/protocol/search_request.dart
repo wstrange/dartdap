@@ -24,7 +24,6 @@ class SearchRequest extends RequestOp {
     var attrSet  = new ASN1Sequence();
     _attributes.forEach((String attr) { attrSet.add(new ASN1OctetString(attr));});
 
-
     seq..add(new ASN1OctetString(_baseDN))
         ..add(new ASN1Enumerated(_scope))
         ..add(new ASN1Enumerated(_derefPolicy))
@@ -77,20 +76,9 @@ class SearchRequest extends RequestOp {
         var notObj = f.subFilters[0];
         assert(notObj != null);
 
-        // todo: we need to force encoding to get the bytes.
-        // why?? Should we change asn1object?
-        // or create a ASN1Wrapper object
         var enc = _filterToASN1(notObj);
         enc.encode();
-        var xx = LDAPUtil.toHexString(enc.encodedBytes);
-        print("******* NOT encoded bytes = $xx");
-
-        var foo = new ASN1Object.fromTag(Filter.TYPE_NOT,
-            enc.encodedBytes);
-        print("Foo= $foo, bytes = ${foo.encodedBytes}");
-        return new ASN1Object.fromTag(Filter.TYPE_NOT,
-            enc.encodedBytes);
-
+        return new ASN1Object.fromTag(Filter.TYPE_NOT, enc.encodedBytes);
 
 
       case Filter.TYPE_SUBSTRING:
@@ -100,11 +88,13 @@ class SearchRequest extends RequestOp {
         // sub sequence embeds init,any,final
         var sSeq = new ASN1Sequence();
 
-        if( s.initial != null)
+        if( s.initial != null) {
           sSeq.add(new ASN1OctetString.withTag(SubstringFilter.TYPE_SUBINITIAL,s.initial));
+        }
         s.any.forEach( (String o) => sSeq.add(new ASN1OctetString.withTag(SubstringFilter.TYPE_SUBANY,o)));
-        if( s.finalString != null )
+        if( s.finalString != null ) {
           sSeq.add(new ASN1OctetString.withTag(SubstringFilter.TYPE_SUBFINAL,s.finalString));
+        }
 
         seq.add(sSeq);
         return seq;

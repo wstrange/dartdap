@@ -113,8 +113,9 @@ class SubstringFilter extends Filter {
 
     // todo: We probaby need to properly escape special chars = and *
     var l = pattern.split("=");
-    if(l.length != 2 || l[0] == "" || l[1] == "")
+    if(l.length != 2 || l[0] == "" || l[1] == "") {
       throw new LDAPException("Invalid substring search pattern '$pattern'");
+    }
 
     _attributeName = l[0];
     var matchString = l[1];
@@ -133,10 +134,12 @@ class SubstringFilter extends Filter {
      *  foo*bar*baz*boo
      */
 
-    if( x[0] != "")
+    if( x[0] != "") {
       _initial =  x[0];
-    if( x.last != "")
+    }
+    if( x.last != "") {
       _final = x.last;
+    }
     for(int i = 1; i < x.length -1 ; ++i) {
       _any.add(x[i]);
     }

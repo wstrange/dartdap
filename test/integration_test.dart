@@ -12,19 +12,22 @@ main() {
   //var dn = "cn=test";
   var dn = "cn=Directory Manager";
   var pw = "password";
-
-  var c = new LDAPConnection("localhost", 1389,dn,pw);
+  LDAPConnection c;
 
 
   group('Test group', () {
     setUp( () {
       initLogging();
+      print("Create connection");
+      c = new LDAPConnection("localhost", 1389,dn,pw);
       var fb  = c.bind();
       fb.then( (r) { print("LDAP Connection Bind"); });
+
+      c.onError = (e) { print("Connection error $e"); };
     });
 
     tearDown( () {
-      print("Closing ");
+      print("Closing ...");
       c.close();
     });
 
@@ -33,9 +36,7 @@ main() {
     test('Search Test', () {
      var attrs = ["dn", "cn", "objectClass"];
 
-
      c.onError = expectAsync1((e) => expect(false, 'Should not be reached'), count: 0);
-
 
      var filter = Filter.substring("cn=A*");
 
@@ -61,50 +62,59 @@ main() {
    });
 
 
-   test("LDAP Filter composition ", () {
-     //var xx = Filter.substring("cn=foo");
-
-     var f1 = new SubstringFilter("cn=foo*");
-     expect(f1.any, isEmpty );
-     expect(f1.initial, equals("foo"));
-     expect(f1.finalString,isNull);
-
-
-     var f2 = new SubstringFilter("cn=*bar");
-     expect(f2.initial,isNull);
-     expect(f2.any,isEmpty);
-     expect(f2.finalString, equals("bar"));
-
-
-     var c1 =  f1 & f2;
-
-     print(c1.toString());
-
-
-   });
-
-   solo_test('add/del request', () {
-
+   solo_test('add/modify/delete request', () {
       var dn = "uid=mmouse,ou=People,dc=example,dc=com";
       var objclass = new Attribute("objectClass");
       objclass.addValue("inetorgperson");
 
-
+      // clean up first from any failed test
       c.delete(dn).then( (result) {
         print("delete result= $result");
+      }).catchError( (e) {
+        print("delete result ${e.error.resultCode}");
       });
 
 
       var attrs = [ new Attribute.simple("cn", "Mickey Mouse"),
                     new Attribute.simple("uid", "mmouse"),
                     new Attribute.simple("sn", "mouse"),
-                    //new Attribute.simple("dn", dn),
                     objclass];
 
-      c.add(dn, attrs).then( (r) {
-        print("Result = $r");
-      });
+      c.add(dn, attrs).then( expectAsync1((r) {
+        expect( r.resultCode, equals(0));
 
+        var m = new Modification.replace("sn", ["Sir Mickey"]);
+        c.modify(dn, [m]).then( expectAsync1((result) {
+          expect(result.resultCode,equals(0));
+
+          c.delete(dn).then( expectAsync1((result) {
+            expect(result.resultCode,equals(0));
+          }));
+        }));
+      }));
+
+
+   }); // end test
+
+   test('test error handling', () {
+
+     var dn = "uid=FooDoesNotExist,ou=People,dc=example,dc=com";
+
+     c.errorOnNonZeroResult = false;
+
+     c.delete(dn).then(  (result) {
+       expect( result.resultCode , greaterThan(0) );
+     }).catchError( (result) {
+       fail('catchError should not have been called');
+     });
+
+     c.errorOnNonZeroResult = true;
+
+     c.delete(dn).then(  (result) {
+       fail('Future catchError should have been called');
+     }).catchError( ( e) {
+       expect( e.error.resultCode, greaterThan(0));
+     });
 
 
    }); // end test

@@ -2,8 +2,10 @@ library connection_manager;
 
 
 import 'dart:io';
-import 'dart:isolate';
+import 'dart:async';
 import 'dart:scalarlist';
+import 'dart:collection';
+
 import 'package:logging/logging.dart';
 import '../protocol/ldap_protocol.dart';
 
@@ -23,10 +25,14 @@ class PendingOp {
 
   Stopwatch _stopwatch = new Stopwatch()..start();
 
+  bool _errorOnNonZero; // completer should throw error on non zero ldap result
+
+  bool get errorOnNonZero => _errorOnNonZero;
+
   LDAPMessage message;
   final Completer  completer = new Completer();
 
-  PendingOp(this.message);
+  PendingOp(this.message,this._errorOnNonZero);
 
   String toString() => "PendingOp m=${message}";
 }
@@ -41,16 +47,14 @@ class ConnectionManager {
   //LDAPConnection _connection;
 
   Queue<PendingOp> _outgoingMessageQueue = new Queue<PendingOp>();
-  Queue<PendingOp> _pendingMessages = new Queue<PendingOp>();
+  Map<int,PendingOp> _pendingMessages = new Map();
 
-  static const DISCONNECTED = 0;
+
   static const CONNECTING = 1;
   static const CONNECTED = 2;
-  //static const BINDING = 3;
-  //static const BOUND = 4;
-  static const CLOSING = 6;
-  static const CLOSED = 7;
+  static const CLOSED = 3;
 
+  bool _bindPending = false;
 
   int _connectionState = CLOSED;
   Socket _socket;
@@ -64,11 +68,13 @@ class ConnectionManager {
   Function onError;
 
   connect() {
-    if( _connectionState == CONNECTED )
+    if( _connectionState == CONNECTED ) {
       return;
+    }
 
     logger.finest("Creating socket to ${_connection.host}:${_connection.port}");
     _connectionState = CONNECTING;
+    _bindPending = false;
     _socket = new Socket(_connection.host,_connection.port);
 
     _socket.onConnect = _connectHandler;
@@ -79,8 +85,10 @@ class ConnectionManager {
   Future process(RequestOp rop) {
     var m = new LDAPMessage(++_nextMessageId, rop);
 
-    var op = new PendingOp(m);
+    var op = new PendingOp(m,_connection.errorOnNonZeroResult);
     _outgoingMessageQueue.add( op);
+
+
     sendPendingMessage();
     return op.completer.future;
   }
@@ -104,28 +112,21 @@ class ConnectionManager {
    * Note that BIND is synchronous (as per LDAP spec) - so if there is a pending BIND
    * we must wait to send more messages until the BIND response comes back
    */
-  bool _messagesToSend() {
-    if( _outgoingMessageQueue.isEmpty)
-      return false;
-    if( ! _pendingMessages.isEmpty ) {
-      var m = _pendingMessages.first.message;
-      if( m.protocolTag == BIND_REQUEST)
-        return false;
-    }
-    return true;
-  }
+  bool _messagesToSend() =>  (! _outgoingMessageQueue.isEmpty ) && (_bindPending == false );
+
 
   _sendMessage(PendingOp op) {
     logger.fine("Sending message ${op.message}");
     var l = op.message.toBytes();
-    var b_read = _socket.writeList(l, 0,l.length);
-    // todo: check length of bytes read
-    _pendingMessages.add(op);
+    _socket.writeList(l, 0,l.length);
+    _pendingMessages[op.message.messageId] = op;
+    if( op.message.protocolTag == BIND_REQUEST)
+      _bindPending = true;
   }
 
 
   _connectHandler() {
-    logger.fine("Connected");
+    logger.fine("Connected *****");
     _connectionState = CONNECTED;
 
     _socket.onData = _dataHandler;
@@ -134,7 +135,7 @@ class ConnectionManager {
   }
 
   /**
-   * Check for pending ops..
+   *
    *
    * Close the LDAP connection.
    *
@@ -142,14 +143,14 @@ class ConnectionManager {
    */
 
   close({bool immediate:false}) {
-    _connectionState = CLOSING;
     if( immediate ) {
       _doClose();
     }
     else {
       new Timer.repeating(1000, (Timer t) {
-        if( _tryClose() )
+        if( _tryClose() ) {
           t.cancel();
+        }
       });
     }
   }
@@ -159,8 +160,9 @@ class ConnectionManager {
       _doClose();
       return true;
     }
-    logger.finest("close waiting for queue to drain");
-    print("pending $_pendingMessages  out=$_outgoingMessageQueue");
+
+    logger.fine("close() waiting for queue to drain");
+    sendPendingMessage();
     return false;
   }
 
@@ -193,8 +195,9 @@ class ConnectionManager {
       while( bcount > 0) {
         int  bytesRead = _handleMessage(tempBuf);
         bcount = bcount - bytesRead;
-        if(bcount > 0 )
+        if(bcount > 0 ) {
           tempBuf = new Uint8List.view( tempBuf.asByteArray(bytesRead,bcount));
+        }
       }
 
       sendPendingMessage(); // see if there are any pending messages
@@ -207,25 +210,37 @@ class ConnectionManager {
   ///
   int _handleMessage(Uint8List buffer) {
     var m = new LDAPMessage.fromBytes(buffer);
-    logger.fine("Recieved LDAP message ${m} byte length=${m.messageLength}");
+    logger.fine("Received LDAP message ${m} byte length=${m.messageLength}");
 
     var rop = ResponseHandler.handleResponse(m);
 
     if( rop is SearchResultEntry ) {
       handleSearchOp(rop);
     }
-    else if( rop is SearchResultDone ) {
-      logger.fine("Finished Search Results = ${searchResults}");
-      searchResults.ldapResult = rop.ldapResult;
-      var op = _pendingMessages.removeFirst();
-      op.completer.complete(searchResults);
-      searchResults = new SearchResult(); // create new for next search
+    else {
+      // remove message from pending response map
+      assert( _pendingMessages.containsKey(m.messageId));
+      var op = _pendingMessages.remove(m.messageId);
+      // if it is non zero - complete with catchError
+      if( (rop.ldapResult.resultCode) > 0 && op.errorOnNonZero ) {
+        op.completer.completeError( rop.ldapResult);
+      }
+      else {
+        if( rop is SearchResultDone ) {
+          logger.fine("Finished Search Results = ${searchResults}");
+          searchResults.ldapResult = rop.ldapResult;
+
+          op.completer.complete(searchResults);
+          searchResults = new SearchResult(); // create new for next search
+        }
+        else {
+          if( m.protocolTag == BIND_RESPONSE)
+            _bindPending = false;
+          op.completer.complete(rop.ldapResult);
+        }
+      }
     }
 
-    else {
-      var op = _pendingMessages.removeFirst();
-      op.completer.complete(rop.ldapResult);
-    }
     return m.messageLength;
   }
 

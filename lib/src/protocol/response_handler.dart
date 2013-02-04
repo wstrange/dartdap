@@ -10,13 +10,11 @@ class ResponseHandler {
 
     var p = m.protocolOp;
     logger.finest("handle response tag=${_op2String(p.tag)}");
-    //var o = seq.elements[1];
 
     ProtocolOp op;
     switch(p.tag) {
       case BIND_RESPONSE:
         return new BindResponse(p);
-
 
       case SEARCH_RESULT_ENTRY:
         return new SearchResultEntry(p);
@@ -30,6 +28,7 @@ class ResponseHandler {
 
       case ADD_RESPONSE:
       case DELETE_RESPONSE:
+      case MODIFY_RESPONSE:
         return new GenericResponse(p);
 
 

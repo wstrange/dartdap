@@ -58,8 +58,9 @@ class LDAPMessage {
   LDAPMessage.fromBytes(Uint8List bytes) {
     var o = new ASN1Sequence.fromBytes(bytes);
 
-    if( o  == null || o.elements.length < 2 || o.elements.length > 3)
+    if( o  == null || o.elements.length < 2 || o.elements.length > 3) {
       throw new LDAPException("LDAP Message unexpected format. Bytes =${bytes}");
+    }
 
 
     var i = o.elements[0] as ASN1Integer;
@@ -70,8 +71,9 @@ class LDAPMessage {
     _protocolTag = _protocolOp.tag;
 
     // optional - controls....
-    if( o.elements.length == 3)
+    if( o.elements.length == 3) {
       _controls = o.elements[3] as ASN1Sequence;
+    }
 
 
     _obj = o; // save this?

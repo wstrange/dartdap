@@ -3,13 +3,14 @@ library ldap_connection;
 
 import 'package:logging/logging.dart';
 import 'connection/connection_manager.dart';
+import 'dart:async';
 import 'filter.dart';
 import 'attribute.dart';
+import 'modification.dart';
 import 'ldap_exception.dart';
 import 'ldap_result.dart';
 import 'protocol/ldap_protocol.dart';
 import 'search_scope.dart';
-
 
 
 
@@ -25,7 +26,20 @@ class LDAPConnection {
 
   ConnectionManager _cmgr;
 
-  Function onError;
+  Function onError; // global error handler
+
+  bool _errorOnNonZeroResult = true;
+
+  /**
+   * If a non zero LDAP result code is returned, trigger the
+   * future's error method instead of returning the LDAPResult to
+   * the completer.
+   * Defaults to true.
+   * This is used to create a more fluent style where the result code does
+   * not always need to be checked.
+   */
+  set errorOnNonZeroResult(bool flag) => _errorOnNonZeroResult = flag;
+  bool get errorOnNonZeroResult => _errorOnNonZeroResult;
 
   LDAPConnection(this._host,this._port,[this._connectDn ,this._password]) {
     _cmgr = new ConnectionManager(this);
@@ -52,6 +66,9 @@ class LDAPConnection {
       _cmgr.process(new AddRequest(dn,attrs));
 
   Future<LDAPResult> delete(String dn) => _cmgr.process(new DeleteRequest(dn));
+
+  Future<LDAPResult> modify(String dn, Iterable<Modification> mods) =>
+      _cmgr.process( new ModifyRequest(dn,mods));
 
   close({bool immediate:false}) => _cmgr.close(immediate: immediate);
 

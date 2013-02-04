@@ -9,7 +9,6 @@ class ProtocolOp {
   ProtocolOp(this._protocolOp);
 
 
-
   /**
    * Create a sequence that is the start of the protocol op
    * Sublclasses must add additional elements
