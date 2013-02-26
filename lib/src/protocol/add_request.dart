@@ -3,10 +3,10 @@ part of ldap_protocol;
 class AddRequest extends RequestOp {
 
   String _dn;     // dn of entry we are adding
-  List<Attribute> _attributes; // attribute of object
+  Map<String,Attribute> _attributes; // attribute of object
 
 
-  AddRequest(this._dn,this._attributes) :super(ADD_REQUEST);
+  AddRequest(this._dn, Map<String,Attribute> this._attributes) :super(ADD_REQUEST);
 
   /*
    * Encode the add request to BER
@@ -19,6 +19,9 @@ class AddRequest extends RequestOp {
                     type    AttributeDescription,
                     vals    SET OF AttributeValue }
 
+
+  todo: Handle attribute values other than OctetString
+
   */
 
   ASN1Object toASN1() {
@@ -27,11 +30,11 @@ class AddRequest extends RequestOp {
 
    var attrSeq = new ASN1Sequence();
 
-   _attributes.forEach((Attribute attr) {
+   _attributes.forEach((k,Attribute attr) {
      var s = new ASN1Sequence();
      s.add(new ASN1OctetString(attr.name));
      var ss = new ASN1Sequence();
-     attr.values.forEach( (String val) {
+     attr.values.forEach( (dynamic val) {
        ss.add(new ASN1OctetString(val));
      });
      s.add(ss);

@@ -62,10 +62,8 @@ main() {
    });
 
 
-   solo_test('add/modify/delete request', () {
+   test('add/modify/delete request', () {
       var dn = "uid=mmouse,ou=People,dc=example,dc=com";
-      var objclass = new Attribute("objectClass");
-      objclass.addValue("inetorgperson");
 
       // clean up first from any failed test
       c.delete(dn).then( (result) {
@@ -74,19 +72,17 @@ main() {
         print("delete result ${e.error.resultCode}");
       });
 
+      var attrs = { "cn" : "Mickey Mouse", "uid": "mmouse", "sn":"Mouse",
+                    "objectClass":["inetorgperson"]};
 
-      var attrs = [ new Attribute.simple("cn", "Mickey Mouse"),
-                    new Attribute.simple("uid", "mmouse"),
-                    new Attribute.simple("sn", "mouse"),
-                    objclass];
-
+      // add mickey to directory
       c.add(dn, attrs).then( expectAsync1((r) {
         expect( r.resultCode, equals(0));
-
+        // modify mickey's sn
         var m = new Modification.replace("sn", ["Sir Mickey"]);
         c.modify(dn, [m]).then( expectAsync1((result) {
           expect(result.resultCode,equals(0));
-
+          // finally delete mickey
           c.delete(dn).then( expectAsync1((result) {
             expect(result.resultCode,equals(0));
           }));
@@ -115,8 +111,6 @@ main() {
      }).catchError( ( e) {
        expect( e.error.resultCode, greaterThan(0));
      });
-
-
    }); // end test
 
   }); // end group

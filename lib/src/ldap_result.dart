@@ -268,5 +268,7 @@ class SearchEntry {
 
 
   SearchEntry(this._dn,this._attributes);
+
+  String toString() => "Entry[$_dn,$_attributes]";
 }
 

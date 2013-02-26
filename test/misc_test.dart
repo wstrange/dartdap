@@ -42,10 +42,38 @@ main() {
     var c1 =  f1 & f2;
 
     print(c1.toString());
+  });
 
+  test("Attribute equality", () {
+    var a1 = new Attribute("cn","Foo");
+    var a2 = new Attribute("cn","Foo");
+
+    expect(a1, equals(a2));
 
   });
 
+  test("Convert Map to attribute Map", () {
+    // map has a mix of string, list and Attribute types
+    var m = { "cn":"Foo", "sn": ["one", "two"],
+              "objectclass":new Attribute("objectclass",["top", "inetorgperson"]) };
+
+    var m2 = Attributes.fromMap(m);
+
+    m2.forEach( (k,v) => expect(v, new isInstanceOf<Attribute>()));
+
+    expect(m2, containsPair("cn", new Attribute("cn","Foo")));
+    expect(m2,containsPair("sn", new Attribute("sn",["two","one"])));
+    expect(m2,containsPair("objectclass", new Attribute("objectclass",["top", "inetorgperson"]) ));
+
+  });
+
+  test("Modifications",  () {
+    var m = Modification.modList([
+      ["a","sn","Mickey Mouse"]
+                                  ]);
+    print("$m");
+
+  });
 
 
 }

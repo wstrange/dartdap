@@ -16,10 +16,9 @@ import '../ldap_connection.dart';
 
 
 /**
- * Holds a pending LDAP operation. We expect to see
- * a response to this operation come back.
+ * Records a pending LDAP operation that we have issued.
  *
- * todo: Do we implement timeouts?
+ * todo: Implement timeouts?
  */
 class PendingOp {
 

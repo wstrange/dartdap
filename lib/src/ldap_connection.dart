@@ -61,9 +61,16 @@ class LDAPConnection {
       List<String> attributes, {int scope: SearchScope.SUB_LEVEL}) =>
           _cmgr.process(new SearchRequest(baseDN,filter, attributes,scope));
 
+  /**
+   * Add a new LDAP entry.
+   * [dn] is the LDAP Distinguised Name.
+   * [attrs] is a map of attributes keyed by the attribute name. The
+   *   attribute values can be simple Strings, lists of strings,
+   *   or alternatively can be of type [Attribute]
+   */
 
-  Future<LDAPResult> add(String dn, List<Attribute> attrs) =>
-      _cmgr.process(new AddRequest(dn,attrs));
+  Future<LDAPResult> add(String dn, Map<String,dynamic> attrs) =>
+      _cmgr.process(new AddRequest(dn,Attributes.fromMap(attrs)));
 
   Future<LDAPResult> delete(String dn) => _cmgr.process(new DeleteRequest(dn));
 

@@ -23,4 +23,33 @@ class Modification {
     _operation = REPLACE;
   }
 
+  Modification.add(this._attrName, this._values) {
+    _operation = ADD;
+  }
+
+  Modification.increment(this._attrName, this._values) {
+    _operation = INCREMENT;
+  }
+
+  Modification.delete(this._attrName, this._values) {
+    _operation = DELETE;
+  }
+
+  //  ["r","sn", "Mickey Mouse"]
+  static List<Modification> modList( List<List> modList ) {
+    var list = new List();
+    modList.forEach(  (x) {
+      assert( x.length == 3);
+      String op = x[0];
+      var attr = x[1];
+      var vals = x[2];
+      switch (op) {
+        case "a" :
+          list.add( new Modification.add(attr,vals));
+          break;
+      }
+    });
+    return list;
+  }
+
 }
