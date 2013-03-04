@@ -19,7 +19,7 @@ part 'search_request.dart';
 part 'ldap_responses.dart';
 part 'ldap_message.dart';
 part 'response_handler.dart';
-part 'search_result.dart';
+part 'search_result_entry.dart';
 part 'add_request.dart';
 part 'delete_request.dart';
 part 'modify_request.dart';

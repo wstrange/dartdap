@@ -3,6 +3,10 @@ library ldap_result;
 import 'attribute.dart';
 
 /**
+ * Various ldap result objects
+ */
+
+/**
 * LDAPResult - Sequnce
  *   resultCode (ENUM), matchedDN, errorMessage, referral (optional)
  *
@@ -250,6 +254,8 @@ class SearchResult {
   LDAPResult ldapResult;
 
   List<SearchEntry> _entries = new List();
+
+  List<SearchEntry> get searchEntries => _entries;
 
   add(SearchEntry r) => _entries.add(r);
 

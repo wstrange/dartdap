@@ -45,4 +45,22 @@ class LDAPUtil {
       buf.add(' '); });
     return buf.toString();
   }
+
 }
+
+/**
+ * Utility for building DN's
+ */
+class DN {
+  String _dn;
+
+  DN(this._dn);
+
+  DN concat(String prefix) => new DN("$prefix,$_dn");
+
+  String get dn => _dn.toString();
+
+  String toString() => _dn;
+}
+
+

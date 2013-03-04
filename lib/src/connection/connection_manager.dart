@@ -52,6 +52,7 @@ class ConnectionManager {
   static const CONNECTING = 1;
   static const CONNECTED = 2;
   static const CLOSED = 3;
+  const TIMEOUT = const Duration(seconds: 3);
 
   bool _bindPending = false;
 
@@ -74,10 +75,18 @@ class ConnectionManager {
     logger.finest("Creating socket to ${_connection.host}:${_connection.port}");
     _connectionState = CONNECTING;
     _bindPending = false;
-    _socket = new Socket(_connection.host,_connection.port);
+    //_socket = new Socket.connect(_connection.host,_connection.port);
 
-    _socket.onConnect = _connectHandler;
-    _socket.onError = _errorHandler;
+    Socket.connect(_connection.host,_connection.port).then( (Socket sock) {
+      logger.fine("Connected to $_connection.host:$_connection.port");
+      _connectionState = CONNECTED;
+      _socket = sock;
+      //sock.listen(_dataHandler,_errorHandler);
+      sock.listen(_handleData);
+
+      sendPendingMessage();
+    });
+
   }
 
 
@@ -117,13 +126,15 @@ class ConnectionManager {
   _sendMessage(PendingOp op) {
     logger.fine("Sending message ${op.message}");
     var l = op.message.toBytes();
-    _socket.writeList(l, 0,l.length);
+
+    //_socket.writeList(l, 0,l.length);
+    _socket.add(l);
     _pendingMessages[op.message.messageId] = op;
     if( op.message.protocolTag == BIND_REQUEST)
       _bindPending = true;
   }
 
-
+/*
   _connectHandler() {
     logger.fine("Connected *****");
     _connectionState = CONNECTED;
@@ -132,6 +143,7 @@ class ConnectionManager {
 
     sendPendingMessage();
   }
+  */
 
   /**
    *
@@ -146,11 +158,12 @@ class ConnectionManager {
       _doClose();
     }
     else {
-      new Timer.repeating(1000, (Timer t) {
+      new Timer.repeating(TIMEOUT, (Timer t) {
         if( _tryClose() ) {
           t.cancel();
         }
       });
+
     }
   }
 
@@ -171,9 +184,25 @@ class ConnectionManager {
   }
 
 
-  /// Handle incoming messages
-  _dataHandler() {
-    int available = _socket.available();
+  // parse the incoming LDAP message
+  _handleData(List<int> data) {
+   logger.fine("Got data $data");
+
+   var _buf = data;
+   int i = 0;
+   while(true) {
+     //var _buf = data.getRange(i,data.length-i);
+
+     var bytesRead = _handleMessage(_buf);
+     i += bytesRead;
+     if( i >= data.length)
+       break;
+     _buf = data.getRange(i, data.length -i);
+   }
+
+   sendPendingMessage();
+  }
+    /*
     while( available > 0 ) {
       var buffer = new Uint8List(available);
 
@@ -204,6 +233,7 @@ class ConnectionManager {
     }
     logger.finest("No more data, exiting _dataHandler");
   }
+  */
 
   /// todo: what if search results come back out of order? Possible?
   ///

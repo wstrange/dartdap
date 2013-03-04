@@ -36,16 +36,28 @@ class Modification {
   }
 
   //  ["r","sn", "Mickey Mouse"]
-  static List<Modification> modList( List<List> modList ) {
-    var list = new List();
+  static List<Modification> modList( List modList ) {
+    var list = new List<Modification>();
     modList.forEach(  (x) {
       assert( x.length == 3);
       String op = x[0];
       var attr = x[1];
       var vals = x[2];
+      if( ! (vals is List))
+        vals = [vals];
+
       switch (op) {
         case "a" :
           list.add( new Modification.add(attr,vals));
+          break;
+        case "d":
+          list.add( new Modification.delete(attr, vals));
+          break;
+        case "r":
+          list.add( new Modification.replace(attr, vals));
+          break;
+        case "i":
+          list.add( new Modification.increment(attr, vals));
           break;
       }
     });
