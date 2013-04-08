@@ -3,7 +3,6 @@
 import 'package:unittest/unittest.dart';
 import 'package:dartdap/ldap_client.dart';
 
-import 'dart:scalarlist';
 import 'dart:math';
 import 'dart:isolate';
 

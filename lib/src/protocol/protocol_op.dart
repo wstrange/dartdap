@@ -15,7 +15,6 @@ class ProtocolOp {
    */
   ASN1Sequence _startSequence() {
     var seq = new ASN1Sequence(_protocolOp);
-
     return seq;
   }
 }

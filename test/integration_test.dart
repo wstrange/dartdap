@@ -3,7 +3,6 @@
 import 'package:unittest/unittest.dart';
 import 'package:dartdap/ldap_client.dart';
 
-import 'dart:scalarlist';
 import 'dart:math';
 import 'dart:isolate';
 
@@ -19,11 +18,9 @@ main() {
     setUp( () {
       initLogging();
       print("Create connection");
-      c = new LDAPConnection("localhost", 1389,dn,pw);
-      var fb  = c.bind();
-      fb.then( (r) { print("LDAP Connection Bind"); });
+      c = new LDAPConnection("localhost", 1389);
 
-      c.onError = (e) { print("Connection error $e"); };
+      return c.connect();
     });
 
     tearDown( () {
@@ -36,6 +33,8 @@ main() {
     test('Search Test', () {
      var attrs = ["dn", "cn", "objectClass"];
 
+     c.bind(dn,pw)
+.
      c.onError = expectAsync1((e) => expect(false, 'Should not be reached'), count: 0);
 
      var filter = Filter.substring("cn=A*");
@@ -113,7 +112,11 @@ main() {
      });
    }); // end test
 
-  }); // end group
+  }); // end grou
 
 
+  test('foo', () {
+
+    //c.bind(username,pw).then( c.add(dn, attrs).then(c)
+  });
 }

@@ -1,54 +1,51 @@
-
-
 import 'package:unittest/unittest.dart';
-
-
 import 'package:dartdap/ldap_client.dart';
-import 'package:asn1lib/asn1lib.dart';
 
-import 'dart:scalarlist';
-import 'dart:math';
 
 
 main() {
   //var dn = "cn=test";
   var dn = "cn=Directory Manager";
-  var pw = "password";
-
+  var pw = "Oracle123";
+  LDAPConnection c;
 
   initLogging();
 
+  group('LDAP Bind Group', () {
 
-
-  test('Ldap Bind test', () {
-
-    //_logger.fine("Test LOGGING ********");
-
-    var c = new LDAPConnection("localhost", 1389,dn,pw);
-
-    var f = c.bind();
-
-    f.then( (LDAPResult r) {
-      print("Bind Completed with ${r}");
+    setUp( () {
+      print("Create new connection");
+      c = new LDAPConnection('localhost',1389);
     });
 
-    c.close();
+    tearDown( () {
+      print("Teardown");
+      c.close(true);
+    });
 
-  });
+    test('Simple Bind', () {
+      c.connect()
+        .then( (r) => c.bind(dn,pw))
+        .then( expectAsync1((LDAPResult r) {
+            print("****** Got expected LDAP result $r");
+            expect(r.resultCode, equals(0));
+        }));
+    });
 
- test('Ldap Bind to non existing server', () {
+    test('Bind to bad DN', () {
+      print("BAD BIND test");
+      c.connect()
+        .then( (r) => c.bind("cn=foofoo",pw))
+        .then( expectAsync1((r) {
+            expect(false,"Should not be reached");
+        },count:0))
+        .catchError( expectAsync1( (e) {
+          print("Got expected async error ${e}");
+          expect(e.error.resultCode,equals(49));
+        }));
+    });
 
-    var c = new LDAPConnection("no-server-localhost", 21389,dn,pw);
-
-    bool hadError = false;
-    c.onError = (e) {
-      print("Got exception ${e}");
-    };
-
-    c.close();
-
-  });
-
+  }); // end group
 
 
 }

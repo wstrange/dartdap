@@ -1,6 +1,6 @@
 library ldap_protocol;
 
-import 'dart:scalarlist';
+import 'dart:typeddata';
 import 'dart:isolate';
 import 'package:asn1lib/asn1lib.dart';
 import 'package:logging/logging.dart';

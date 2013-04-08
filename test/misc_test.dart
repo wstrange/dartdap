@@ -8,7 +8,6 @@ import 'package:asn1lib/asn1lib.dart';
 
 import 'package:dartdap/src/protocol/ldap_protocol.dart';
 
-import 'dart:scalarlist';
 import 'dart:math';
 import 'dart:isolate';
 

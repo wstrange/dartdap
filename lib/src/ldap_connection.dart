@@ -16,18 +16,13 @@ import 'search_scope.dart';
 
 class LDAPConnection {
 
-  String _host;
-  int _port;
-  String _connectDn = "";
-  String _password;
-
-  String get host => _host;
-  int get port => _port;
-
   ConnectionManager _cmgr;
 
   Function onError; // global error handler
 
+  // whether or not non zero ldap codes should generate an error
+  // vs. just returning the LDAPResult code and letting the
+  // caller check ther result.
   bool _errorOnNonZeroResult = true;
 
   /**
@@ -41,16 +36,26 @@ class LDAPConnection {
   set errorOnNonZeroResult(bool flag) => _errorOnNonZeroResult = flag;
   bool get errorOnNonZeroResult => _errorOnNonZeroResult;
 
-  LDAPConnection(this._host,this._port,[this._connectDn ,this._password]) {
-    _cmgr = new ConnectionManager(this);
-    _cmgr.connect();
+  LDAPConnection(String host, int port) {
+    _cmgr = new ConnectionManager(host,port);
   }
 
+  Future<LDAPConnection> connect() {
+    var c = new Completer<LDAPConnection>();
+    _cmgr.connect().then( (cx) {
+      c.complete(this);
+    }).catchError( (AsyncError e) {
+      logger.severe("Connect error ${e.error}");
+      c.completeError(e);
+    });
+
+    return c.future;
+  }
   /**
    * Bind to LDAP server
    */
-  Future<LDAPResult> bind() =>
-    _cmgr.process(new BindRequest(_connectDn, _password));
+  Future<LDAPResult> bind(String connectDn, String password) =>
+    _cmgr.process(new BindRequest(connectDn, password));
 
 
   /**
@@ -77,7 +82,7 @@ class LDAPConnection {
   Future<LDAPResult> modify(String dn, Iterable<Modification> mods) =>
       _cmgr.process( new ModifyRequest(dn,mods));
 
-  close({bool immediate:false}) => _cmgr.close(immediate: immediate);
+  close([bool immediate = false]) => _cmgr.close(immediate);
 
 
 }

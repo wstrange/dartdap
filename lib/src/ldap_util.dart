@@ -12,7 +12,7 @@ class LDAPUtil {
    */
   static String escapeString(String s) {
     StringBuffer buf = new StringBuffer();
-    s.charCodes.forEach( (c) {
+    s.codeUnits.forEach( (c) {
 
       switch(c) {
       	case 0x2a:  // *
@@ -20,11 +20,11 @@ class LDAPUtil {
       	case 0x29:  // )
       	case 0x00:  // null
       	case 0x5c: // \
-          buf.add('\\');
-          buf.add(c.toRadixString(16));
+          buf.write('\\');
+          buf.write(c.toRadixString(16));
           break;
         default:
-          buf.addCharCode(c);
+          buf.writeCharCode(c);
           break;
       }
 
@@ -41,8 +41,8 @@ class LDAPUtil {
     var buf = new StringBuffer();
 
     bytes.forEach( (b) {
-      buf.add(b.toRadixString(16));
-      buf.add(' '); });
+      buf.write(b.toRadixString(16));
+      buf.write(' '); });
     return buf.toString();
   }
 

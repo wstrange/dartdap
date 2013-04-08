@@ -3,7 +3,7 @@ library connection_manager;
 
 import 'dart:io';
 import 'dart:async';
-import 'dart:scalarlist';
+import 'dart:typeddata';
 import 'dart:collection';
 
 import 'package:logging/logging.dart';
@@ -16,7 +16,8 @@ import '../ldap_connection.dart';
 
 
 /**
- * Records a pending LDAP operation that we have issued.
+ * Holds a pending LDAP operation that we have issued to the rserver. We
+ * expect to get a response back from the server for this op.
  *
  * todo: Implement timeouts?
  */
@@ -24,7 +25,7 @@ class PendingOp {
 
   Stopwatch _stopwatch = new Stopwatch()..start();
 
-  bool _errorOnNonZero; // completer should throw error on non zero ldap result
+  bool _errorOnNonZero; // if true, completer should throw error on non zero ldap result
 
   bool get errorOnNonZero => _errorOnNonZero;
 
@@ -61,31 +62,34 @@ class ConnectionManager {
 
   int _nextMessageId = 1;
 
-  LDAPConnection _connection;
+  // default. TODO fix this
+  bool errorOnNonZeroResult = true;
 
-  ConnectionManager(this._connection);
+  int _port;
+  String _host;
+
+  ConnectionManager(this._host,this._port);
 
   Function onError;
 
-  connect() {
-    if( _connectionState == CONNECTED ) {
-      return;
-    }
+  Future<ConnectionManager> connect() {
+    logger.finest("Creating socket to ${_host}:${_port}");
 
-    logger.finest("Creating socket to ${_connection.host}:${_connection.port}");
-    _connectionState = CONNECTING;
-    _bindPending = false;
-    //_socket = new Socket.connect(_connection.host,_connection.port);
+    var c = new Completer<ConnectionManager>();
 
-    Socket.connect(_connection.host,_connection.port).then( (Socket sock) {
-      logger.fine("Connected to $_connection.host:$_connection.port");
+
+    Socket.connect(_host,_port).then( (Socket sock) {
+      logger.fine("Connected to $_host:$_port");
       _connectionState = CONNECTED;
       _socket = sock;
       //sock.listen(_dataHandler,_errorHandler);
       sock.listen(_handleData);
-
-      sendPendingMessage();
-    });
+      c.complete(this);
+    }).catchError((AsyncError e) {
+      logger.severe("Can't connect to $_host $_port");
+      c.completeError(e);
+    });;
+    return c.future;
 
   }
 
@@ -93,7 +97,7 @@ class ConnectionManager {
   Future process(RequestOp rop) {
     var m = new LDAPMessage(++_nextMessageId, rop);
 
-    var op = new PendingOp(m,_connection.errorOnNonZeroResult);
+    var op = new PendingOp(m,errorOnNonZeroResult);
     _outgoingMessageQueue.add( op);
 
 
@@ -126,24 +130,13 @@ class ConnectionManager {
   _sendMessage(PendingOp op) {
     logger.fine("Sending message ${op.message}");
     var l = op.message.toBytes();
-
-    //_socket.writeList(l, 0,l.length);
-    _socket.add(l);
+    //print("Message BYTES=$l");
+    _socket.writeBytes(l);
     _pendingMessages[op.message.messageId] = op;
     if( op.message.protocolTag == BIND_REQUEST)
       _bindPending = true;
   }
 
-/*
-  _connectHandler() {
-    logger.fine("Connected *****");
-    _connectionState = CONNECTED;
-
-    _socket.onData = _dataHandler;
-
-    sendPendingMessage();
-  }
-  */
 
   /**
    *
@@ -153,12 +146,12 @@ class ConnectionManager {
    * Pending operations will be allowed to finish, unless immediate = true
    */
 
-  close({bool immediate:false}) {
+  close(bool immediate) {
     if( immediate ) {
       _doClose();
     }
     else {
-      new Timer.repeating(TIMEOUT, (Timer t) {
+      new Timer.periodic(TIMEOUT, (Timer t) {
         if( _tryClose() ) {
           t.cancel();
         }
@@ -179,6 +172,7 @@ class ConnectionManager {
   }
 
   _doClose() {
+    logger.fine("Final Close");
     _socket.close();
     _connectionState = CLOSED;
   }
@@ -283,6 +277,7 @@ class ConnectionManager {
   _errorHandler(e) {
     logger.severe("LDAP Error ${e}");
     var ex = new LDAPException(e.toString());
+    /*
     if( _connection.onError != null) {
       _connection.onError(ex);
     }
@@ -290,6 +285,8 @@ class ConnectionManager {
       logger.warning("No error handler set for LDAPConnection");
       throw ex;
     }
+    */
+    throw ex;
   }
 
 }

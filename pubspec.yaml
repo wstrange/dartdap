@@ -3,7 +3,8 @@ version: 0.0.1
 author: warren.strange@gmail.com
 description: A dart ldap client library
 dependencies:
-  unittest: any
   logging: any
-
-# asn1lib - has to be sym linked for now...
+  asn1lib:
+    path: ../asn1lib
+dev_dependencies:
+  unittest: any
