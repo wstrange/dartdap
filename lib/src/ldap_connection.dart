@@ -13,10 +13,11 @@ import 'protocol/ldap_protocol.dart';
 import 'search_scope.dart';
 
 
-
 class LDAPConnection {
-
   ConnectionManager _cmgr;
+
+  String _bindDN;
+  String _password;
 
   Function onError; // global error handler
 
@@ -36,10 +37,19 @@ class LDAPConnection {
   set errorOnNonZeroResult(bool flag) => _errorOnNonZeroResult = flag;
   bool get errorOnNonZeroResult => _errorOnNonZeroResult;
 
-  LDAPConnection(String host, int port) {
+  /**
+   * Create a new LDAP connection to [host] and [port]
+   * Optionally store a bind [dn] and [password] which can be used to
+   * rebind to the connection
+   */
+  LDAPConnection(String host, int port, [this._bindDN, this._password]) {
     _cmgr = new ConnectionManager(host,port);
   }
 
+  /*
+   * Open a connection to the LDAP server. Note that this does NOT
+   * perform a BIND operation.
+   */
   Future<LDAPConnection> connect() {
     var c = new Completer<LDAPConnection>();
     _cmgr.connect().then( (cx) {
@@ -52,10 +62,15 @@ class LDAPConnection {
     return c.future;
   }
   /**
-   * Bind to LDAP server
+   * Bind to LDAP server. If the optional [bindDN] and [password] are not passed
+   * the connection stored values are used for the bind.
    */
-  Future<LDAPResult> bind(String connectDn, String password) =>
-    _cmgr.process(new BindRequest(connectDn, password));
+  Future<LDAPResult> bind([String bindDN, String password]) {
+    if( ?bindDN )
+      return _cmgr.process(new BindRequest(bindDN, password));
+    else
+      return _cmgr.process(new BindRequest(_bindDN, _password));
+  }
 
 
   /**

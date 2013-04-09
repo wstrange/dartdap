@@ -1,0 +1,4 @@
+port: 1389
+host: localhost
+bindDN: cn=Directory Manager
+password: Oracle123

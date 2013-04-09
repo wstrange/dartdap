@@ -143,9 +143,7 @@ ALIAS_DEREFERENCING_PROBLEM (aliasDereferencingProblem)
 
 INAPPROPRIATE_AUTHENTICATION (inappropriateAuthentication)
 
-49
 
-INVALID_CREDENTIALS (invalidCredentials)
 
 50
 
@@ -219,6 +217,9 @@ class ResultCode {
   static const int UNDEFINED_ATTRIBUTE_TYPE = 17;
 
 
+  static const int INVALID_CREDENTIALS = 49;
+
+
 
   //static const int
 
@@ -239,6 +240,7 @@ class ResultCode {
       case SASL_BIND_IN_PROGRESS: return "SASL_BIND_IN_PROGRESS";
       case NO_SUCH_ATTRIBUTE: return "NO_SUCH_ATTRIBUTE";
       case UNDEFINED_ATTRIBUTE_TYPE: return "UNDEFINED_ATTRIBUTE_TYPE";
+      case INVALID_CREDENTIALS: return "Invalid Credentials";
 
 
 

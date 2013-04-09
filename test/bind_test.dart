@@ -7,41 +7,39 @@ main() {
   //var dn = "cn=test";
   var dn = "cn=Directory Manager";
   var pw = "Oracle123";
-  LDAPConnection c;
+  LDAPConnection ldap;
+  var ldapConfig = new LDAPConfiguration('test/ldap.yaml');
 
   initLogging();
 
   group('LDAP Bind Group', () {
 
     setUp( () {
-      print("Create new connection");
-      c = new LDAPConnection('localhost',1389);
+      return ldapConfig.getConnection(false)
+          .then( (c) => ldap = c);
     });
 
     tearDown( () {
       print("Teardown");
-      c.close(true);
+      //ldap.close(true);
     });
 
-    test('Simple Bind', () {
-      c.connect()
-        .then( (r) => c.bind(dn,pw))
+    test('Simple Bind using default connection creds', () {
+      ldap.bind()
         .then( expectAsync1((LDAPResult r) {
             print("****** Got expected LDAP result $r");
             expect(r.resultCode, equals(0));
         }));
     });
 
-    test('Bind to bad DN', () {
-      print("BAD BIND test");
-      c.connect()
-        .then( (r) => c.bind("cn=foofoo",pw))
+    test('Bind to a bad DN', () {
+      ldap.bind("cn=foofoo",pw)
         .then( expectAsync1((r) {
             expect(false,"Should not be reached");
         },count:0))
         .catchError( expectAsync1( (e) {
           print("Got expected async error ${e}");
-          expect(e.error.resultCode,equals(49));
+          expect(e.error.resultCode,equals(ResultCode.INVALID_CREDENTIALS));
         }));
     });
 

@@ -3,44 +3,40 @@
 import 'package:unittest/unittest.dart';
 import 'package:dartdap/ldap_client.dart';
 
+
 import 'dart:math';
 import 'dart:isolate';
+import 'dart:async';
 
 
 main() {
-  //var dn = "cn=test";
-  var dn = "cn=Directory Manager";
-  var pw = "password";
-  LDAPConnection c;
+  LDAPConnection ldap;
 
+  var ldapConfig = new LDAPConfiguration("test/ldap.yaml");
 
-  group('Test group', () {
+  initLogging();
+
+  group('LDAP Integration  group', () {
     setUp( () {
-      initLogging();
-      print("Create connection");
-      c = new LDAPConnection("localhost", 1389);
 
-      return c.connect();
+      return ldapConfig.getConnection()
+          .then( (LDAPConnection l) => ldap =l );
     });
 
     tearDown( () {
       print("Closing ...");
-      c.close();
+      ldap.close(true);
     });
 
-
-
-    test('Search Test', () {
+    solo_test('Search Test', () {
      var attrs = ["dn", "cn", "objectClass"];
 
-     c.bind(dn,pw)
-.
-     c.onError = expectAsync1((e) => expect(false, 'Should not be reached'), count: 0);
+     ldap.onError = expectAsync1((e) => expect(false, 'Should not be reached'), count: 0);
 
      var filter = Filter.substring("cn=A*");
 
 
-     var sb = c.search("dc=example,dc=com", filter, attrs);
+     var sb = ldap.search("dc=example,dc=com", filter, attrs);
 
     // todo: define SearchResult
      sb.then( expectAsync1( (SearchResult r) {
@@ -49,7 +45,7 @@ main() {
 
      var notFilter = Filter.not(filter);
 
-     sb = c.search("dc=example,dc=com", notFilter, attrs);
+     sb = ldap.search("dc=example,dc=com", notFilter, attrs);
      /*-------------------
      sb.then( expectAsync1( (SearchResult r) {
        print("Not Search Completed r = ${r}");
@@ -65,7 +61,7 @@ main() {
       var dn = "uid=mmouse,ou=People,dc=example,dc=com";
 
       // clean up first from any failed test
-      c.delete(dn).then( (result) {
+      ldap.delete(dn).then( (result) {
         print("delete result= $result");
       }).catchError( (e) {
         print("delete result ${e.error.resultCode}");
@@ -75,14 +71,14 @@ main() {
                     "objectClass":["inetorgperson"]};
 
       // add mickey to directory
-      c.add(dn, attrs).then( expectAsync1((r) {
+      ldap.add(dn, attrs).then( expectAsync1((r) {
         expect( r.resultCode, equals(0));
         // modify mickey's sn
         var m = new Modification.replace("sn", ["Sir Mickey"]);
-        c.modify(dn, [m]).then( expectAsync1((result) {
+        ldap.modify(dn, [m]).then( expectAsync1((result) {
           expect(result.resultCode,equals(0));
           // finally delete mickey
-          c.delete(dn).then( expectAsync1((result) {
+          ldap.delete(dn).then( expectAsync1((result) {
             expect(result.resultCode,equals(0));
           }));
         }));
@@ -95,17 +91,17 @@ main() {
 
      var dn = "uid=FooDoesNotExist,ou=People,dc=example,dc=com";
 
-     c.errorOnNonZeroResult = false;
+     ldap.errorOnNonZeroResult = false;
 
-     c.delete(dn).then(  (result) {
+     ldap.delete(dn).then(  (result) {
        expect( result.resultCode , greaterThan(0) );
      }).catchError( (result) {
        fail('catchError should not have been called');
      });
 
-     c.errorOnNonZeroResult = true;
+     ldap.errorOnNonZeroResult = true;
 
-     c.delete(dn).then(  (result) {
+     ldap.delete(dn).then(  (result) {
        fail('Future catchError should have been called');
      }).catchError( ( e) {
        expect( e.error.resultCode, greaterThan(0));
@@ -114,9 +110,4 @@ main() {
 
   }); // end grou
 
-
-  test('foo', () {
-
-    //c.bind(username,pw).then( c.add(dn, attrs).then(c)
-  });
 }

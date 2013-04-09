@@ -1,14 +1,19 @@
 
 library ldap_exception;
 
+import 'ldap_result.dart';
+
 class LDAPException implements Exception {
 
   String _message;
 
-  get message => _message;
+  LDAPResult _ldapResult;
 
-  LDAPException(this._message);
+  String get message => _message;
+  LDAPResult get ldapResult => _ldapResult;
 
-  String toString() => "LDAPException(${message}})";
+  LDAPException(this._message,[this.ldapResult]);
+
+  String toString() => "LDAPException(${message}, result=${_ldapResult})";
 
 }
