@@ -33,22 +33,19 @@ main() {
      ldap.onError = expectAsync1((e) => expect(false, 'Should not be reached'), count: 0);
 
      var filter = Filter.substring("cn=A*");
-     var sb = ldap.search("dc=example,dc=com", filter, attrs);
 
-     sb.listen( (SearchEntry entry) {
-       print("Found ${entry}");
-     } );
+
+     ldap.search("dc=example,dc=com", filter, attrs)
+       .listen( (SearchEntry entry) {
+          print("Found ${entry}");
+        });
 
      var notFilter = Filter.not(filter);
 
-     sb = ldap.search("dc=example,dc=com", notFilter, attrs);
-     /*-------------------
-     sb.then( expectAsync1( (SearchResult r) {
-       print("Not Search Completed r = ${r}");
-     }, count: 1));
-
-  */
-    //c.close();
+     ldap.search("dc=example,dc=com", notFilter, attrs)
+      .listen( (SearchEntry entry) {
+         print("Not search = ${entry}");
+      });
 
    });
 
