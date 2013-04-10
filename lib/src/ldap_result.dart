@@ -1,6 +1,7 @@
 library ldap_result;
 
 import 'attribute.dart';
+import 'dart:async';
 
 /**
  * Various ldap result objects
@@ -78,6 +79,7 @@ RFC 2251                         LDAPv3                    December 1997
 
 
 
+
 class LDAPResult {
 
   //ResultCode _resultCode;
@@ -100,6 +102,21 @@ class LDAPResult {
 }
 
 
+// Holds a SearchEntry result
+class SearchEntry {
+  String _dn;
+  String get dn => _dn;
+
+  List<Attribute> _attributes = new List();
+  List<Attribute> get attributes => _attributes;
+
+
+  SearchEntry(this._dn,this._attributes);
+
+  String toString() => "Entry[$_dn,$_attributes]";
+}
+
+
 /*
 
 todo: finish mapping these
@@ -119,9 +136,7 @@ ATTRIBUTE_OR_VALUE_EXISTS (AttributeOrValueExists)
 
 INVALID_ATTRIBUTE_SYNTAX (invalidAttributeSyntax)
 
-32
 
-NO_SUCH_OBJECT (noSuchObject)
 
 33
 
@@ -215,6 +230,7 @@ class ResultCode {
   static const int SASL_BIND_IN_PROGRESS = 14;
   static const int NO_SUCH_ATTRIBUTE = 16;
   static const int UNDEFINED_ATTRIBUTE_TYPE = 17;
+  static const int NO_SUCH_OBJECT = 32;
 
 
   static const int INVALID_CREDENTIALS = 49;
@@ -240,6 +256,7 @@ class ResultCode {
       case SASL_BIND_IN_PROGRESS: return "SASL_BIND_IN_PROGRESS";
       case NO_SUCH_ATTRIBUTE: return "NO_SUCH_ATTRIBUTE";
       case UNDEFINED_ATTRIBUTE_TYPE: return "UNDEFINED_ATTRIBUTE_TYPE";
+      case NO_SUCH_OBJECT: return "Object does not exist";
       case INVALID_CREDENTIALS: return "Invalid Credentials";
 
 
@@ -251,32 +268,6 @@ class ResultCode {
 }
 
 
-class SearchResult {
-
-  LDAPResult ldapResult;
-
-  List<SearchEntry> _entries = new List();
-
-  List<SearchEntry> get searchEntries => _entries;
-
-  add(SearchEntry r) => _entries.add(r);
-
-  String toString() {
-    return _entries.toString();
-  }
-}
-
-class SearchEntry {
-  String _dn;
-
-  String get dn => _dn;
-
-  List<Attribute> _attributes = new List();
-  List<Attribute> get attributes => _attributes;
 
 
-  SearchEntry(this._dn,this._attributes);
-
-  String toString() => "Entry[$_dn,$_attributes]";
-}
 

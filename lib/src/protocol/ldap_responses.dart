@@ -1,7 +1,7 @@
 part of ldap_protocol;
 
 /**
- * "Generic" type ldap responses.
+ * Defines LDAP response types
  */
 
 
@@ -28,41 +28,25 @@ class SearchResultDone extends ResponseOp {
 }
 
 /**
-ModifyResponse ::= [APPLICATION 7] LDAPResult
-
+ * ModifyResponse ::= [APPLICATION 7] LDAPResult
 */
 class ModifyResponse extends ResponseOp {
   ModifyResponse(ASN1Sequence s): super(s);
 }
 
 /**
- * Can handle any generic type response with an LDAP result.
+ * A generic response with an LDAP result.
  * This includes...
+ * AddResponse ::= [APPLICATION 9] LDAPResult
+ * DelResponse ::= [APPLICATION 11] LDAPResult
+ * ModifyDNResponse ::= [APPLICATION 13] LDAPResult
+ * CompareResponse ::= [APPLICATION 15] LDAPResult
  *
  */
 class GenericResponse extends ResponseOp {
   GenericResponse(ASN1Sequence s): super(s);
 }
 
-/**
-AddResponse ::= [APPLICATION 9] LDAPResult
-*/
-
-/**
-
-DelResponse ::= [APPLICATION 11] LDAPResult
-*/
-
-
-/**
-
-ModifyDNResponse ::= [APPLICATION 13] LDAPResult
-*/
-
-/**
- *
-CompareResponse ::= [APPLICATION 15] LDAPResult
-*/
 
 /**
 ExtendedResponse ::= [APPLICATION 24] SEQUENCE {
@@ -79,8 +63,6 @@ class ExtendedResponse extends ResponseOp {
    * The BER type for the extended response value element.
    */
   const int TYPE_EXTENDED_RESPONSE_VALUE = 0x8B;
-
-
 
   ExtendedResponse(ASN1Sequence s):super.extended(s) {
     // complete rest or parsing

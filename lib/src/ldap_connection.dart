@@ -21,22 +21,6 @@ class LDAPConnection {
 
   Function onError; // global error handler
 
-  // whether or not non zero ldap codes should generate an error
-  // vs. just returning the LDAPResult code and letting the
-  // caller check ther result.
-  bool _errorOnNonZeroResult = true;
-
-  /**
-   * If a non zero LDAP result code is returned, trigger the
-   * future's error method instead of returning the LDAPResult to
-   * the completer.
-   * Defaults to true.
-   * This is used to create a more fluent style where the result code does
-   * not always need to be checked.
-   */
-  set errorOnNonZeroResult(bool flag) => _errorOnNonZeroResult = flag;
-  bool get errorOnNonZeroResult => _errorOnNonZeroResult;
-
   /**
    * Create a new LDAP connection to [host] and [port]
    * Optionally store a bind [dn] and [password] which can be used to
@@ -47,8 +31,11 @@ class LDAPConnection {
   }
 
   /*
-   * Open a connection to the LDAP server. Note that this does NOT
-   * perform a BIND operation.
+   * Open a connection to the LDAP server. This does NOT
+   * perform a BIND operation. If the LDAP server
+   * supports anonymous bind, you can send ldap commands
+   * after the connect completes.
+   *
    */
   Future<LDAPConnection> connect() {
     var c = new Completer<LDAPConnection>();
@@ -58,12 +45,12 @@ class LDAPConnection {
       logger.severe("Connect error ${e.error}");
       c.completeError(e);
     });
-
     return c.future;
   }
+
   /**
    * Bind to LDAP server. If the optional [bindDN] and [password] are not passed
-   * the connection stored values are used for the bind.
+   * the connections stored values are used for the bind.
    */
   Future<LDAPResult> bind([String bindDN, String password]) {
     if( ?bindDN )
@@ -73,13 +60,20 @@ class LDAPConnection {
   }
 
 
-  /**
-   * Search Request
+  /*
+   * Search for ldap entries, starting at the [baseDN],
+   * specified by the search [filter].
+   * Return the listed [attributes].
+   *
+   * [scope] is optional, and defaults to SUB_LEVEL (i.e.
+   * search at base DN and all objects below it).
+   *
+   *
    */
 
-  Future<SearchResult> search(String baseDN, Filter filter,
+  Stream<SearchEntry> search(String baseDN, Filter filter,
       List<String> attributes, {int scope: SearchScope.SUB_LEVEL}) =>
-          _cmgr.process(new SearchRequest(baseDN,filter, attributes,scope));
+          _cmgr.processSearch(new SearchRequest(baseDN,filter, attributes,scope));
 
   /**
    * Add a new LDAP entry.
@@ -92,12 +86,15 @@ class LDAPConnection {
   Future<LDAPResult> add(String dn, Map<String,dynamic> attrs) =>
       _cmgr.process(new AddRequest(dn,Attributes.fromMap(attrs)));
 
+  // Delete the ldap entry identified by [dn]
   Future<LDAPResult> delete(String dn) => _cmgr.process(new DeleteRequest(dn));
 
+  // Modify the ldap entry [dn] with the list of modifications [mods]
   Future<LDAPResult> modify(String dn, Iterable<Modification> mods) =>
       _cmgr.process( new ModifyRequest(dn,mods));
 
+  // close the ldap connection. If [immediate] is true, close the
+  // connection immediately. This could result in queued operations
+  // being discarded
   close([bool immediate = false]) => _cmgr.close(immediate);
-
-
 }

@@ -11,37 +11,33 @@ import 'dart:async';
 
 main() {
   LDAPConnection ldap;
-
   var ldapConfig = new LDAPConfiguration("test/ldap.yaml");
 
   initLogging();
 
-  group('LDAP Integration  group', () {
+  group('LDAP Integration ', () {
+    // create a connection. Return a future that completes when
+    // the connection is available and bound
     setUp( () {
-
       return ldapConfig.getConnection()
           .then( (LDAPConnection l) => ldap =l );
     });
 
     tearDown( () {
-      print("Closing ...");
-      ldap.close(true);
+      // nothing to do. We keep the connection open
     });
 
-    solo_test('Search Test', () {
+    test('Search Test', () {
      var attrs = ["dn", "cn", "objectClass"];
 
      ldap.onError = expectAsync1((e) => expect(false, 'Should not be reached'), count: 0);
 
      var filter = Filter.substring("cn=A*");
-
-
      var sb = ldap.search("dc=example,dc=com", filter, attrs);
 
-    // todo: define SearchResult
-     sb.then( expectAsync1( (SearchResult r) {
-           print("Search Completed r = ${r}");
-         }, count: 1));
+     sb.listen( (SearchEntry entry) {
+       print("Found ${entry}");
+     } );
 
      var notFilter = Filter.not(filter);
 
@@ -89,25 +85,19 @@ main() {
 
    test('test error handling', () {
 
+     // dn we know will fail to delete as it does not exist
      var dn = "uid=FooDoesNotExist,ou=People,dc=example,dc=com";
 
-     ldap.errorOnNonZeroResult = false;
+     ldap.delete(dn)
+      .then( expectAsync1( (r) {
+          //print("Result = ${r}");
+          expect(false,'Future catchError should have been called');
+          }, count:0))
+      .catchError( expectAsync1( (e) {
+        expect( e.error.resultCode, equals(ResultCode.NO_SUCH_OBJECT));
+      }));
 
-     ldap.delete(dn).then(  (result) {
-       expect( result.resultCode , greaterThan(0) );
-     }).catchError( (result) {
-       fail('catchError should not have been called');
-     });
-
-     ldap.errorOnNonZeroResult = true;
-
-     ldap.delete(dn).then(  (result) {
-       fail('Future catchError should have been called');
-     }).catchError( ( e) {
-       expect( e.error.resultCode, greaterThan(0));
-     });
    }); // end test
 
   }); // end grou
-
 }

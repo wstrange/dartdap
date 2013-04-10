@@ -13,7 +13,7 @@ class SearchRequest extends RequestOp {
   Filter _filter;
 
 
-  SearchRequest(this._baseDN, this._filter, this._attributes, [this._scope = SearchScope.SUB_LEVEL, this._sizeLimit = 1000]):
+ SearchRequest(this._baseDN, this._filter, this._attributes, [this._scope = SearchScope.SUB_LEVEL, this._sizeLimit = 1000]):
     super(SEARCH_REQUEST) {
 //    /_protocolOp = SEARCH_REQUEST;
   }

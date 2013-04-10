@@ -38,7 +38,4 @@ class ResponseHandler {
     return op;
 
   }
-
-
-
 }
