@@ -12,7 +12,7 @@ class LDAPException implements Exception {
   String get message => _message;
   LDAPResult get ldapResult => _ldapResult;
 
-  LDAPException(this._message,[this.ldapResult]);
+  LDAPException(this._message,[this._ldapResult]);
 
   String toString() => "LDAPException(${message}, result=${_ldapResult})";
 
@@ -20,8 +20,7 @@ class LDAPException implements Exception {
 
 // Used for Non zero LDAP Result codes
 class LDAPResultException extends LDAPException {
-  LDAPResultException(LDAPResult r) {
-    _ldapResult = r;
-    _message = "LDAPResultCode Error code=${r.resultCode} message=${r.diagnosticMessage}";
+  LDAPResultException(LDAPResult r):super("LDAP Result error", r) {
+
   }
 }

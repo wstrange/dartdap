@@ -58,7 +58,7 @@ class _StreamPendingOp extends _PendingOp {
       var x = (op as SearchResultDone);
 
       if( x.ldapResult.resultCode != 0)
-        controller.addError( new LDAPResultException(x.ldapResult));
+        controller.addError(x.ldapResult);
 
       controller.close();
     }

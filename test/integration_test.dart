@@ -37,15 +37,26 @@ main() {
 
      ldap.search("dc=example,dc=com", filter, attrs)
        .listen( (SearchEntry entry) {
-          print("Found ${entry}");
+          //print("Found ${entry}");
         });
 
      var notFilter = Filter.not(filter);
 
      ldap.search("dc=example,dc=com", notFilter, attrs)
       .listen( (SearchEntry entry) {
-         print("Not search = ${entry}");
+         //print("Not search = ${entry}");
       });
+
+     // bad search
+
+     ldap.search("dn=foofoo", notFilter, attrs)
+      .listen(
+          expectAsync1( (r) => print("should not be called!"), count:0),
+          onError: expectAsync1( (e) =>  expect( e.error.resultCode, equals(ResultCode.NO_SUCH_OBJECT)))
+      );
+
+      //  ));
+
 
    });
 
@@ -53,11 +64,11 @@ main() {
    test('add/modify/delete request', () {
       var dn = "uid=mmouse,ou=People,dc=example,dc=com";
 
-      // clean up first from any failed test
+      // clean up first from any failed test. We don't care about the result
       ldap.delete(dn).then( (result) {
-        print("delete result= $result");
+        //print("delete result= $result");
       }).catchError( (e) {
-        print("delete result ${e.error.resultCode}");
+        //print("delete result ${e.error.resultCode}");
       });
 
       var attrs = { "cn" : "Mickey Mouse", "uid": "mmouse", "sn":"Mouse",
@@ -87,7 +98,6 @@ main() {
 
      ldap.delete(dn)
       .then( expectAsync1( (r) {
-          //print("Result = ${r}");
           expect(false,'Future catchError should have been called');
           }, count:0))
       .catchError( expectAsync1( (e) {
