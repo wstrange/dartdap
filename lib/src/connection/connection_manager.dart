@@ -3,7 +3,7 @@ library connection_manager;
 
 import 'dart:io';
 import 'dart:async';
-import 'dart:typeddata';
+import 'dart:typed_data';
 import 'dart:collection';
 
 import 'package:logging/logging.dart';
@@ -133,7 +133,7 @@ class ConnectionManager {
       //sock.listen(_dataHandler,_errorHandler);
       sock.listen(_handleData);
       c.complete(this);
-    }).catchError((AsyncError e) {
+    }).catchError((e) {
       logger.severe("Can't connect to $_host $_port");
       c.completeError(e);
     });;
@@ -183,7 +183,8 @@ class ConnectionManager {
   _sendMessage(_PendingOp op) {
     logger.fine("Sending message ${op.message}");
     var l = op.message.toBytes();
-    _socket.writeBytes(l);
+    //_socket.writeBytes(l);
+    _socket.add(l);
     _pendingMessages[op.message.messageId] = op;
     if( op.message.protocolTag == BIND_REQUEST)
       _bindPending = true;
@@ -242,7 +243,9 @@ class ConnectionManager {
      i += bytesRead;
      if( i >= data.length)
        break;
-     _buf = data.getRange(i, data.length -i);
+     // TODO: getRange is changing.
+     //_buf = data.getRange(i, data.length);
+     _buf = data.sublist(i);
    }
 
    _sendPendingMessage();

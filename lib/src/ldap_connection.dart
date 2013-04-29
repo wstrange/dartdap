@@ -23,7 +23,8 @@ class LDAPConnection {
 
   /**
    * Create a new LDAP connection to [host] and [port]
-   * Optionally store a bind [dn] and [password] which can be used to
+   *
+   * Optionally store a bind [_bindDN] and [_password] which can be used to
    * rebind to the connection
    */
   LDAPConnection(String host, int port, [this._bindDN, this._password]) {
@@ -41,7 +42,7 @@ class LDAPConnection {
     var c = new Completer<LDAPConnection>();
     _cmgr.connect().then( (cx) {
       c.complete(this);
-    }).catchError( (AsyncError e) {
+    }).catchError( ( e) {
       logger.severe("Connect error ${e.error}");
       c.completeError(e);
     });

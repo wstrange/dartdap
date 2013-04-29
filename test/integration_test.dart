@@ -52,7 +52,7 @@ main() {
      ldap.search("dn=foofoo", notFilter, attrs)
       .listen(
           expectAsync1( (r) => print("should not be called!"), count:0),
-          onError: expectAsync1( (e) =>  expect( e.error.resultCode, equals(ResultCode.NO_SUCH_OBJECT)))
+          onError: expectAsync1( (e) =>  expect( e.resultCode, equals(ResultCode.NO_SUCH_OBJECT)))
       );
 
       //  ));
@@ -101,7 +101,7 @@ main() {
           expect(false,'Future catchError should have been called');
           }, count:0))
       .catchError( expectAsync1( (e) {
-        expect( e.error.resultCode, equals(ResultCode.NO_SUCH_OBJECT));
+        expect( e.resultCode, equals(ResultCode.NO_SUCH_OBJECT));
       }));
 
    }); // end test

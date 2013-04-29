@@ -62,7 +62,7 @@ class LDAPConfiguration {
   Future<LDAPConnection> getConnection([bool doBind = true]) {
     // if we have an existing connection - return that immediatley
     if( connection != null )
-      return new Future.immediate(connection);
+      return new Future(() => connection);
 
     var c = new Completer<LDAPConnection>();
 
@@ -81,7 +81,7 @@ class LDAPConfiguration {
           else // no bind requested. Just complete with the connection
             c.complete(connection);
          })
-        .catchError( (AsyncError e) {
+        .catchError( (e) {
           c.completeError(e);
         });
     });

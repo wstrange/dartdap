@@ -39,7 +39,7 @@ main() {
         },count:0))
         .catchError( expectAsync1( (e) {
           print("Got expected async error ${e}");
-          expect(e.error.resultCode,equals(ResultCode.INVALID_CREDENTIALS));
+          expect(e.resultCode,equals(ResultCode.INVALID_CREDENTIALS));
         }));
     });
 

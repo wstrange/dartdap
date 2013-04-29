@@ -14,7 +14,7 @@ class ProtocolOp {
    * Sublclasses must add additional elements
    */
   ASN1Sequence _startSequence() {
-    var seq = new ASN1Sequence(_protocolOp);
+    var seq = new ASN1Sequence(tag:_protocolOp);
     return seq;
   }
 }

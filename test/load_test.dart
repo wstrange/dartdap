@@ -42,15 +42,14 @@ main() {
      for( int i=0; i < 100; ++i ) {
        var attrs = { "sn":"test$i", "cn":"Test user$i",
                      "objectclass":["inetorgperson"]};
-       ldap.add("uid=test$i,ou=People,dc=example,dc=com", attrs).then( (r) {
-         expect(r.resultCode,equals(0));
-       });
+        ldap.add("uid=test$i,ou=People,dc=example,dc=com", attrs).then( (r) {
+          expect(r.resultCode,equals(0));
+        });
      }
 
      ldap.search("ou=People,dc=example,dc=com",
-         Filter.substring("uid=test*"), ["uid","sn"]).then( (SearchResult result) {
-           print("Got result= ${result}");
-           result.searchEntries.forEach((e) {print(e);} );
+         Filter.substring("uid=test*"), ["uid","sn"]).listen( (SearchEntry entry) {
+           print("Got entry= ${entry}");
          });
 
    });

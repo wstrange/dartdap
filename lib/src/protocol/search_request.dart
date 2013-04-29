@@ -78,22 +78,23 @@ class SearchRequest extends RequestOp {
 
         var enc = _filterToASN1(notObj);
         enc.encode();
-        return new ASN1Object.fromTag(Filter.TYPE_NOT, enc.encodedBytes);
+
+        return new ASN1Object.preEncoded(Filter.TYPE_NOT, enc.encodedBytes);
 
 
       case Filter.TYPE_SUBSTRING:
         var s = f as SubstringFilter;
-        var seq = new ASN1Sequence(s.filterType);
+        var seq = new ASN1Sequence(tag:s.filterType);
         seq.add(new ASN1OctetString(s.attributeName));
         // sub sequence embeds init,any,final
         var sSeq = new ASN1Sequence();
 
         if( s.initial != null) {
-          sSeq.add(new ASN1OctetString.withTag(SubstringFilter.TYPE_SUBINITIAL,s.initial));
+          sSeq.add(new ASN1OctetString(s.initial, tag:SubstringFilter.TYPE_SUBINITIAL));
         }
-        s.any.forEach( (String o) => sSeq.add(new ASN1OctetString.withTag(SubstringFilter.TYPE_SUBANY,o)));
+        s.any.forEach( (String o) => sSeq.add(new ASN1OctetString(o,tag:SubstringFilter.TYPE_SUBANY)));
         if( s.finalString != null ) {
-          sSeq.add(new ASN1OctetString.withTag(SubstringFilter.TYPE_SUBFINAL,s.finalString));
+          sSeq.add(new ASN1OctetString(s.finalString, tag:SubstringFilter.TYPE_SUBFINAL));
         }
 
         seq.add(sSeq);
