@@ -2,13 +2,14 @@ import 'package:unittest/unittest.dart';
 import 'package:dartdap/ldap_client.dart';
 
 
-
 main() {
   //var dn = "cn=test";
   var dn = "cn=Directory Manager";
   var pw = "Oracle123";
   LDAPConnection ldap;
+  LDAPConnection ldaps;
   var ldapConfig = new LDAPConfiguration('test/ldap.yaml');
+  var ldapsConfig = new LDAPConfiguration('test/ldap.yaml','ssl');
 
   initLogging();
 
@@ -41,6 +42,11 @@ main() {
           print("Got expected async error ${e}");
           expect(e.resultCode,equals(ResultCode.INVALID_CREDENTIALS));
         }));
+    });
+
+    test('SSL Connect test', () {
+      ldapsConfig.getConnection().then(
+          expectAsync1((result) =>print('Connected via SSL OK')));
     });
 
   }); // end group

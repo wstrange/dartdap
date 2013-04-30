@@ -19,8 +19,8 @@ Logger logger = new Logger("ldapclient");
 
 // todo: what is the proper way to do this???
 initLogging() {
-  //Logger.root.level = Level.FINEST;
-  Logger.root.level = Level.INFO;
+  Logger.root.level = Level.FINEST;
+  //Logger.root.level = Level.INFO;
   logger.onRecord.listen( (LogRecord r) {
     print("${r.loggerName}:${r.sequenceNumber}:${r.time}:${r.message}");
     });

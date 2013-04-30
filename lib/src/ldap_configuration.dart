@@ -3,11 +3,17 @@ library ldap_configuration;
 
 import 'dart:async';
 import 'package:dart_config/default_server.dart' as server_config;
+import 'package:logging/logging.dart';
+
 
 
 import 'ldap_connection.dart';
 import 'ldap_result.dart';
 import 'ldap_exception.dart';
+
+
+Logger logger = new Logger("ldap_configuration");
+
 
 /*
  * Utility for reading and holding an LDAP connection configuration
@@ -22,18 +28,32 @@ class LDAPConfiguration {
   String _fileName;
   Map configMap;
 
-  String get bindDN   => configMap['bindDN'];
-  String get password => configMap['password'];
-  String get host     => configMap['host'];
-  int    get port     => configMap['port'];
+  String  _configName = "default";
+
+  Map get config => configMap[_configName];
+
+  String get bindDN   => config['bindDN'];
+  String get password => config['password'];
+  String get host     => config['host'];
+  int    get port     => config['port'];
+
+  bool get ssl {
+    var x = config['ssl'];
+    if( x == null || x != true)
+      return false;
+    return true;
+  }
 
   /*
    * Create a new LDAP configuration.
-   * If [_fileName] is provided it is assumed to be a yaml file
+   * If [fileName] is provided it is assumed to be a yaml file
    * containing the ldap connection parameters. It
    * defaults to ldap.yaml in the current directory if not provided.
+   * The optional parameter [configName] is the name of a config in the config file
+   *  It defaults to "default"
    */
-  LDAPConfiguration([this._fileName = 'ldap.yaml']);
+  LDAPConfiguration([this._fileName = 'ldap.yaml', this._configName = "default"]);
+
 
   /* Create an LDAP configuration from the specified map. Take
    * care that the port number in the map is an integer value
@@ -55,6 +75,8 @@ class LDAPConfiguration {
    * Return a Future<LDAPConnection> using this configuration.
    * The connection is cached so that subsequent calls will return
    * the same connection.
+   *
+   *
    * If the optional parameter [doBind] is true (the default),
    * the returned connection will also be bound using the configured DN and password
    */
@@ -67,7 +89,9 @@ class LDAPConfiguration {
     var c = new Completer<LDAPConnection>();
 
     getConfig().then((Map m) {
-      connection = new LDAPConnection(host,port,bindDN,password);
+      //
+      logger.info("Connection params $host $port ssl=$ssl");
+      connection = new LDAPConnection(host,port,ssl,bindDN,password);
       connection.connect()
         .then( (_)  {
           if( doBind) {

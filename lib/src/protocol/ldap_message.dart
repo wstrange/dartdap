@@ -42,10 +42,13 @@ class LDAPMessage {
 
   ASN1Object _obj;
 
+  /// return the message id sequence number.
   int get messageId => _messageId;
 
+  /// return the [ASN1Sequence] that makes up this LDAP message
   ASN1Sequence get protocolOp => _protocolOp;
 
+  /// the total length of this encoded message in bytes
   int get messageLength => _obj.totalEncodedByteLength;
 
 

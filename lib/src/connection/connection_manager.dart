@@ -91,21 +91,12 @@ class _FuturePendingOp extends _PendingOp {
 
 class ConnectionManager {
 
-
   // Que for all outbound messages. We may need to buffer messages
   Queue<_PendingOp> _outgoingMessageQueue = new Queue<_PendingOp>();
 
   // Messages that we are expecting a response back from the LDAP server
   Map<int,_PendingOp> _pendingMessages = new Map();
 
-/*
- *
- * todo: Can we get rid of this..
-  static const CONNECTING = 1;
-  static const CONNECTED = 2;
-  static const CLOSED = 3;
-   int _connectionState = CLOSED;
-  */
   const TIMEOUT = const Duration(seconds: 3);
 
   bool _bindPending = false;
@@ -116,17 +107,21 @@ class ConnectionManager {
 
   int _port;
   String _host;
+  bool _ssl;
 
-  ConnectionManager(this._host,this._port);
+  ConnectionManager(this._host,this._port,this._ssl);
 
   Function onError;
 
   Future<ConnectionManager> connect() {
-    logger.finest("Creating socket to ${_host}:${_port}");
+    logger.finest("Creating socket to ${_host}:${_port} ssl=$_ssl");
 
     var c = new Completer<ConnectionManager>();
 
-    Socket.connect(_host,_port).then( (Socket sock) {
+    var s = _ssl ?  SecureSocket.connect(_host, _port, onBadCertificate:_badCertHandler) :
+                    Socket.connect(_host,_port);
+
+    s.then( (Socket sock) {
       logger.fine("Connected to $_host:$_port");
       //_connectionState = CONNECTED;
       _socket = sock;
@@ -138,7 +133,14 @@ class ConnectionManager {
       c.completeError(e);
     });;
     return c.future;
+  }
 
+  // Called when the SSL cert is not valid
+  // Return true to carry on anyways. TODO: Make it configurable
+  bool _badCertHandler(X509Certificate cert) {
+    logger.warning("Invalid Certificate issuer= ${cert.issuer} subject=${cert.subject}");
+    logger.warning("SSL Connection will proceed. Please fix the certificate");
+    return true; // carry on
   }
 
   // process an LDAP Search Request

@@ -27,8 +27,8 @@ class LDAPConnection {
    * Optionally store a bind [_bindDN] and [_password] which can be used to
    * rebind to the connection
    */
-  LDAPConnection(String host, int port, [this._bindDN, this._password]) {
-    _cmgr = new ConnectionManager(host,port);
+  LDAPConnection(String host, int port, [bool ssl =false, this._bindDN, this._password]) {
+    _cmgr = new ConnectionManager(host,port,ssl);
   }
 
   /*
@@ -43,7 +43,7 @@ class LDAPConnection {
     _cmgr.connect().then( (cx) {
       c.complete(this);
     }).catchError( ( e) {
-      logger.severe("Connect error ${e.error}");
+      logger.severe("Connect error ${e}");
       c.completeError(e);
     });
     return c.future;

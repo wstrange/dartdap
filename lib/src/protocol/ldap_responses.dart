@@ -1,13 +1,12 @@
 part of ldap_protocol;
 
 /**
- * Defines LDAP response types
+ * Defines various LDAP response types
  */
 
 
 /**
-  BindResponse ::= [APPLICATION 1] SEQUENCE {
-
+ *     BindResponse ::= [APPLICATION 1] SEQUENCE {
              COMPONENTS OF LDAPResult,
              serverSaslCreds    [7] OCTET STRING OPTIONAL }
 
@@ -35,12 +34,12 @@ class ModifyResponse extends ResponseOp {
 }
 
 /**
- * A generic response with an LDAP result.
+ * A generic LDAP result.
  * This includes...
- * AddResponse ::= [APPLICATION 9] LDAPResult
- * DelResponse ::= [APPLICATION 11] LDAPResult
- * ModifyDNResponse ::= [APPLICATION 13] LDAPResult
- * CompareResponse ::= [APPLICATION 15] LDAPResult
+ *      AddResponse ::= [APPLICATION 9] LDAPResult
+ *      DelResponse ::= [APPLICATION 11] LDAPResult
+ *      ModifyDNResponse ::= [APPLICATION 13] LDAPResult
+ *      CompareResponse ::= [APPLICATION 15] LDAPResult
  *
  */
 class GenericResponse extends ResponseOp {
@@ -48,12 +47,11 @@ class GenericResponse extends ResponseOp {
 }
 
 
-/**
-ExtendedResponse ::= [APPLICATION 24] SEQUENCE {
-COMPONENTS OF LDAPResult,
-responseName     [10] LDAPOID OPTIONAL,
-response         [11] OCTET STRING OPTIONAL }
-
+/***
+      ExtendedResponse ::= [APPLICATION 24] SEQUENCE {
+      COMPONENTS OF LDAPResult,
+      responseName     [10] LDAPOID OPTIONAL,
+      response         [11] OCTET STRING OPTIONAL }
 */
 
 class ExtendedResponse extends ResponseOp {
@@ -66,7 +64,6 @@ class ExtendedResponse extends ResponseOp {
 
   ExtendedResponse(ASN1Sequence s):super.extended(s) {
     // complete rest or parsing
-
   }
 }
 
