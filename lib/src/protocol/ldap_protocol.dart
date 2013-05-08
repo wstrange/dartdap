@@ -24,6 +24,7 @@ part 'add_request.dart';
 part 'delete_request.dart';
 part 'modify_request.dart';
 part 'moddn_request.dart';
+part 'compare_request.dart';
 
 
 // top level constants
@@ -63,6 +64,8 @@ const int CONTROLS = 0xA0;
 
 
 
+// todo: Convert to a map when
+// https://code.google.com/p/dart/issues/detail?id=4207 is fixed
 String _op2String(int op) {
   switch(op) {
     case BIND_REQUEST: return "BND_REQ";
@@ -76,6 +79,8 @@ String _op2String(int op) {
     case ADD_RESPONSE: return "ADD_RESPONSE";
     case MODIFY_DN_REQUEST: return "MODIFY_DN_REQ";
     case MODIFY_DN_RESPONSE: return "MODIFY_DN_RESP";
+    case COMPARE_REQUEST: return "COMPARE_REQ";
+    case COMPARE_RESPONSE: return "COMPARE_RESP";
     // todo add more...
     default: return op.toRadixString(16);
 

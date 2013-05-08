@@ -107,7 +107,7 @@ main() {
    }); // end test
 
 
-   solo_test('Modify DN', () {
+   test('Modify DN', () {
      var dn = "uid=mmouse,ou=People,dc=example,dc=com";
      var newrdn = "uid=mmouse2";
      var renamedDN =  "uid=mmouse2,ou=People,dc=example,dc=com";
@@ -133,8 +133,18 @@ main() {
          expect( r.resultCode, equals(0));
         })))
         .then( (_) => ldap.delete(renamedDN2));
-
    });
+
+  // todo: make the compare test against a known value.
+  solo_test('Compare test',() {
+    String dn = "uid=user.0,ou=People,dc=example,dc=com";
+
+    ldap.compare(dn, "postalCode", "50369").then((r) {
+      expect( r.resultCode, equals(ResultCode.COMPARE_TRUE));
+      print('compare ok');
+
+     });
+  });
 
   }); // end grou
 }

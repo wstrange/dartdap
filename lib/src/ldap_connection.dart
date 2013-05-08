@@ -12,7 +12,12 @@ import 'ldap_result.dart';
 import 'protocol/ldap_protocol.dart';
 import 'search_scope.dart';
 
-
+/**
+ * Operations that we can invoke on an LDAP server
+ *
+ * Most users will want to obtain a [LDAPConnection] using the
+ * LDAPConfiguration class.
+ */
 class LDAPConnection {
   ConnectionManager _cmgr;
 
@@ -94,10 +99,18 @@ class LDAPConnection {
   Future<LDAPResult> modify(String dn, Iterable<Modification> mods) =>
       _cmgr.process( new ModifyRequest(dn,mods));
 
-  /// Modify the Entries [dn] to a new relative [rdn]. If [deleteRDN] is true
+  /// Modify the Entries [dn] to a new relative [rdn]. If [deleteOldRDN] is true
   /// delete the old entry. If [newSuperior] is not null, reparent the entry
   Future<LDAPResult> modifyDN(String dn, String rdn,[bool deleteOldRDN = true, String newSuperior]) =>
       _cmgr.process(new ModDNRequest(dn,rdn,deleteOldRDN, newSuperior));
+
+  /// perform an LDAP Compare operation on the [dn].
+  /// Comapre the [attrName] and [attrValue] to see if they are the same
+  ///
+  /// The completed [LDAPResult] will have a value of [ResultCode.COMPARE_TRUE]
+  /// or [ResultCode.COMPARE_FALSE].
+  Future<LDAPResult> compare(String dn,String attrName,String attrValue) =>
+      _cmgr.process( new CompareRequest(dn, attrName, attrValue));
 
   // close the ldap connection. If [immediate] is true, close the
   // connection immediately. This could result in queued operations

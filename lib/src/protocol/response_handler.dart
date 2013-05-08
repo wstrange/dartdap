@@ -30,6 +30,7 @@ class ResponseHandler {
       case DELETE_RESPONSE:
       case MODIFY_RESPONSE:
       case MODIFY_DN_RESPONSE:
+      case COMPARE_RESPONSE:
         return new GenericResponse(p);
 
 

@@ -76,10 +76,25 @@ class _FuturePendingOp extends _PendingOp {
 
   bool processResult(ProtocolOp op) {
     var ldapResult = (op as ResponseOp).ldapResult;
-    if( ldapResult.resultCode != 0)
+    if(_isError(ldapResult.resultCode))
       completer.completeError(ldapResult);
     else
       completer.complete(ldapResult);
+    return true;
+  }
+
+  // return true if the result code is an error
+  // any result code that you want to generate a [Future] error
+  // should return true here. If the caller is normally
+  // expecting to get a result code back this should return false.
+  // example: for LDAP compare the caller wants to know the result
+  bool _isError(int resultCode) {
+    switch( resultCode) {
+      case 0:
+      case ResultCode.COMPARE_TRUE:
+      case ResultCode.COMPARE_FALSE:
+        return false;
+    }
     return true;
   }
 }
