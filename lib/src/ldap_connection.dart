@@ -94,6 +94,11 @@ class LDAPConnection {
   Future<LDAPResult> modify(String dn, Iterable<Modification> mods) =>
       _cmgr.process( new ModifyRequest(dn,mods));
 
+  /// Modify the Entries [dn] to a new relative [rdn]. If [deleteRDN] is true
+  /// delete the old entry. If [newSuperior] is not null, reparent the entry
+  Future<LDAPResult> modifyDN(String dn, String rdn,[bool deleteOldRDN = true, String newSuperior]) =>
+      _cmgr.process(new ModDNRequest(dn,rdn,deleteOldRDN, newSuperior));
+
   // close the ldap connection. If [immediate] is true, close the
   // connection immediately. This could result in queued operations
   // being discarded

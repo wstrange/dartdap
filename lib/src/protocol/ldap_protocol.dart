@@ -23,6 +23,7 @@ part 'search_result_entry.dart';
 part 'add_request.dart';
 part 'delete_request.dart';
 part 'modify_request.dart';
+part 'moddn_request.dart';
 
 
 // top level constants
@@ -73,6 +74,8 @@ String _op2String(int op) {
     case MODIFY_REQUEST:  return "MODIFY_REQUEST";
     case ADD_REQUEST: return "ADD_REQUEST";
     case ADD_RESPONSE: return "ADD_RESPONSE";
+    case MODIFY_DN_REQUEST: return "MODIFY_DN_REQ";
+    case MODIFY_DN_RESPONSE: return "MODIFY_DN_RESP";
     // todo add more...
     default: return op.toRadixString(16);
 

@@ -106,5 +106,35 @@ main() {
 
    }); // end test
 
+
+   solo_test('Modify DN', () {
+     var dn = "uid=mmouse,ou=People,dc=example,dc=com";
+     var newrdn = "uid=mmouse2";
+     var renamedDN =  "uid=mmouse2,ou=People,dc=example,dc=com";
+     var renamedDN2 =  "uid=mmouse2,dc=example,dc=com";
+
+     var newParent = "dc=example,dc=com";
+
+     var attrs = { "cn" : "Mickey Mouse", "uid": "mmouse", "sn":"Mouse",
+                   "objectClass":["inetorgperson"]};
+
+     /*
+        For some reason OUD does not seem to respect the deleteOldRDN flag
+        It always moves the entry - and does not leave the old one
+
+     */
+     ldap.add(dn, attrs)
+       .then( (r) => ldap.modifyDN(dn,newrdn))
+       .then(expectAsync1((r) {
+         expect( r.resultCode, equals(0));
+        }))
+        .then( (_) => ldap.modifyDN(renamedDN,newrdn,false,newParent))
+        .then( expectAsync1(((r) {
+         expect( r.resultCode, equals(0));
+        })))
+        .then( (_) => ldap.delete(renamedDN2));
+
+   });
+
   }); // end grou
 }

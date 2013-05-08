@@ -34,7 +34,7 @@ main() {
        ldap.delete(d.dn).then( (r) {
          //print("delete result=${r.resultCode}");
        }, onError: (e) {
-         print("Error result - ignored ${e.error.resultCode}");
+         print("Error result - ignored ${e.resultCode}");
        });
      }
 
