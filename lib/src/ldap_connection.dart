@@ -58,15 +58,15 @@ class LDAPConnection {
    * Bind to LDAP server. If the optional [bindDN] and [password] are not passed
    * the connections stored values are used for the bind.
    */
-  Future<LDAPResult> bind([String bindDN, String password]) {
-    if( ?bindDN )
+  Future<LDAPResult> bind({String bindDN:null, String password:null}) {
+    if( bindDN != null )
       return _cmgr.process(new BindRequest(bindDN, password));
     else
       return _cmgr.process(new BindRequest(_bindDN, _password));
   }
 
 
-  /*
+  /**
    * Search for ldap entries, starting at the [baseDN],
    * specified by the search [filter].
    * Return the listed [attributes].

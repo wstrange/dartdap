@@ -38,7 +38,7 @@ class SearchRequest extends RequestOp {
   }
 
   /**
-   * Convert a Filter expression to ASN1 Object
+   * Convert a Filter expression to an ASN1 Object
    *
    * This may be called recursively
    */
@@ -49,14 +49,14 @@ class SearchRequest extends RequestOp {
       case Filter.TYPE_GREATER_OR_EQUAL:
       case Filter.TYPE_LESS_OR_EQUAL:
       case Filter.TYPE_APPROXIMATE_MATCH:
-        var seq= new ASN1Sequence(f.filterType);
+        var seq= new ASN1Sequence(tag:f.filterType);
         seq.add(new ASN1OctetString(f.attributeName));
         seq.add(new ASN1OctetString(LDAPUtil.escapeString(f.assertionValue)));
         return seq;
 
       case Filter.TYPE_AND:
       case Filter.TYPE_OR:
-        var aset = new ASN1Set(f.filterType);
+        var aset = new ASN1Set(tag:f.filterType);
         f.subFilters.forEach( (Filter subf) {
           aset.add(_filterToASN1(subf));
         });
@@ -112,33 +112,4 @@ class SearchRequest extends RequestOp {
 
 }
 
-/*  todo
- *
-      case TYPE_EXTENSIBLE_MATCH:
-        final ArrayList<ASN1Element> emElementList =
-             new ArrayList<ASN1Element>(4);
-        if (matchingRuleID != null)
-        {
-          emElementList.add(new ASN1OctetString(
-               EXTENSIBLE_TYPE_MATCHING_RULE_ID, matchingRuleID));
-        }
-
-        if (attrName != null)
-        {
-          emElementList.add(new ASN1OctetString(
-               EXTENSIBLE_TYPE_ATTRIBUTE_NAME, attrName));
-        }
-
-        emElementList.add(new ASN1OctetString(EXTENSIBLE_TYPE_MATCH_VALUE,
-                                              assertionValue.getValue()));
-
-        if (dnAttributes)
-        {
-          emElementList.add(new ASN1Boolean(EXTENSIBLE_TYPE_DN_ATTRIBUTES,
-                                            true));
-        }
-
-        return new ASN1Sequence(filterType, emElementList);
- *
- */
 

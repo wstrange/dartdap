@@ -25,6 +25,7 @@ part 'delete_request.dart';
 part 'modify_request.dart';
 part 'moddn_request.dart';
 part 'compare_request.dart';
+part 'control.dart';
 
 
 // top level constants

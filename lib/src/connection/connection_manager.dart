@@ -105,12 +105,13 @@ class _FuturePendingOp extends _PendingOp {
  */
 
 class ConnectionManager {
-
-  // Que for all outbound messages. We may need to buffer messages
+  // Queue for all outbound messages.
   Queue<_PendingOp> _outgoingMessageQueue = new Queue<_PendingOp>();
 
   // Messages that we are expecting a response back from the LDAP server
   Map<int,_PendingOp> _pendingMessages = new Map();
+
+  // TIMEOUT when waiting for a pending op.
 
   const TIMEOUT = const Duration(seconds: 3);
 
@@ -126,7 +127,6 @@ class ConnectionManager {
 
   ConnectionManager(this._host,this._port,this._ssl);
 
-  Function onError;
 
   Future<ConnectionManager> connect() {
     logger.finest("Creating socket to ${_host}:${_port} ssl=$_ssl");
@@ -200,7 +200,6 @@ class ConnectionManager {
   _sendMessage(_PendingOp op) {
     logger.fine("Sending message ${op.message}");
     var l = op.message.toBytes();
-    //_socket.writeBytes(l);
     _socket.add(l);
     _pendingMessages[op.message.messageId] = op;
     if( op.message.protocolTag == BIND_REQUEST)
@@ -214,37 +213,43 @@ class ConnectionManager {
    * Close the LDAP connection.
    *
    * Pending operations will be allowed to finish, unless immediate = true
+   *
+   * Returns a Future that is called when the connection is closed
    */
 
-  close(bool immediate) {
-    if( immediate ) {
-      _doClose();
+  Future close(bool immediate) {
+    if( immediate || _canClose() ) {
+      return _doClose();
     }
     else {
+      var c = new Completer();
       new Timer.periodic(TIMEOUT, (Timer t) {
-        if( _tryClose() ) {
+        if( _canClose() ) {
           t.cancel();
+          _doClose().then( (_) => c.complete());
         }
       });
-
+      return c.future;
     }
   }
 
-  bool _tryClose() {
+  /**
+   * Return true if there are no more pending messages.
+   */
+  bool _canClose() {
     if( _pendingMessages.isEmpty && _outgoingMessageQueue.isEmpty) {
-      _doClose();
       return true;
     }
-
     logger.fine("close() waiting for queue to drain");
     _sendPendingMessage();
     return false;
   }
 
-  _doClose() {
+  Future _doClose() {
     logger.fine("Final Close");
-    _socket.close();
-    //_connectionState = CLOSED;
+    var f = _socket.close();
+    _socket = null;
+    return f;
   }
 
 
@@ -300,15 +305,6 @@ class ConnectionManager {
   _errorHandler(e) {
     logger.severe("LDAP Error ${e}");
     var ex = new LDAPException(e.toString());
-    /*
-    if( _connection.onError != null) {
-      _connection.onError(ex);
-    }
-    else {
-      logger.warning("No error handler set for LDAPConnection");
-      throw ex;
-    }
-    */
     throw ex;
   }
 

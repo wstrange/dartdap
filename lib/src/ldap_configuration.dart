@@ -16,14 +16,13 @@ Logger logger = new Logger("ldap_configuration");
 
 
 /*
- * Utility for reading and holding an LDAP connection configuration
- * and the underlying LDAP connetion
+ * Holds LDAP connection configuration settings (host, port, bind dn, etc.)
+ * and the underlying LDAP connection
  *
- * host, port, bind dn, etc.
  */
 class LDAPConfiguration {
 
-  LDAPConnection connection;
+  LDAPConnection _connection;
 
   String _fileName;
   Map configMap;
@@ -55,7 +54,8 @@ class LDAPConfiguration {
   LDAPConfiguration([this._fileName = 'ldap.yaml', this._configName = "default"]);
 
 
-  /* Create an LDAP configuration from the specified map. Take
+  /**
+   * Create an LDAP configuration from the specified map. Take
    * care that the port number in the map is an integer value
    */
   LDAPConfiguration.fromMap(Map m) {
@@ -65,7 +65,7 @@ class LDAPConfiguration {
   /* Return a Future<Map> with the connection configuration detais */
   Future<Map> getConfig() {
     if( configMap != null )
-      return new Future.immediate(configMap);
+      return new Future.value(configMap);
 
     return server_config.loadConfig(_fileName).then(
       (Map cfg) { configMap = cfg; return configMap; });
@@ -83,27 +83,27 @@ class LDAPConfiguration {
 
   Future<LDAPConnection> getConnection([bool doBind = true]) {
     // if we have an existing connection - return that immediatley
-    if( connection != null )
-      return new Future(() => connection);
+    if( _connection != null )
+      return new Future(() => _connection);
 
     var c = new Completer<LDAPConnection>();
 
     getConfig().then((Map m) {
       //
       logger.info("Connection params $host $port ssl=$ssl");
-      connection = new LDAPConnection(host,port,ssl,bindDN,password);
-      connection.connect()
+      _connection = new LDAPConnection(host,port,ssl,bindDN,password);
+      _connection.connect()
         .then( (_)  {
           if( doBind) {
-            connection.bind().then( (LDAPResult r) {
+            _connection.bind().then( (LDAPResult r) {
               if( r.resultCode == 0)
-                c.complete(connection);
+                c.complete(_connection);
               else
                 c.completeError( new LDAPException("BIND Failed", r));
             });
           }
           else // no bind requested. Just complete with the connection
-            c.complete(connection);
+            c.complete(_connection);
          })
         .catchError( (e) {
           c.completeError(e);
@@ -112,4 +112,11 @@ class LDAPConfiguration {
     return c.future;
   }
 
+  Future close([bool immediate = false]) {
+    if( _connection == null)
+      throw new LDAPException("Trying to close a null Connection");
+    var f = _connection.close(immediate);
+    _connection = null;
+    return f;
+  }
 }

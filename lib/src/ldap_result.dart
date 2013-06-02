@@ -37,14 +37,6 @@ import 'dart:async';
                              attributeOrValueExists       (20),
                              invalidAttributeSyntax       (21),
                                         -- 22-31 unused --
-
-
-
-Wahl, et. al.               Standards Track                    [Page 16]
-
-RFC 2251                         LDAPv3                    December 1997
-
-
                              noSuchObject                 (32),
                              aliasProblem                 (33),
                              invalidDNSyntax              (34),
@@ -78,7 +70,9 @@ RFC 2251                         LDAPv3                    December 1997
  */
 
 
-
+/**
+ * Generic LDAP Result
+ */
 
 class LDAPResult {
 
@@ -97,12 +91,14 @@ class LDAPResult {
   LDAPResult(this._resultCode,this._matchedDN,
       this._diagnosticMessage,this._referralURLs);
 
-  String toString() => "LDAPResult code=$resultCode msg=$_diagnosticMessage dn=$matchedDN";
+  String toString() => "LDAPResult code=${formatResultCode(resultCode)} msg=$_diagnosticMessage dn=$matchedDN";
 
 }
 
 
-// Holds a SearchEntry result
+/**
+ * Holds a SearchEntry result
+ */
 class SearchEntry {
   String _dn;
   String get dn => _dn;
@@ -116,102 +112,11 @@ class SearchEntry {
   String toString() => "Entry[$_dn,$_attributes]";
 }
 
+String formatResultCode(int code) => "${ResultCode.getMessage(code)} ($code)";
 
-/*
-
-todo: finish mapping these
-18
-
-INAPPROPRIATE_MATCHING (inappropriateMatching)
-
-19
-
-CONSTRAINT_VIOLATION (constraintViolation)
-
-20
-
-ATTRIBUTE_OR_VALUE_EXISTS (AttributeOrValueExists)
-
-21
-
-INVALID_ATTRIBUTE_SYNTAX (invalidAttributeSyntax)
-
-
-
-33
-
-ALIAS_PROBLEM (aliasProblem)
-
-34
-
-INVALID_DN_SYNTAX (invalidDNSyntax)
-
-35
-
-IS_LEAF (isLeaf)
-
-36
-
-ALIAS_DEREFERENCING_PROBLEM (aliasDereferencingProblem)
-
-48
-
-INAPPROPRIATE_AUTHENTICATION (inappropriateAuthentication)
-
-
-
-50
-
-INSUFFICIENT_ACCESS_RIGHTS (insufficientAccessRights)
-
-51
-
-BUSY (busy)
-
-52
-
-UNAVAILABLE (unavailable)
-
-53
-
-UNWILLING_TO_PERFORM (unwillingToPerform)
-
-54
-
-LOOP_DETECT (loopDetect)
-
-64
-
-NAMING_VIOLATION (namingViolation)
-
-65
-
-OBJECT_CLASS_VIOLATION (objectClassViolation)
-
-66
-
-NOT_ALLOWED_ON_NONLEAF (notAllowedOnNonLeaf)
-
-67
-
-NOT_ALLOWED_ON_RDN (notAllowedOnRDN)
-
-68
-
-ENTRY_ALREADY_EXISTS (entryAlreadyExists)
-
-69
-
-OBJECT_CLASS_MODS_PROHIBITED (objectClassModsProhibited)
-
-71
-
-AFFECTS_MULTIPLE_DSAS (affectsMultipleDSAs
-
-80
-
-OTHER (other)
-*/
+/**
+ * LDAP Result Codes
+ */
 class ResultCode {
 
   static const int OK = 0;
@@ -230,14 +135,30 @@ class ResultCode {
   static const int SASL_BIND_IN_PROGRESS = 14;
   static const int NO_SUCH_ATTRIBUTE = 16;
   static const int UNDEFINED_ATTRIBUTE_TYPE = 17;
+  static const int INAPPROPRIATE_MATCHING = 18;
+  static const int CONSTRAINT_VIOLATION = 19;
+  static const int ATTRIBUTE_OR_VALUE_EXISTS = 20;
+  static const int INVALID_ATTRIBUTE_SYNTAX = 21;
   static const int NO_SUCH_OBJECT = 32;
-
-
+  static const int ALIAS_PROBLEM = 33;
+  static const int INVALID_DN_SYNTAX = 34;
+  static const int IS_LEAF = 35;
+  static const int ALIAS_DEREFERENCING_PROBLEM = 36;
+  static const int INAPPROPRIATE_AUTHENTICATION = 48;
   static const int INVALID_CREDENTIALS = 49;
-
-
-
-  //static const int
+  static const int INSUFFICIENT_ACCESS_RIGHTS  = 50;
+  static const int BUSY  = 51;
+  static const int UNAVAILABLE  = 52;
+  static const int UNWILLING_TO_PERFORM  = 53;
+  static const int LOOP_DETECT  = 54;
+  static const int NAMING_VIOLATION = 64;
+  static const int OBJECT_CLASS_VIOLATION = 65;
+  static const int NOT_ALLOWED_ON_NONLEAF = 66;
+  static const int NOT_ALLOWED_ON_RDN = 67;
+  static const int ENTRY_ALREADY_EXISTS = 68;
+  static const int OBJECT_CLASS_MODS_PROHIBITED = 69;
+  static const int AFFECTS_MULTIPLE_DSAS = 71;
+  static const int OTHER = 80;
 
 
 
@@ -259,12 +180,11 @@ class ResultCode {
       case NO_SUCH_OBJECT: return "Object does not exist";
       case INVALID_CREDENTIALS: return "Invalid Credentials";
 
-
+      // todo: Finish Mapping these
 
       default:                return "Error code ${code}";
     }
   }
-
 }
 
 

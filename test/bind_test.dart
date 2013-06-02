@@ -3,13 +3,10 @@ import 'package:dartdap/ldap_client.dart';
 
 
 main() {
-  //var dn = "cn=test";
-  var dn = "cn=Directory Manager";
-  var pw = "Oracle123";
+
   LDAPConnection ldap;
-  LDAPConnection ldaps;
-  var ldapConfig = new LDAPConfiguration('test/ldap.yaml');
-  var ldapsConfig = new LDAPConfiguration('test/ldap.yaml','ssl');
+  var ldapConfig = new LDAPConfiguration('ldap.yaml');
+  var ldapsConfig = new LDAPConfiguration('ldap.yaml','ssl');
 
   initLogging();
 
@@ -21,35 +18,38 @@ main() {
     });
 
     tearDown( () {
-      print("Teardown");
-      //ldap.close(true);
+      logMessage("Teardown");
+      return ldapConfig.close();
     });
 
     test('Simple Bind using default connection creds', () {
       ldap.bind()
-        .then( expectAsync1((LDAPResult r) {
-            print("****** Got expected LDAP result $r");
+          .then( expectAsync1((LDAPResult r) {
+            logMessage("****** Got expected LDAP result $r");
             expect(r.resultCode, equals(0));
         }));
     });
 
     test('Bind to a bad DN', () {
-      ldap.bind("cn=foofoo",pw)
+      ldap.bind(bindDN:"cn=foofoo",password:"password")
         .then( expectAsync1((r) {
             expect(false,"Should not be reached");
         },count:0))
         .catchError( expectAsync1( (e) {
-          print("Got expected async error ${e}");
+          logMessage("Got expected error ${e}");
           expect(e.resultCode,equals(ResultCode.INVALID_CREDENTIALS));
         }));
     });
 
     test('SSL Connect test', () {
       ldapsConfig.getConnection().then(
-          expectAsync1((result) =>print('Connected via SSL OK')));
+          expectAsync1((result) =>logMessage('Connected via SSL OK')));
     });
 
   }); // end group
+
+
+  test('clean up', () => ldapsConfig.close() );
 
 
 }

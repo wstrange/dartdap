@@ -1,5 +1,3 @@
-
-
 import 'package:unittest/unittest.dart';
 import 'package:dartdap/ldap_client.dart';
 
@@ -11,7 +9,7 @@ import 'dart:async';
 
 main() {
   LDAPConnection ldap;
-  var ldapConfig = new LDAPConfiguration("test/ldap.yaml");
+  var ldapConfig = new LDAPConfiguration("ldap.yaml");
 
   initLogging();
 
@@ -24,7 +22,7 @@ main() {
     });
 
     tearDown( () {
-      // nothing to do. We keep the connection open
+      // nothing to do. We can keep the connection open between tests
     });
 
     test('Search Test', () {
@@ -56,8 +54,6 @@ main() {
       );
 
       //  ));
-
-
    });
 
 
@@ -135,8 +131,8 @@ main() {
         .then( (_) => ldap.delete(renamedDN2));
    });
 
-  // todo: make the compare test against a known value.
-  solo_test('Compare test',() {
+  // test ldap compare operation
+  test('Compare test',() {
     String dn = "uid=user.0,ou=People,dc=example,dc=com";
 
     ldap.compare(dn, "postalCode", "50369").then((r) {
@@ -146,5 +142,8 @@ main() {
      });
   });
 
-  }); // end grou
+  }); // end group
+
+  test('clean up', () => ldapConfig.close() );
+
 }
