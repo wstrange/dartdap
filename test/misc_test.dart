@@ -12,7 +12,6 @@ import 'package:dartdap/src/protocol/ldap_protocol.dart';
 
 main() {
 
-
   test("Escape ldap search string test", () {
     expect(LDAPUtil.escapeString("F*F"), equals('F\\2aF'));
     expect(LDAPUtil.escapeString("\\"), equals("\\5c"));

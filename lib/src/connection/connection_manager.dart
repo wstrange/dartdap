@@ -1,6 +1,5 @@
 library connection_manager;
 
-
 import 'dart:io';
 import 'dart:async';
 import 'dart:typed_data';
@@ -17,7 +16,9 @@ import '../ldap_connection.dart';
 
 /**
  * Holds a pending LDAP operation that we have issued to the server. We
- * expect to get a response back from the server for this op.
+ * expect to get a response back from the server for this op. We match
+ * against the message Id. example: We send request with id = 1234,
+ * we expect a response with id = 1234
  *
  * todo: Implement timeouts?
  */
@@ -47,7 +48,10 @@ class _StreamPendingOp extends _PendingOp {
 
   StreamController<SearchEntry> controller = new StreamController<SearchEntry>();
 
+  // process the stream op - return false if we expect more data to come
+  // or true if the search is complete
   bool processResult(ProtocolOp op) {
+    // op is Search Entry. Add it to our stream and keep
     if( op is SearchResultEntry ) {
       var re = (op as SearchResultEntry);
       controller.add(re.searchEntry);
@@ -56,6 +60,10 @@ class _StreamPendingOp extends _PendingOp {
     else { // we should be done now
       // if this is not a done message we are in trouble...
       var x = (op as SearchResultDone);
+
+      // todo: how do we handle simple paged search here?
+      // we need to launch another search request with the cookie
+      // that we get from the ldap server
 
       if( x.ldapResult.resultCode != 0)
         controller.addError(x.ldapResult);
@@ -88,6 +96,7 @@ class _FuturePendingOp extends _PendingOp {
   // should return true here. If the caller is normally
   // expecting to get a result code back this should return false.
   // example: for LDAP compare the caller wants to know the result
+  // so we dont generate an error -but let the result code propogate back
   bool _isError(int resultCode) {
     switch( resultCode) {
       case 0:

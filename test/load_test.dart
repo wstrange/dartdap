@@ -1,15 +1,38 @@
-
-
 import 'package:unittest/unittest.dart';
 import 'package:dartdap/ldap_client.dart';
 
 import 'dart:math';
 import 'dart:isolate';
+import 'dart:async';
+
+const int NUM_ENTRIES = 50;
+
+
+typedef Future LdapFun(int i, LDAPConnection ldap);
+
+// calls an ldap function N times.
+// This is used to syncronize and chain multiple future calls.
+// todo: Find a more elegant way of doing this. This is ugly
+Future repeatNtimes(int i, LDAPConnection ldap, LdapFun fun) {
+  if(  i <= 1)
+    return new Future.value(null);
+
+  return fun(i,ldap).then( (r) {
+    logMessage("result=${r}");
+    return repeatNtimes(i-1,ldap,fun);
+   },
+    onError: (e) {
+      logMessage("Error result - ignored ${e}");
+      return  repeatNtimes(i-1,ldap,fun);
+  });
+}
+
+var dn = new DN("ou=People,dc=example,dc=com");
 
 
 main() {
   LDAPConnection ldap;
-  var ldapConfig = new LDAPConfiguration('test/ldap.yaml');
+  var ldapConfig = new LDAPConfiguration('ldap.yaml');
 
 
   initLogging();
@@ -21,40 +44,40 @@ main() {
     });
 
     tearDown( () {
-
-      //ldap.close();
+      return ldapConfig.close();
     });
 
+    test('delete previous entries from last run', () {
+      repeatNtimes(NUM_ENTRIES, ldap, (int j,LDAPConnection l) {
+        var d = dn.concat("uid=test$j");
+        logMessage("delete $j");
+        return l.delete(d.dn);
+      });
+    });
+
+   /**
+    * Add a number of entries
+    */
    test('bulk add', () {
-      var dn = new DN("ou=People,dc=example,dc=com");
-
-     // clean up
-     for( int i=0; i < 100; ++i) {
-       var d = dn.concat("uid=test$i");
-       ldap.delete(d.dn).then( (r) {
-         //print("delete result=${r.resultCode}");
-       }, onError: (e) {
-         print("Error result - ignored ${e.resultCode}");
-       });
-     }
-
-
-     for( int i=0; i < 100; ++i ) {
+     repeatNtimes(NUM_ENTRIES, ldap,  (i,ldap) {
        var attrs = { "sn":"test$i", "cn":"Test user$i",
-                     "objectclass":["inetorgperson"]};
-        ldap.add("uid=test$i,ou=People,dc=example,dc=com", attrs).then( (r) {
-          expect(r.resultCode,equals(0));
-        });
-     }
-
-     ldap.search("ou=People,dc=example,dc=com",
-         Filter.substring("uid=test*"), ["uid","sn"]).listen( (SearchEntry entry) {
-           print("Got entry= ${entry}");
-         });
+                          "objectclass":["inetorgperson"]};
+     return ldap.add("uid=test$i,ou=People,dc=example,dc=com", attrs);});
 
    });
 
-  }); // end group
 
+   test('search for entries', () {
+     int count = 0;
+     var f = Filter.substring("uid=test*");
+
+     // todo - use listen onDone: to hook in
+     return ldap.search("ou=People,dc=example,dc=com",f,["uid","sn"]).
+          listen((SearchEntry entry) {
+           logMessage("count=${++count} Got entry= ${entry} ");
+         });
+   });
+
+  }); // end group
 
 }

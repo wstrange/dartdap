@@ -91,7 +91,7 @@ class LDAPResult {
   LDAPResult(this._resultCode,this._matchedDN,
       this._diagnosticMessage,this._referralURLs);
 
-  String toString() => "LDAPResult code=${formatResultCode(resultCode)} msg=$_diagnosticMessage dn=$matchedDN";
+  String toString() => "${formatResultCode(resultCode)} msg=$_diagnosticMessage dn=$matchedDN";
 
 }
 
@@ -179,6 +179,9 @@ class ResultCode {
       case UNDEFINED_ATTRIBUTE_TYPE: return "UNDEFINED_ATTRIBUTE_TYPE";
       case NO_SUCH_OBJECT: return "Object does not exist";
       case INVALID_CREDENTIALS: return "Invalid Credentials";
+
+      case ENTRY_ALREADY_EXISTS: return "Entry already exists";
+
 
       // todo: Finish Mapping these
 
