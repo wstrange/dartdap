@@ -1,9 +1,12 @@
+# LDAP configuration file
+# default is used if no connection name is specified
 default:
   port: 1389
   host: localhost
   bindDN: cn=Directory Manager
   password: Oracle123
 
+# An SSL connection.
 ssl:
   port: 1636
   host: localhost

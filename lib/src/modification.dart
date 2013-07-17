@@ -1,10 +1,20 @@
 library modification;
 
+
+/**
+ * An LDAP modification operation type.
+ *
+ * [ADD] adds a new value to an attribute.
+ * [DELETE] deletes a value from an attribute or delets the attribute
+ * [REPLACE] replaces an attribute value with a new value
+ * [INCREMENT] increments a numeric attribute value
+ *
+ */
 class Modification {
-  const int ADD = 0;
-  const int DELETE = 1;
-  const int REPLACE = 2;
-  const int INCREMENT = 3;
+  static const int ADD = 0;
+  static const int DELETE = 1;
+  static const int REPLACE = 2;
+  static const int INCREMENT = 3;
 
   String _attrName;
 
@@ -35,7 +45,20 @@ class Modification {
     _operation = DELETE;
   }
 
-  //  ["r","sn", "Mickey Mouse"]
+
+  /**
+   *
+   * TODO: This is a hack. Create a nicer way of handling this
+   *
+   * Utility method that creates a list of modifications
+   * when given a [modList] of triplets consiting of
+   * modType - string value in the set [a,d,r,i]
+   *    (for add, delete, replace, increment)
+   * attribute,values
+   *
+   * For example, the list ["r","sn", "Mickey Mouse","i", "age",null]
+   *
+   */
   static List<Modification> modList( List modList ) {
     var list = new List<Modification>();
     modList.forEach(  (x) {

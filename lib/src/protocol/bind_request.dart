@@ -8,7 +8,7 @@ class BindRequest extends RequestOp {
   * ASN1 encoding for Simple password bind type
   * This is an octet string
   **/
- const int CRED_TYPE_SIMPLE =  0x80;
+ static const int CRED_TYPE_SIMPLE =  0x80;
 
   BindRequest(this._bindDN, this._password) :super(BIND_REQUEST) ;
 

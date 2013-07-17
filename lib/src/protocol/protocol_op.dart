@@ -44,7 +44,7 @@ class ResponseOp extends ProtocolOp {
   int _opCode;
 
   // type for LDAP refereals urls in ldapresults
-  const int TYPE_REFERRAL_URLS = 0xA3;
+  static const int TYPE_REFERRAL_URLS = 0xA3;
 
 
   LDAPResult get ldapResult => _ldapResult;

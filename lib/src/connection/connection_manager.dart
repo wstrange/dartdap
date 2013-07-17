@@ -96,7 +96,7 @@ class _FuturePendingOp extends _PendingOp {
   // should return true here. If the caller is normally
   // expecting to get a result code back this should return false.
   // example: for LDAP compare the caller wants to know the result
-  // so we dont generate an error -but let the result code propogate back
+  // so we dont generate an error -but let the result code propagate back
   bool _isError(int resultCode) {
     switch( resultCode) {
       case 0:
@@ -110,7 +110,9 @@ class _FuturePendingOp extends _PendingOp {
 
 
 /**
- * Manages the state of the LDAP connection
+ * Manages the state of the LDAP connection.
+ *
+ * Queues LDAP operations and sends them to the LDAP server.
  */
 
 class ConnectionManager {
@@ -122,7 +124,7 @@ class ConnectionManager {
 
   // TIMEOUT when waiting for a pending op.
 
-  const TIMEOUT = const Duration(seconds: 3);
+  static const TIMEOUT = const Duration(seconds: 3);
 
   bool _bindPending = false;
 

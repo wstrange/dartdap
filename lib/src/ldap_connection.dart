@@ -16,7 +16,20 @@ import 'search_scope.dart';
  * Operations that we can invoke on an LDAP server
  *
  * Most users will want to obtain a [LDAPConnection] using the
- * LDAPConfiguration class.
+ * [LDAPConfiguration] class.
+ *
+ * With the exception of a BIND operation, LDAP operations
+ * are asynchronous. We do not need to wait for the current
+ * operation completes before sending the next one.
+ *
+ * LDAP return results are matched to requests using a message id. They
+ * are not guaranteed to be returned in the same order they
+ * were sent.
+ *
+ * There is currently no flow control. Messages will be queued and sent
+ * to the LDAP server as fast as possible. Messages are sent in in the order in
+ * which they are queued.
+ *
  */
 class LDAPConnection {
   ConnectionManager _cmgr;
@@ -27,7 +40,9 @@ class LDAPConnection {
   Function onError; // global error handler
 
   /**
-   * Create a new LDAP connection to [host] and [port]
+   * Create a new LDAP connection to [host] and [port].
+   *
+   * If [ssl] is true the connection will use SSL.
    *
    * Optionally store a bind [_bindDN] and [_password] which can be used to
    * rebind to the connection
@@ -36,7 +51,7 @@ class LDAPConnection {
     _cmgr = new ConnectionManager(host,port,ssl);
   }
 
-  /*
+  /**
    * Open a connection to the LDAP server. This does NOT
    * perform a BIND operation. If the LDAP server
    * supports anonymous bind, you can send ldap commands
@@ -55,7 +70,7 @@ class LDAPConnection {
   }
 
   /**
-   * Bind to LDAP server. If the optional [bindDN] and [password] are not passed
+   * Perform an LDAP BIND. If the optional [bindDN] and [password] are not passed
    * the connections stored values are used for the bind.
    */
   Future<LDAPResult> bind({String bindDN:null, String password:null}) {
@@ -74,7 +89,6 @@ class LDAPConnection {
    * [scope] is optional, and defaults to SUB_LEVEL (i.e.
    * search at base DN and all objects below it).
    *
-   *
    */
 
   Stream<SearchEntry> search(String baseDN, Filter filter,
@@ -92,10 +106,10 @@ class LDAPConnection {
   Future<LDAPResult> add(String dn, Map<String,dynamic> attrs) =>
       _cmgr.process(new AddRequest(dn,Attributes.fromMap(attrs)));
 
-  // Delete the ldap entry identified by [dn]
+  /// Delete the ldap entry identified by [dn]
   Future<LDAPResult> delete(String dn) => _cmgr.process(new DeleteRequest(dn));
 
-  // Modify the ldap entry [dn] with the list of modifications [mods]
+  /// Modify the ldap entry [dn] with the list of modifications [mods]
   Future<LDAPResult> modify(String dn, Iterable<Modification> mods) =>
       _cmgr.process( new ModifyRequest(dn,mods));
 
@@ -105,7 +119,7 @@ class LDAPConnection {
       _cmgr.process(new ModDNRequest(dn,rdn,deleteOldRDN, newSuperior));
 
   /// perform an LDAP Compare operation on the [dn].
-  /// Comapre the [attrName] and [attrValue] to see if they are the same
+  /// Compare the [attrName] and [attrValue] to see if they are the same
   ///
   /// The completed [LDAPResult] will have a value of [ResultCode.COMPARE_TRUE]
   /// or [ResultCode.COMPARE_FALSE].

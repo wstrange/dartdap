@@ -14,9 +14,7 @@ class SearchRequest extends RequestOp {
 
 
  SearchRequest(this._baseDN, this._filter, this._attributes, [this._scope = SearchScope.SUB_LEVEL, this._sizeLimit = 1000]):
-    super(SEARCH_REQUEST) {
-//    /_protocolOp = SEARCH_REQUEST;
-  }
+    super(SEARCH_REQUEST);
 
   ASN1Object toASN1() {
     var seq = _startSequence();
@@ -32,7 +30,6 @@ class SearchRequest extends RequestOp {
         ..add(new ASN1Boolean(_typesOnly))
         ..add(_filterToASN1(_filter))
         ..add(attrSet);
-
 
     return seq;
   }

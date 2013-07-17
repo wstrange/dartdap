@@ -4,7 +4,6 @@ library ldap_util;
 
 class LDAPUtil {
 
-
   /**
    * Escape an ldap string used in a search filter.
    * The LDAP spec requires *,),(,\ and null to be escaped.

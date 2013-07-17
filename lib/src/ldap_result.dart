@@ -97,17 +97,17 @@ class LDAPResult {
 
 
 /**
- * Holds a SearchEntry result
+ * Holds a single SearchEntry result for a DN
  */
 class SearchEntry {
   String _dn;
   String get dn => _dn;
 
-  List<Attribute> _attributes = new List();
-  List<Attribute> get attributes => _attributes;
+  Map<String,Attribute> _attributes = new Map<String,Attribute>();
+  Map<String,Attribute> get attributes => _attributes;
 
 
-  SearchEntry(this._dn,this._attributes);
+  SearchEntry(this._dn);
 
   String toString() => "Entry[$_dn,$_attributes]";
 }
@@ -161,7 +161,6 @@ class ResultCode {
   static const int OTHER = 80;
 
 
-
   static String getMessage(int code) {
     switch(code) {
       case OK:                return "OK";
@@ -176,16 +175,17 @@ class ResultCode {
       case CONFIDENTIALITY_REQUIRED: return "CONFIDENTIALITY_REQUIRED";
       case SASL_BIND_IN_PROGRESS: return "SASL_BIND_IN_PROGRESS";
       case NO_SUCH_ATTRIBUTE: return "NO_SUCH_ATTRIBUTE";
-      case UNDEFINED_ATTRIBUTE_TYPE: return "UNDEFINED_ATTRIBUTE_TYPE";
+      case UNDEFINED_ATTRIBUTE_TYPE: return "Undefined Attribute Type";
       case NO_SUCH_OBJECT: return "Object does not exist";
       case INVALID_CREDENTIALS: return "Invalid Credentials";
-
+      case INSUFFICIENT_ACCESS_RIGHTS: return "Insufficient Access Rights";
       case ENTRY_ALREADY_EXISTS: return "Entry already exists";
 
 
-      // todo: Finish Mapping these
+      // todo: Finish Mapping these. Most of the common error codes
+      // are mapped above.
 
-      default:                return "Error code ${code}";
+      default:                return "LDAP Error code ${code}";
     }
   }
 }

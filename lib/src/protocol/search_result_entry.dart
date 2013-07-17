@@ -26,7 +26,7 @@ class SearchResultEntry extends ProtocolOp {
     // embedded sequence is attr list
     var seq = s.elements[1] as ASN1Sequence;
 
-    _searchEntry = new SearchEntry(dn,[]);
+    _searchEntry = new SearchEntry(dn);
 
     seq.elements.forEach( (ASN1Sequence attr)  {
       var attrName = attr.elements[0] as ASN1OctetString;
@@ -35,7 +35,7 @@ class SearchResultEntry extends ProtocolOp {
       var valSet = vals.elements.map( (v) =>
         (v as ASN1OctetString).stringValue).toSet();
 
-      searchEntry.attributes.add( new Attribute(attrName.stringValue,valSet));
+      searchEntry.attributes[attrName] = new Attribute(attrName.stringValue,valSet);
     });
 
     // controls are optional.

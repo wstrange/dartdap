@@ -7,12 +7,11 @@ import 'dart:async';
 
 const int NUM_ENTRIES = 50;
 
-
 typedef Future LdapFun(int i, LDAPConnection ldap);
 
 // calls an ldap function N times.
 // This is used to syncronize and chain multiple future calls.
-// todo: Find a more elegant way of doing this. This is ugly
+// TODO: Find a more elegant way of doing this. This is ugly
 Future repeatNtimes(int i, LDAPConnection ldap, LdapFun fun) {
   if(  i <= 1)
     return new Future.value(null);

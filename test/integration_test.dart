@@ -6,6 +6,14 @@ import 'dart:math';
 import 'dart:isolate';
 import 'dart:async';
 
+/**
+ * LDAP integration tests
+ *
+ * These tests assume the LDAP server is pre-populated with some
+ * sample entries - currently created by the OpenDJ installer.
+ *
+ * TODO: Have the integration test create its pre-req entries.
+ */
 
 main() {
   LDAPConnection ldap;
@@ -32,17 +40,21 @@ main() {
 
      var filter = Filter.substring("cn=A*");
 
-
+      // we expect to find entries starting with A in the directory root.
      ldap.search("dc=example,dc=com", filter, attrs)
        .listen( (SearchEntry entry) {
+         // expected.
           //print("Found ${entry}");
         });
 
      var notFilter = Filter.not(filter);
 
+
+      // we expect to find non A entries
      ldap.search("dc=example,dc=com", notFilter, attrs)
       .listen( (SearchEntry entry) {
          //print("Not search = ${entry}");
+         // todo: test entries.
       });
 
      // bad search

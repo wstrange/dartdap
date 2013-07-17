@@ -55,12 +55,12 @@ class GenericResponse extends ResponseOp {
 */
 
 class ExtendedResponse extends ResponseOp {
-  const int TYPE_EXTENDED_RESPONSE_OID = 0x8A;
+  static const int TYPE_EXTENDED_RESPONSE_OID = 0x8A;
 
   /**
    * The BER type for the extended response value element.
    */
-  const int TYPE_EXTENDED_RESPONSE_VALUE = 0x8B;
+  static const int TYPE_EXTENDED_RESPONSE_VALUE = 0x8B;
 
   ExtendedResponse(ASN1Sequence s):super.extended(s) {
     // complete rest or parsing
