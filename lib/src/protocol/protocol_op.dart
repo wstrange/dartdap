@@ -1,13 +1,9 @@
 part of ldap_protocol;
 
 class ProtocolOp {
-
   int _protocolOp;
-
   int get protocolOpCode  => _protocolOp;
-
   ProtocolOp(this._protocolOp);
-
 
   /**
    * Create a sequence that is the start of the protocol op
@@ -81,7 +77,7 @@ class ResponseOp extends ProtocolOp {
 
     var refURLs = [];
     if( s.elements.length > 3) {
-      var o = s.elements[3] as ASN1Object;
+      var o = s.elements[3];
       logger.fine("parse LDAP Result type = $o");
       // collect refs.... we dont really deal with these now...
       //var rs = s.elements[3] as ASN1Sequence;
@@ -110,9 +106,7 @@ class ResponseOp extends ProtocolOp {
        */
     }
     return new LDAPResult(resultCode, matchedDN, diagnosticMessage, refURLs);
-
   }
-
 }
 
 

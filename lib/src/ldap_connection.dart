@@ -7,7 +7,6 @@ import 'dart:async';
 import 'filter.dart';
 import 'attribute.dart';
 import 'modification.dart';
-import 'ldap_exception.dart';
 import 'ldap_result.dart';
 import 'protocol/ldap_protocol.dart';
 import 'search_scope.dart';

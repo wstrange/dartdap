@@ -1,11 +1,6 @@
 library filter;
-import 'package:asn1lib/asn1lib.dart';
-import 'package:logging/logging.dart';
-
 
 import 'ldap_exception.dart';
-import 'ldap_util.dart';
-
 
 /**
  * Represents an LDAP search filter

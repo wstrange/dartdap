@@ -7,9 +7,16 @@ default:
   password: Oracle123
 
 # An SSL connection.
-ssl:
+ssl-example:
   port: 1636
   host: localhost
   ssl: true
   bindDN: cn=Directory Manager
-  password: Oracle123
+  password: password
+
+integration-test:
+  port: 636
+  host: openam.example.com
+  ssl: true
+  bindDN: cn=Directory Manager
+  password: password

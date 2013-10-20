@@ -35,7 +35,7 @@ class SearchResultEntry extends ProtocolOp {
       var valSet = vals.elements.map( (v) =>
         (v as ASN1OctetString).stringValue).toSet();
 
-      searchEntry.attributes[attrName] = new Attribute(attrName.stringValue,valSet);
+      searchEntry.attributes[attrName.stringValue] = new Attribute(attrName.stringValue,valSet);
     });
 
     // controls are optional.

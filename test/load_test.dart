@@ -1,8 +1,6 @@
 import 'package:unittest/unittest.dart';
 import 'package:dartdap/ldap_client.dart';
 
-import 'dart:math';
-import 'dart:isolate';
 import 'dart:async';
 
 const int NUM_ENTRIES = 50;
@@ -31,7 +29,7 @@ var dn = new DN("ou=People,dc=example,dc=com");
 
 main() {
   LDAPConnection ldap;
-  var ldapConfig = new LDAPConfiguration('ldap.yaml');
+  var ldapConfig = new LDAPConfiguration('ldap.yaml','integration-test');
 
 
   initLogging();

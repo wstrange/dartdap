@@ -1,7 +1,7 @@
 library ldap_result;
 
 import 'attribute.dart';
-import 'dart:async';
+
 
 /**
  * Various ldap result objects

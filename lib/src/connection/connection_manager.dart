@@ -8,10 +8,8 @@ import 'dart:collection';
 import 'package:logging/logging.dart';
 import '../protocol/ldap_protocol.dart';
 
-import '../filter.dart';
 import '../ldap_exception.dart';
 import '../ldap_result.dart';
-import '../ldap_connection.dart';
 
 
 /**

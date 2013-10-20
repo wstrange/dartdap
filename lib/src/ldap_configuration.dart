@@ -36,6 +36,7 @@ class LDAPConfiguration {
   String get host     => config['host'];
   int    get port     => config['port'];
 
+  // return true if this is an ssl connection
   bool get ssl {
     var x = config['ssl'];
     if( x == null || x != true)

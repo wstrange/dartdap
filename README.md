@@ -1,12 +1,23 @@
 An LDAP Client Library for Dart
 
-
 Implements the LDAP v3 protocol. This library depends on the ASN1 parser library .
 
 
 Implemented operations include BIND, ADD, MODIFY, DEL, MODIFYDN, SEARCH, COMPARE
 
+Example:
+```dart
+var ldapConfig = new LDAPConfiguration("ldap.yaml");
+var attrs = ["dn", "cn", "objectClass"];
+var filter = Filter.substring("cn=A*");
 
+ldapConfig.getConnection().then( (LDAPConnection ldap) {
+	ldap.search("dc=example,dc=com", filter, attrs).
+		listen( (SearchEntry entry) => print('Found $entry'));
+});
+```
+
+See the integration test for more examples
 
 TODO List:
 
@@ -14,7 +25,7 @@ TODO List:
 * Improve conciseness / usability of API
 * Paged search
 * VLV Search
-* An LDIF parser would help for creating integration test data
+* An LDIF parser would be nice for creating integration test data
 * Do we need to implement flow control so the client does not overwhelm
  the server?
 
