@@ -1,11 +1,11 @@
 name: dartdap
 version: 0.0.1
-author: warren.strange@gmail.com
-description: A dart ldap client library
+author: Warren Strange <warren.strange@gmail.com>
+description: A dart LDAP v3 client library
+homepage: https://github.com/wstrange/dartdap
 dependencies:
-  logging: any
+  asn1lib: 0.1.0
   dart_config: any
-  asn1lib:
-    path: ../asn1lib
+  logging: any
 dev_dependencies:
   unittest: any
