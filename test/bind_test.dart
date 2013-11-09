@@ -1,12 +1,12 @@
 import 'package:unittest/unittest.dart';
-import 'package:dartdap/ldap_client.dart';
+import 'package:dartdap/dartdap.dart';
 
 
 main() {
 
   LDAPConnection ldap;
   var ldapConfig = new LDAPConfiguration('ldap.yaml');
-  var ldapsConfig = new LDAPConfiguration('ldap.yaml','ssl');
+  var ldapsConfig = new LDAPConfiguration('ldap.yaml','ssl-example');
 
   initLogging();
 

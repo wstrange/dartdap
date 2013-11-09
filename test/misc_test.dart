@@ -1,7 +1,7 @@
 
 
 import 'package:unittest/unittest.dart';
-import 'package:dartdap/ldap_client.dart';
+import 'package:dartdap/dartdap.dart';
 
 
 

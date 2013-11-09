@@ -31,10 +31,3 @@ TODO List:
 
 
 
-Design Issues
-
-The library is asynchronous and there isn't a convenient way to throttle batch operations.
-For example, if you  want to create 10,000 entries, a simple for loop will
-create 10,000 in memory requests - which is probably not what you want. This
-seems to be a general Dart async issue right now.
-

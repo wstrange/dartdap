@@ -1,5 +1,5 @@
 import 'package:unittest/unittest.dart';
-import 'package:dartdap/ldap_client.dart';
+import 'package:dartdap/dartdap.dart';
 
 import 'dart:async';
 
@@ -14,7 +14,7 @@ import 'dart:async';
 
 main() {
   LDAPConnection ldap;
-  var ldapConfig = new LDAPConfiguration("ldap.yaml","integration-test");
+  var ldapConfig = new LDAPConfiguration("ldap.yaml","default");
 
   initLogging();
 

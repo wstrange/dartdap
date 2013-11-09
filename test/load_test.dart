@@ -1,40 +1,22 @@
 import 'package:unittest/unittest.dart';
-import 'package:dartdap/ldap_client.dart';
+import 'package:dartdap/dartdap.dart';
+import 'package:quiver/async.dart';
+import 'package:quiver/iterables.dart';
 
 import 'dart:async';
 
 const int NUM_ENTRIES = 50;
 
-typedef Future LdapFun(int i, LDAPConnection ldap);
-
-// calls an ldap function N times.
-// This is used to syncronize and chain multiple future calls.
-// TODO: Find a more elegant way of doing this. This is ugly
-Future repeatNtimes(int i, LDAPConnection ldap, LdapFun fun) {
-  if(  i <= 1)
-    return new Future.value(null);
-
-  return fun(i,ldap).then( (r) {
-    logMessage("result=${r}");
-    return repeatNtimes(i-1,ldap,fun);
-   },
-    onError: (e) {
-      logMessage("Error result - ignored ${e}");
-      return  repeatNtimes(i-1,ldap,fun);
-  });
-}
-
 var dn = new DN("ou=People,dc=example,dc=com");
 
-
 main() {
-  LDAPConnection ldap;
-  var ldapConfig = new LDAPConfiguration('ldap.yaml','integration-test');
 
-
+  var ldapConfig = new LDAPConfiguration('ldap.yaml','default');
   initLogging();
 
   group('Test group', () {
+    LDAPConnection ldap;
+
     setUp( () {
       return ldapConfig.getConnection()
           .then( (LDAPConnection l) => ldap =l );
@@ -45,10 +27,11 @@ main() {
     });
 
     test('delete previous entries from last run', () {
-      repeatNtimes(NUM_ENTRIES, ldap, (int j,LDAPConnection l) {
+
+      return forEachAsync( range(NUM_ENTRIES),  (j) {
         var d = dn.concat("uid=test$j");
-        logMessage("delete $j");
-        return l.delete(d.dn);
+        // ignore any errors - we dont really care
+        return ldap.delete(d.dn).then( (_) => print('delete $d'), onError: (_) => true);
       });
     });
 
@@ -56,11 +39,11 @@ main() {
     * Add a number of entries
     */
    test('bulk add', () {
-     repeatNtimes(NUM_ENTRIES, ldap,  (i,ldap) {
-       var attrs = { "sn":"test$i", "cn":"Test user$i",
+     return forEachAsync( range(NUM_ENTRIES), (i) {
+      var attrs = { "sn":"test$i", "cn":"Test user$i",
                           "objectclass":["inetorgperson"]};
-     return ldap.add("uid=test$i,ou=People,dc=example,dc=com", attrs);});
-
+      return ldap.add("uid=test$i,ou=People,dc=example,dc=com", attrs);
+      });
    });
 
 
@@ -71,8 +54,10 @@ main() {
      // todo - use listen onDone: to hook in
      return ldap.search("ou=People,dc=example,dc=com",f,["uid","sn"]).
           listen((SearchEntry entry) {
-           logMessage("count=${++count} Got entry= ${entry} ");
-         });
+           logMessage("${entry} ");
+           count += 1;
+          },
+         onDone: () => expect(count, equals(NUM_ENTRIES) ) );
    });
 
   }); // end group
