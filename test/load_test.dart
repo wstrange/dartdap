@@ -25,14 +25,8 @@ main() {
       return ldapConfig.close();
     });
 
-    test('delete previous entries from last run', () {
-
-      return forEachAsync( range(NUM_ENTRIES),  (j) {
-        var d = dn.concat("uid=test$j");
-        // ignore any errors - we dont really care
-        return ldap.delete(d.dn).then( (_) => print('delete $d'), onError: (_) => true);
-      });
-    });
+    // this is designed to clean up any failed tests
+    test('delete previous entries from last run', ()=> _deleteEntries(ldap));
 
    /**
     * Add a number of entries
@@ -57,7 +51,7 @@ main() {
      // todo - use listen onDone: to hook in
      return ldap.search("ou=People,dc=example,dc=com",f,["uid","sn"]).
           listen((SearchEntry entry) {
-           logMessage("${entry} ");
+           //logMessage("${entry} ");
            count += 1;
           },
          onDone: () => expect(count, equals(expected) ),
@@ -70,16 +64,19 @@ main() {
          });
    });
 
-   test('delete entries', () {
-
-        return forEachAsync( range(NUM_ENTRIES),  (j) {
-          var d = dn.concat("uid=test$j");
-          // ignore any errors - we dont really care
-          return ldap.delete(d.dn).then( (_) => print('delete $d'), onError: (_) => true);
-        });
-      });
-
+   // run this to clean up entries
+   test('delete entries', () => _deleteEntries(ldap));
 
   }); // end group
 
 }
+
+// purge entries from the test
+_deleteEntries(ldap) {
+  return forEachAsync( range(NUM_ENTRIES),  (j) {
+           var d = dn.concat("uid=test$j");
+           // ignore any errors - we dont really care
+           return ldap.delete(d.dn).then( (_) => _, onError: (_) => true);
+       });
+}
+
