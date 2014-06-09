@@ -4,11 +4,11 @@ author: Warren Strange <warren.strange@gmail.com>
 description: A dart LDAP v3 client library
 homepage: https://github.com/wstrange/dartdap
 environment:
-  sdk: '>=0.8.10+6 <2.0.0'
+  sdk: '>=1.0.0 <2.0.0'
 dependencies:
-  asn1lib: '>=0.3.2'
+  asn1lib: '>=0.3.2 <1.0.0'
   dart_config: 0.5.0
-  logging: 0.9.0
+  logging: '>=0.9.0 <1.0.0'
 dev_dependencies:
-  quiver: 0.13.0
+  quiver: '>=0.13.0  <1.0.0'
   unittest: any

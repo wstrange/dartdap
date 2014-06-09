@@ -1,8 +1,6 @@
 import 'package:unittest/unittest.dart';
 import 'package:dartdap/dartdap.dart';
 
-import 'dart:async';
-
 /**
  * LDAP integration tests
  *
@@ -33,7 +31,7 @@ main() {
     test('Search Test', () {
      var attrs = ["dn", "cn", "objectClass"];
 
-     ldap.onError = expectAsync1((e) => expect(false, 'Should not be reached'), count: 0);
+     ldap.onError = expectAsync((e) => expect(false, 'Should not be reached'), count: 0);
 
      var filter = Filter.substring("cn=A*");
 
@@ -58,8 +56,8 @@ main() {
 
      ldap.search("dn=foofoo", notFilter, attrs)
       .listen(
-          expectAsync1( (r) => print("should not be called!"), count:0),
-          onError: expectAsync1( (e) =>  expect( e.resultCode, equals(ResultCode.NO_SUCH_OBJECT)))
+          expectAsync( (r) => print("should not be called!"), count:0),
+          onError: expectAsync( (e) =>  expect( e.resultCode, equals(ResultCode.NO_SUCH_OBJECT)))
       );
 
       //  ));
@@ -80,14 +78,14 @@ main() {
                     "objectClass":["inetorgperson"]};
 
       // add mickey to directory
-      ldap.add(dn, attrs).then( expectAsync1((r) {
+      ldap.add(dn, attrs).then( expectAsync((r) {
         expect( r.resultCode, equals(0));
         // modify mickey's sn
         var m = new Modification.replace("sn", ["Sir Mickey"]);
-        ldap.modify(dn, [m]).then( expectAsync1((result) {
+        ldap.modify(dn, [m]).then( expectAsync((result) {
           expect(result.resultCode,equals(0));
           // finally delete mickey
-          ldap.delete(dn).then( expectAsync1((result) {
+          ldap.delete(dn).then( expectAsync((result) {
             expect(result.resultCode,equals(0));
           }));
         }));
@@ -102,10 +100,10 @@ main() {
      var dn = "uid=FooDoesNotExist,ou=People,dc=example,dc=com";
 
      ldap.delete(dn)
-      .then( expectAsync1( (r) {
+      .then( expectAsync( (r) {
           expect(false,'Future catchError should have been called');
           }, count:0))
-      .catchError( expectAsync1( (e) {
+      .catchError( expectAsync( (e) {
         expect( e.resultCode, equals(ResultCode.NO_SUCH_OBJECT));
       }));
 
@@ -130,11 +128,11 @@ main() {
      */
      ldap.add(dn, attrs)
        .then( (r) => ldap.modifyDN(dn,newrdn))
-       .then(expectAsync1((r) {
+       .then(expectAsync((r) {
          expect( r.resultCode, equals(0));
         }))
         .then( (_) => ldap.modifyDN(renamedDN,newrdn,false,newParent))
-        .then( expectAsync1(((r) {
+        .then( expectAsync(((r) {
          expect( r.resultCode, equals(0));
         })))
         .then( (_) => ldap.delete(renamedDN2));

@@ -2,10 +2,9 @@ import 'package:unittest/unittest.dart';
 import 'package:dartdap/dartdap.dart';
 import 'package:quiver/async.dart';
 import 'package:quiver/iterables.dart';
+import 'dart:math' as Math;
 
-import 'dart:async';
-
-const int NUM_ENTRIES = 50;
+const int NUM_ENTRIES = 2000;
 
 var dn = new DN("ou=People,dc=example,dc=com");
 
@@ -51,14 +50,35 @@ main() {
      int count = 0;
      var f = Filter.substring("uid=test*");
 
+     // bit of a hack. Note the directory has a max limit
+     // for the number of results returned. 1000 is teh default for DJ
+     var expected = Math.min(NUM_ENTRIES,1000);
+
      // todo - use listen onDone: to hook in
      return ldap.search("ou=People,dc=example,dc=com",f,["uid","sn"]).
           listen((SearchEntry entry) {
            logMessage("${entry} ");
            count += 1;
           },
-         onDone: () => expect(count, equals(NUM_ENTRIES) ) );
+         onDone: () => expect(count, equals(expected) ),
+         onError: (LDAPResult r) {
+           if( r.resultCode == ResultCode.SIZE_LIMIT_EXCEEDED && count == expected )  {
+             logger.info("got expected size result error $r");
+           }
+           else
+             fail("Unexpected LDAP error $r");
+         });
    });
+
+   test('delete entries', () {
+
+        return forEachAsync( range(NUM_ENTRIES),  (j) {
+          var d = dn.concat("uid=test$j");
+          // ignore any errors - we dont really care
+          return ldap.delete(d.dn).then( (_) => print('delete $d'), onError: (_) => true);
+        });
+      });
+
 
   }); // end group
 
