@@ -92,8 +92,6 @@ class LDAPMessage {
     seq.add( new ASN1Integer(_messageId));
 
     seq.add(_obj);
-
-    seq.encode();
     var b = seq.encodedBytes;
 
     var xx = LDAPUtil.toHexString(b);

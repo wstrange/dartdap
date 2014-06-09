@@ -29,7 +29,6 @@ abstract class RequestOp extends ProtocolOp {
    */
   Uint8List toEncodedBytes() {
     ASN1Sequence seq = toASN1();
-    seq.encode();
     return seq.encodedBytes;
   }
 

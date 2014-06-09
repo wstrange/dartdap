@@ -74,8 +74,6 @@ class SearchRequest extends RequestOp {
         assert(notObj != null);
 
         var enc = _filterToASN1(notObj);
-        enc.encode();
-
         return new ASN1Object.preEncoded(Filter.TYPE_NOT, enc.encodedBytes);
 
 
