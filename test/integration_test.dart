@@ -10,18 +10,17 @@ import 'package:dartdap/dartdap.dart';
  * TODO: Have the integration test create its pre-req entries.
  */
 
-main() {
+main() async {
   LDAPConnection ldap;
   var ldapConfig = new LDAPConfiguration("ldap.yaml","default");
 
   initLogging();
 
-  group('LDAP Integration ', () {
+  group('LDAP Integration ', ()  {
     // create a connection. Return a future that completes when
     // the connection is available and bound
-    setUp( () {
-      return ldapConfig.getConnection()
-          .then( (LDAPConnection l) => ldap =l );
+    setUp( ()  async {
+     ldap = await ldapConfig.getConnection();
     });
 
     tearDown( () {
@@ -64,53 +63,45 @@ main() {
    });
 
 
-   test('add/modify/delete request', () {
+   test('add/modify/delete request', () async {
       var dn = "uid=mmouse,ou=People,dc=example,dc=com";
 
-      // clean up first from any failed test. We don't care about the result
-      ldap.delete(dn).then( (result) {
-        //print("delete result= $result");
-      }).catchError( (e) {
-        //print("delete result ${e.error.resultCode}");
-      });
+      // clean up any previous failed test. We don't care about the result
+      try {
+        await ldap.delete(dn);
+      } catch(e) {};
 
       var attrs = { "cn" : "Mickey Mouse", "uid": "mmouse", "sn":"Mouse",
                     "objectClass":["inetorgperson"]};
 
-      // add mickey to directory
-      ldap.add(dn, attrs).then( expectAsync((r) {
-        expect( r.resultCode, equals(0));
-        // modify mickey's sn
-        var m = new Modification.replace("sn", ["Sir Mickey"]);
-        ldap.modify(dn, [m]).then( expectAsync((result) {
-          expect(result.resultCode,equals(0));
-          // finally delete mickey
-          ldap.delete(dn).then( expectAsync((result) {
-            expect(result.resultCode,equals(0));
-          }));
-        }));
-      }));
-
-
+      // add mickey
+      var result = await ldap.add(dn, attrs);
+      expect( result.resultCode, equals(0));
+      // modify mickey's sn
+      var m = new Modification.replace("sn", ["Sir Mickey"]);
+      result = await ldap.modify(dn, [m]);
+      expect(result.resultCode,equals(0));
+      // finally delete mickey
+      result = await ldap.delete(dn);
+      expect(result.resultCode,equals(0));
    }); // end test
 
-   test('test error handling', () {
+   test('test error handling', () async {
 
      // dn we know will fail to delete as it does not exist
      var dn = "uid=FooDoesNotExist,ou=People,dc=example,dc=com";
 
-     ldap.delete(dn)
-      .then( expectAsync( (r) {
-          expect(false,'Future catchError should have been called');
-          }, count:0))
-      .catchError( expectAsync( (e) {
-        expect( e.resultCode, equals(ResultCode.NO_SUCH_OBJECT));
-      }));
+     try {
+       await ldap.delete(dn);
+       fail("Should not be able to delete a non existing DN");
+     }
+     catch (e) {
+       expect( e.resultCode, equals(ResultCode.NO_SUCH_OBJECT));
+     }
+  });
 
-   }); // end test
 
-
-   test('Modify DN', () {
+   test('Modify DN', () async {
      var dn = "uid=mmouse,ou=People,dc=example,dc=com";
      var newrdn = "uid=mmouse2";
      var renamedDN =  "uid=mmouse2,ou=People,dc=example,dc=com";
@@ -124,29 +115,26 @@ main() {
      /*
         For some reason OUD does not seem to respect the deleteOldRDN flag
         It always moves the entry - and does not leave the old one
-
      */
-     ldap.add(dn, attrs)
-       .then( (r) => ldap.modifyDN(dn,newrdn))
-       .then(expectAsync((r) {
-         expect( r.resultCode, equals(0));
-        }))
-        .then( (_) => ldap.modifyDN(renamedDN,newrdn,false,newParent))
-        .then( expectAsync(((r) {
-         expect( r.resultCode, equals(0));
-        })))
-        .then( (_) => ldap.delete(renamedDN2));
+
+     var r =  await ldap.add(dn, attrs); // create mmouse
+     expect( r.resultCode, equals(0));
+     r = await ldap.modifyDN(dn,"uid=mmouse2"); // rename to mmouse2
+     expect( r.resultCode, equals(0));
+     // try to rename and reparent
+     r = await ldap.modifyDN(renamedDN,newrdn,false,newParent);
+     expect( r.resultCode, equals(0));
+     r = await ldap.delete(renamedDN2);
+     expect( r.resultCode, equals(0));
    });
 
-  // test ldap compare operation
-  test('Compare test',() {
+  // test ldap compare operation. This assumes OpenDJ has been
+  // populated with the sample user: user.0
+  test('Compare test',()  async {
     String dn = "uid=user.0,ou=People,dc=example,dc=com";
 
-    ldap.compare(dn, "postalCode", "50369").then((r) {
-      expect( r.resultCode, equals(ResultCode.COMPARE_TRUE));
-      print('compare ok');
-
-     });
+    var r = await ldap.compare(dn, "postalCode", "50369");
+    expect( r.resultCode, equals(ResultCode.COMPARE_TRUE));
   });
 
   }); // end group

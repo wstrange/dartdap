@@ -5,10 +5,7 @@ import 'dart:async';
 import 'package:dart_config/default_server.dart' as server_config;
 import 'package:logging/logging.dart';
 
-
-
 import 'ldap_connection.dart';
-import 'ldap_result.dart';
 import 'ldap_exception.dart';
 
 
@@ -64,12 +61,12 @@ class LDAPConfiguration {
   }
 
   /* Return a Future<Map> with the connection configuration detais */
-  Future<Map> getConfig() {
+  Future<Map> getConfig() async {
     if( configMap != null )
       return new Future.value(configMap);
 
-    return server_config.loadConfig(_fileName).then(
-      (Map cfg) { configMap = cfg; return configMap; });
+    configMap = await server_config.loadConfig(_fileName);
+    return configMap;
   }
 
   /**
@@ -82,35 +79,23 @@ class LDAPConfiguration {
    * the returned connection will also be bound using the configured DN and password
    */
 
-  Future<LDAPConnection> getConnection([bool doBind = true]) {
+  Future<LDAPConnection> getConnection   ([bool doBind = true])  async {
     // if we have an existing connection - return that immediatley
     if( _connection != null )
-      return new Future(() => _connection);
+      return  _connection;
 
-    var c = new Completer<LDAPConnection>();
+    Map m = await getConfig();
+    //
+    logger.info("Connection params $host $port ssl=$ssl");
+    _connection = new LDAPConnection(host,port,ssl,bindDN,password);
+    await _connection.connect();
 
-    getConfig().then((Map m) {
-      //
-      logger.info("Connection params $host $port ssl=$ssl");
-      _connection = new LDAPConnection(host,port,ssl,bindDN,password);
-      _connection.connect()
-        .then( (_)  {
-          if( doBind) {
-            _connection.bind().then( (LDAPResult r) {
-              if( r.resultCode == 0)
-                c.complete(_connection);
-              else
-                c.completeError( new LDAPException("BIND Failed", r));
-            });
-          }
-          else // no bind requested. Just complete with the connection
-            c.complete(_connection);
-         })
-        .catchError( (e) {
-          c.completeError(e);
-        });
-    });
-    return c.future;
+    if( doBind) {
+      var r = await _connection.bind();
+      if( r.resultCode != 0)
+        throw new LDAPException("BIND Failed", r);
+    }
+    return _connection;
   }
 
   Future close([bool immediate = false]) {

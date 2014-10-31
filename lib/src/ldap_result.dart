@@ -8,7 +8,7 @@ import 'attribute.dart';
  */
 
 /**
-* LDAPResult - Sequnce
+* LDAPResult - Sequuence
  *   resultCode (ENUM), matchedDN, errorMessage, referral (optional)
  *
  *

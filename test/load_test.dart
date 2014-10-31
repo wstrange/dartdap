@@ -13,12 +13,11 @@ main() {
   var ldapConfig = new LDAPConfiguration('ldap.yaml','default');
   initLogging();
 
-  group('Test group', () {
+  group('Test group', ()  {
     LDAPConnection ldap;
 
-    setUp( () {
-      return ldapConfig.getConnection()
-          .then( (LDAPConnection l) => ldap =l );
+    setUp( ()  async {
+      ldap =  await ldapConfig.getConnection();
     });
 
     tearDown( () {

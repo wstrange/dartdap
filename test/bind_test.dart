@@ -1,7 +1,7 @@
 import 'package:unittest/unittest.dart';
 import 'package:dartdap/dartdap.dart';
 
-main() {
+main()  {
 
   LDAPConnection ldap;
   var ldapConfig = new LDAPConfiguration('ldap.yaml');
@@ -11,9 +11,8 @@ main() {
 
   group('LDAP Bind Group', () {
 
-    setUp( () {
-      return ldapConfig.getConnection(false)
-          .then( (c) => ldap = c);
+    setUp( () async {
+      ldap = await ldapConfig.getConnection(false);
     });
 
     tearDown( () {
@@ -21,28 +20,47 @@ main() {
       return ldapConfig.close();
     });
 
-    test('Simple Bind using default connection creds', () {
-      ldap.bind()
-          .then( expectAsync((LDAPResult r) {
-            logMessage("****** Got expected LDAP result $r");
-            expect(r.resultCode, equals(0));
-        }));
+    test('Simple Bind using default connection creds', () async {
+      var result = await ldap.bind();
+      expect(result.resultCode, equals(0));
     });
 
-    test('Bind to a bad DN', () {
-      ldap.bind(bindDN:"cn=foofoo",password:"password")
-        .then( expectAsync((r) {
-            expect(false,"Should not be reached");
-        },count:0))
-        .catchError( expectAsync( (e) {
-          logMessage("Got expected error ${e}");
-          expect(e.resultCode,equals(ResultCode.INVALID_CREDENTIALS));
-        }));
+    test('Bind using a good DN', () async {
+       return ldap.bind("cn=Directory Manager","password").then( (c){
+        print("got result $c ${c.runtimeType}");
+      } );
+
     });
 
-    test('SSL Connect test', () {
-      ldapsConfig.getConnection().then(
-          expectAsync((result) =>logMessage('Connected via SSL OK')));
+
+    test('Bind using a good DN using async', () async {
+      try {
+        var r = await ldap.bind("cn=Directory Manager","password");
+       expect(r.resultCode,equals(0));
+      }
+      catch(e) {
+        fail("unexpected exception $e");
+      }
+    });
+
+    test('Bind to a bad DN', () async {
+      try {
+        await ldap.bind("cn=foofoo","password");
+        fail("Should not be able to bind to a bad DN");
+      }
+      catch(e) {
+       expect(e.resultCode,equals(ResultCode.INVALID_CREDENTIALS));
+      }
+    });
+
+    test('SSL Connect test', () async {
+      try {
+        var connection = await ldapsConfig.getConnection();
+      }
+      catch(e) {
+        fail("Could not create SSL connection. Error = $e");
+      }
+
     });
 
   }); // end group

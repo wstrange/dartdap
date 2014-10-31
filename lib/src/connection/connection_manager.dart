@@ -137,26 +137,15 @@ class ConnectionManager {
   ConnectionManager(this._host,this._port,this._ssl);
 
 
-  Future<ConnectionManager> connect() {
+  Future<ConnectionManager> connect() async {
     logger.finest("Creating socket to ${_host}:${_port} ssl=$_ssl");
+    var s = (_ssl ?  SecureSocket.connect(_host, _port, onBadCertificate:_badCertHandler) :
+                    Socket.connect(_host,_port));
 
-    var c = new Completer<ConnectionManager>();
-
-    var s = _ssl ?  SecureSocket.connect(_host, _port, onBadCertificate:_badCertHandler) :
-                    Socket.connect(_host,_port);
-
-    s.then( (Socket sock) {
-      logger.fine("Connected to $_host:$_port");
-      //_connectionState = CONNECTED;
-      _socket = sock;
-      //sock.listen(_dataHandler,_errorHandler);
-      sock.listen(_handleData);
-      c.complete(this);
-    }).catchError((e) {
-      logger.severe("Can't connect to $_host $_port");
-      c.completeError(e);
-    });;
-    return c.future;
+    _socket = await s;
+    logger.fine("Connected to $_host:$_port");
+    _socket.listen(_handleData);
+    return this;
   }
 
   // Called when the SSL cert is not valid

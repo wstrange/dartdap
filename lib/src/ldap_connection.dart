@@ -1,7 +1,6 @@
 
 library ldap_connection;
 
-import 'package:logging/logging.dart';
 import 'connection/connection_manager.dart';
 import 'dart:async';
 import 'filter.dart';
@@ -72,7 +71,7 @@ class LDAPConnection {
    * Perform an LDAP BIND. If the optional [bindDN] and [password] are not passed
    * the connections stored values are used for the bind.
    */
-  Future<LDAPResult> bind({String bindDN:null, String password:null}) {
+  Future<LDAPResult> bind([String bindDN =null, String password =null]) {
     if( bindDN != null )
       return _cmgr.process(new BindRequest(bindDN, password));
     else
@@ -114,6 +113,7 @@ class LDAPConnection {
 
   /// Modify the Entries [dn] to a new relative [rdn]. If [deleteOldRDN] is true
   /// delete the old entry. If [newSuperior] is not null, reparent the entry
+  /// todo: consider making optional args as named args
   Future<LDAPResult> modifyDN(String dn, String rdn,[bool deleteOldRDN = true, String newSuperior]) =>
       _cmgr.process(new ModDNRequest(dn,rdn,deleteOldRDN, newSuperior));
 
