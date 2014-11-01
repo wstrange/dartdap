@@ -85,6 +85,7 @@ class LDAPMessage {
   }
 
 
+  // Convert this LDAP message to a stream of ASN1 encoded bytes
   List<int> toBytes() {
 
     ASN1Sequence seq = new ASN1Sequence();

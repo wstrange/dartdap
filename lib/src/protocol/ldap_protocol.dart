@@ -86,6 +86,6 @@ String _op2String(int op) {
 
   }
 }
-
+// common logger for ldap errors
 Logger logger = new Logger("ldap_protocol");
 

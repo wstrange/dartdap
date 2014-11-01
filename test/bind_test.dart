@@ -1,5 +1,6 @@
 import 'package:unittest/unittest.dart';
 import 'package:dartdap/dartdap.dart';
+import 'package:logging_handlers/logging_handlers_shared.dart';
 
 main()  {
 
@@ -7,7 +8,7 @@ main()  {
   var ldapConfig = new LDAPConfiguration('ldap.yaml');
   var ldapsConfig = new LDAPConfiguration('ldap.yaml','ssl-example');
 
-  initLogging();
+  startQuickLogging();
 
   group('LDAP Bind Group', () {
 

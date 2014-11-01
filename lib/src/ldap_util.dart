@@ -1,7 +1,6 @@
-
 library ldap_util;
 
-
+// todo: why a class? Make a top level functions?
 class LDAPUtil {
 
   /**

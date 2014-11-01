@@ -1,8 +1,8 @@
 import 'package:unittest/unittest.dart';
 import 'package:dartdap/dartdap.dart';
-import 'package:quiver/async.dart';
-import 'package:quiver/iterables.dart';
 import 'dart:math' as Math;
+import 'package:logging_handlers/logging_handlers_shared.dart';
+
 
 const int NUM_ENTRIES = 2000;
 
@@ -11,7 +11,8 @@ var dn = new DN("ou=People,dc=example,dc=com");
 main() {
 
   var ldapConfig = new LDAPConfiguration('ldap.yaml','default');
-  initLogging();
+  startQuickLogging();
+
 
   group('Test group', ()  {
     LDAPConnection ldap;
@@ -30,12 +31,13 @@ main() {
    /**
     * Add a number of entries
     */
-   test('bulk add', () {
-     return forEachAsync( range(NUM_ENTRIES), (i) {
-      var attrs = { "sn":"test$i", "cn":"Test user$i",
-                          "objectclass":["inetorgperson"]};
-      return ldap.add("uid=test$i,ou=People,dc=example,dc=com", attrs);
-      });
+   test('bulk add', () async {
+     for(int i=0; i < NUM_ENTRIES; ++i) {
+       var attrs = { "sn":"test$i", "cn":"Test user$i",
+                                "objectclass":["inetorgperson"]};
+       var result = await ldap.add("uid=test$i,ou=People,dc=example,dc=com", attrs);
+       expect(result.resultCode, equals(0));
+     }
    });
 
 
@@ -70,12 +72,13 @@ main() {
 
 }
 
-// purge entries from the test
-_deleteEntries(ldap) {
-  return forEachAsync( range(NUM_ENTRIES),  (j) {
-           var d = dn.concat("uid=test$j");
-           // ignore any errors - we dont really care
-           return ldap.delete(d.dn).then( (_) => _, onError: (_) => true);
-       });
+// purge entries from the test to clean up
+_deleteEntries(ldap) async {
+  for(int j=0; j < NUM_ENTRIES; ++j) {
+    // ignore any errors - we dont really care
+    try {
+      await ldap.delete((dn.concat("uid=test$j")).dn);
+    } catch(e) {};
+  }
 }
 

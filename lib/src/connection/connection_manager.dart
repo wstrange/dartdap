@@ -15,7 +15,7 @@ import '../ldap_result.dart';
 /**
  * Holds a pending LDAP operation that we have issued to the server. We
  * expect to get a response back from the server for this op. We match
- * against the message Id. example: We send request with id = 1234,
+ * the response against the message Id. example: We send request with id = 1234,
  * we expect a response with id = 1234
  *
  * todo: Implement timeouts?
@@ -51,8 +51,7 @@ class _StreamPendingOp extends _PendingOp {
   bool processResult(ProtocolOp op) {
     // op is Search Entry. Add it to our stream and keep
     if( op is SearchResultEntry ) {
-      var re = (op as SearchResultEntry);
-      controller.add(re.searchEntry);
+      controller.add(op.searchEntry);
       return false;
     }
     else { // we should be done now
@@ -72,8 +71,8 @@ class _StreamPendingOp extends _PendingOp {
   }
 }
 
-// A pending opertion that has a single return value
-// returned via a future. For Everything but search results
+// A pending opertion that expects a single return response message
+// returned via a future. For all LDAP ops except search results
 class _FuturePendingOp extends _PendingOp {
 
   var completer = new Completer();
@@ -118,17 +117,15 @@ class ConnectionManager {
   Queue<_PendingOp> _outgoingMessageQueue = new Queue<_PendingOp>();
 
   // Messages that we are expecting a response back from the LDAP server
-  Map<int,_PendingOp> _pendingMessages = new Map();
+  Map<int,_PendingOp> _pendingResponseMessages = new Map();
 
-  // TIMEOUT when waiting for a pending op.
-
-  static const TIMEOUT = const Duration(seconds: 3);
-
-  bool _bindPending = false;
-
+  // TIMEOUT when waiting for a pending op to come back from the server.
+  static const PENDING_OP_TIMEOUT = const Duration(seconds: 6);
+  //
+  bool _bindPending = false; // true if a BIND is pending
   Socket _socket;
 
-  int _nextMessageId = 1;
+  int _nextMessageId = 1;  // message counter for this connection
 
   int _port;
   String _host;
@@ -199,7 +196,7 @@ class ConnectionManager {
     logger.fine("Sending message ${op.message}");
     var l = op.message.toBytes();
     _socket.add(l);
-    _pendingMessages[op.message.messageId] = op;
+    _pendingResponseMessages[op.message.messageId] = op;
     if( op.message.protocolTag == BIND_REQUEST)
       _bindPending = true;
   }
@@ -221,7 +218,7 @@ class ConnectionManager {
     }
     else {
       var c = new Completer();
-      new Timer.periodic(TIMEOUT, (Timer t) {
+      new Timer.periodic(PENDING_OP_TIMEOUT, (Timer t) {
         if( _canClose() ) {
           t.cancel();
           _doClose().then( (_) => c.complete());
@@ -235,7 +232,7 @@ class ConnectionManager {
    * Return true if there are no more pending messages.
    */
   bool _canClose() {
-    if( _pendingMessages.isEmpty && _outgoingMessageQueue.isEmpty) {
+    if( _pendingResponseMessages.isEmpty && _outgoingMessageQueue.isEmpty) {
       return true;
     }
     logger.fine("close() waiting for queue to drain");
@@ -252,19 +249,22 @@ class ConnectionManager {
 
 
   // handle incoming message bytes from the server
-  // at this point it is just binary data
+  // at this point this is just binary data
   _handleData(List<int> data) {
-   logger.fine("Got data $data");
+   //logger.finest("_handleData $data");
 
    var _buf = data;
    int i = 0;
    while(true) {
+     // pass binary buffer to handler. Handler
+     // returns the number of bytes it consumed
+     // when parsing the binary bits
      var bytesRead = _handleMessage(_buf);
      i += bytesRead;
      if( i >= data.length)
        break;
-     // TODO: getRange is changing.
-     //_buf = data.getRange(i, data.length);
+     // This could be a little expensive.
+     // May want to investigate a list struct that returns a sublist with less cost
      _buf = data.sublist(i);
    }
 
@@ -282,15 +282,20 @@ class ConnectionManager {
     // now call response handler to figure out what kind of resposnse
     // the message contains.
     var rop = ResponseHandler.handleResponse(m);
+    // match it to a pending operation based on message id
+    var pending_op = _pendingResponseMessages[m.messageId];
 
-    var pending_op = _pendingMessages[m.messageId];
-
-    assert (pending_op != null);
+    // If this is not true, the server sent us possibly
+    // malformed LDAP. What should we do?? Not clear if
+    // we should throw an exception or try to ignore the error bytes
+    // and carry on....
+    if( pending_op == null )
+      throw new LDAPException("Server sent us an unknown message id = ${m.messageId}");
 
 
     if( pending_op.processResult(rop) ) {
       // op is now complete. Remove it from pending q
-      _pendingMessages.remove(m.messageId);
+      _pendingResponseMessages.remove(m.messageId);
     }
 
     if( m.protocolTag == BIND_RESPONSE)
@@ -299,11 +304,12 @@ class ConnectionManager {
     return m.messageLength;
   }
 
-
-  _errorHandler(e) {
-    logger.severe("LDAP Error ${e}");
-    var ex = new LDAPException(e.toString());
-    throw ex;
-  }
+//  This was used for the pre-async code.
+// Need to figure out if we still need this or not
+//  _errorHandler(e) {
+//    logger.severe("LDAP Error ${e}");
+//    var ex = new LDAPException(e.toString());
+//    throw ex;
+//  }
 
 }

@@ -1,5 +1,7 @@
 import 'package:unittest/unittest.dart';
 import 'package:dartdap/dartdap.dart';
+import 'package:logging_handlers/logging_handlers_shared.dart';
+
 
 /**
  * LDAP integration tests
@@ -14,7 +16,7 @@ main() async {
   LDAPConnection ldap;
   var ldapConfig = new LDAPConfiguration("ldap.yaml","default");
 
-  initLogging();
+  startQuickLogging();
 
   group('LDAP Integration ', ()  {
     // create a connection. Return a future that completes when
