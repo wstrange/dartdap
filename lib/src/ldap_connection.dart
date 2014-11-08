@@ -9,6 +9,7 @@ import 'modification.dart';
 import 'ldap_result.dart';
 import 'protocol/ldap_protocol.dart';
 import 'search_scope.dart';
+import 'control/control.dart';
 
 /**
  * Operations that we can invoke on an LDAP server
@@ -90,8 +91,9 @@ class LDAPConnection {
    */
 
   Stream<SearchEntry> search(String baseDN, Filter filter,
-      List<String> attributes, {int scope: SearchScope.SUB_LEVEL}) =>
-          _cmgr.processSearch(new SearchRequest(baseDN,filter, attributes,scope));
+      List<String> attributes, {int scope: SearchScope.SUB_LEVEL,
+        List<Control> controls:null}) =>
+          _cmgr.processSearch(new SearchRequest(baseDN,filter, attributes,scope),controls);
 
   /**
    * Add a new LDAP entry.

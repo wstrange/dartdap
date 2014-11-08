@@ -10,3 +10,5 @@ export 'src/search_scope.dart';
 export 'src/modification.dart';
 export 'src/ldap_util.dart';
 export 'src/ldap_configuration.dart';
+export 'src/sort_key.dart';
+export 'src/control/control.dart';

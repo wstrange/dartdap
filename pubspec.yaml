@@ -1,5 +1,5 @@
 name: dartdap
-version: 0.0.3
+version: 0.0.4
 author: Warren Strange <warren.strange@gmail.com>
 description: A dart LDAP v3 client library
 homepage: https://github.com/wstrange/dartdap

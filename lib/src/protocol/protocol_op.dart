@@ -65,6 +65,7 @@ class ResponseOp extends ProtocolOp {
 
 
 
+  // parse the embedded LDAP Response
   LDAPResult _parseLDAPResult(ASN1Sequence s) {
     ASN1Integer rc = s.elements[0];
     var resultCode = rc.intValue;

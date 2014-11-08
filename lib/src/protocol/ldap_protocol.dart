@@ -11,6 +11,7 @@ import '../ldap_result.dart';
 import '../attribute.dart';
 import '../search_scope.dart';
 import '../modification.dart';
+import '../control/control.dart';
 
 part 'protocol_op.dart';
 part 'bind_request.dart';
@@ -24,7 +25,6 @@ part 'delete_request.dart';
 part 'modify_request.dart';
 part 'moddn_request.dart';
 part 'compare_request.dart';
-part 'control.dart';
 
 
 // top level constants

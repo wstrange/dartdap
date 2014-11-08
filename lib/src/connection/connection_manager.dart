@@ -4,12 +4,11 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:collection';
-
-import 'package:logging/logging.dart';
 import '../protocol/ldap_protocol.dart';
 
 import '../ldap_exception.dart';
 import '../ldap_result.dart';
+import '../control/control.dart';
 
 
 /**
@@ -154,8 +153,8 @@ class ConnectionManager {
   }
 
   // process an LDAP Search Request
-  Stream<SearchEntry> processSearch(SearchRequest rop) {
-    var m = new LDAPMessage(++_nextMessageId, rop);
+  Stream<SearchEntry> processSearch(SearchRequest rop, List<Control> controls) {
+    var m = new LDAPMessage(++_nextMessageId, rop,controls);
     var op = new _StreamPendingOp(m);
     _queueOp(op);
     return op.controller.stream;

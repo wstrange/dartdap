@@ -24,7 +24,7 @@ TODO List:
 * Documentation. For now please see integration_test.dart for sample usage
 * Improve conciseness / usability of API
 * Paged search
-* VLV Search
+* VLV Search. See [https://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv-09]
 * An LDIF parser would be nice for creating integration test data
 * Do we need to implement flow control so the client does not overwhelm
  the server?

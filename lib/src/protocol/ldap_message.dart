@@ -52,9 +52,17 @@ class LDAPMessage {
   int get messageLength => _obj.totalEncodedByteLength;
 
 
-  LDAPMessage(this._messageId,RequestOp rop) {
+  LDAPMessage(this._messageId,RequestOp rop,[List<Control> controls = null]) {
     _protocolTag = rop.protocolOpCode;
     _obj = rop.toASN1();
+    if( controls != null && controls.length > 0) {
+      _controls = new ASN1Sequence();
+      controls.forEach((control) {
+        _controls.add( control.toASN1());
+        logger.finest("adding control $control");
+      });
+    }
+
   }
 
 
@@ -93,17 +101,20 @@ class LDAPMessage {
     seq.add( new ASN1Integer(_messageId));
 
     seq.add(_obj);
+    if( _controls != null)
+      seq.add(_controls);
+
     var b = seq.encodedBytes;
 
     var xx = LDAPUtil.toHexString(b);
-    logger.fine("LdapMesssage bytes = ${xx}");
+    logger.finest("LdapMesssage bytes = ${xx}");
     return b;
 
   }
 
   String toString() {
     var s = _op2String(_protocolTag);
-    return "Msg(id=${_messageId}, op=${s})";
+    return "Msg(id=${_messageId}, op=${s},controls=$_controls)";
   }
 
 }
