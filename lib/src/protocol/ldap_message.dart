@@ -40,6 +40,7 @@ class LDAPMessage {
   ASN1Sequence _protocolOp;
   ASN1Sequence _controls;
 
+
   ASN1Object _obj;
 
   /// return the message id sequence number.
@@ -63,15 +64,17 @@ class LDAPMessage {
       });
     }
 
+    String toString() =>
+        "LDAPMessage(id=$_messageId $protocolOp controls=$_controls";
+
   }
 
 
   LDAPMessage.fromBytes(Uint8List bytes) {
     var o = new ASN1Sequence.fromBytes(bytes);
 
-    if( o  == null || o.elements.length < 2 || o.elements.length > 3) {
-      throw new LDAPException("LDAP Message unexpected format. Bytes =${bytes}");
-    }
+    checkCondition(o !=null,"Parsing error on ${bytes}");
+    checkCondition( o.elements.length == 2 || o.elements.length == 3, "Expecting two or three elements.actual = ${o.elements.length} obj=$o");
 
 
     var i = o.elements[0] as ASN1Integer;
@@ -81,9 +84,18 @@ class LDAPMessage {
 
     _protocolTag = _protocolOp.tag;
 
-    // optional - controls....
+    // optional - message has controls....
     if( o.elements.length == 3) {
-      _controls = o.elements[3] as ASN1Sequence;
+      logger.finest("Controls = ${o.elements[2]} ${o.elements[2].encodedBytes}");
+      // todo: Get rid of this hack
+      // See http://stackoverflow.com/questions/15035349/how-does-0-and-3-work-in-asn1
+      // The control sequeunce is encoded with a tag of 0xA0 - which is a context specific encoding
+      var c = o.elements[2].encodedBytes;
+      c[0] = 0x10; // wack the tag and set it to a sequence
+      var c2 = new ASN1Sequence.fromBytes(c);
+
+      //_controls = o.elements[2];
+      _controls = c2;
     }
 
 
@@ -96,6 +108,7 @@ class LDAPMessage {
   // Convert this LDAP message to a stream of ASN1 encoded bytes
   List<int> toBytes() {
 
+    //logger.finest("Converting this object to bytes ${toString()}");
     ASN1Sequence seq = new ASN1Sequence();
 
     seq.add( new ASN1Integer(_messageId));

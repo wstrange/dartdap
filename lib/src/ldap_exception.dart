@@ -24,3 +24,9 @@ class LDAPResultException extends LDAPException {
 
   }
 }
+
+
+// utility for condition checking. Throws and LDAPException if the test is false.
+checkCondition(bool test,String message) { if( !test) throw new LDAPException(message);}
+
+

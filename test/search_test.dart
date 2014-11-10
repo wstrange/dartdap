@@ -34,14 +34,21 @@ main() async {
 
     test('VLV Search', () {
 
-      var slist = [new SortKey("uid")];
+      var slist = [new SortKey("sn")];
 
       var sortControl = new ServerSideSortRequestControl(slist);
-      var vlvControl = new VLVRequestControl.offsetControl(200, 20, 10, 10, null);
+      var vlvControl = new VLVRequestControl.offsetControl(1, 0, 0, 1, null);
 
+      // ldapsearch -p 1389 -b "ou=people,dc=example,dc=com" -s one -D "cn=Directory Manager" -w password
+      // -G 0:1:1:0 --sortOrder sn "objectclass=inetOrgPerson"
 
-      var filter = Filter.substring("cn=A*");
+      //var filter = Filter.substring("cn=Ac*");
+      //var filter = Filter.or( [Filter.equals("givenName", "A"), Filter.equals("sn", "Annas")]);
+      var filter =  Filter.equals("objectclass", "inetOrgPerson");
       var s = ldap.search("dc=example, dc=com", filter, ["sn","cn","uid","mail"], controls:[sortControl,vlvControl]);
+
+
+      //var s = ldap.search("dc=example, dc=com", filter, ["sn","cn","uid","mail"]);
 
       return s.listen( (SearchEntry entry) {
         // expected.

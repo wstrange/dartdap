@@ -29,6 +29,13 @@ main() {
     var c1 =  f1 & f2;
 
     print(c1.toString());
+
+    var f3 = Filter.or( [Filter.equals("givenName", "A"), Filter.equals("sn", "Annas")]);
+    print("f3 = $f3 asn1=${f3.toASN1()}");
+    // make sure this encodes without throwing exception.
+    f3.toASN1().encodedBytes;
+
+
   });
 
   test("Attribute equality", () {

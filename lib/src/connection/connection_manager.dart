@@ -140,7 +140,12 @@ class ConnectionManager {
 
     _socket = await s;
     logger.fine("Connected to $_host:$_port");
-    _socket.listen(_handleData);
+    _socket.listen(_handleData,
+        onError: (error) {
+          logger.severe("Socket error = $error");
+          throw new LDAPException("Socket error = $error");
+
+        });
     return this;
   }
 
@@ -174,6 +179,7 @@ class ConnectionManager {
   }
 
   _sendPendingMessage() {
+    logger.finest("Send pending message()");
     while( _messagesToSend() ) {
       var op = _outgoingMessageQueue.removeFirst();
       _sendMessage(op);
@@ -234,7 +240,7 @@ class ConnectionManager {
     if( _pendingResponseMessages.isEmpty && _outgoingMessageQueue.isEmpty) {
       return true;
     }
-    logger.fine("close() waiting for queue to drain");
+    logger.finest("close() waiting for queue to drain pendingResponse=$_pendingResponseMessages");
     _sendPendingMessage();
     return false;
   }
@@ -246,26 +252,44 @@ class ConnectionManager {
     return f;
   }
 
-
   // handle incoming message bytes from the server
   // at this point this is just binary data
-  _handleData(List<int> data) {
-   //logger.finest("_handleData $data");
+  // TODO: Broken. This can be called in a reentrant fashion
+  // bytes from a previous call could still being processed. i/o (logging for example) could cause
+  // this to not run to completion before the next batch of bytes is read on the socket.
+  _handleData(Uint8List data) {
 
-   var _buf = data;
-   int i = 0;
-   while(true) {
+   logger.finest("ENTER ******* _handleData  bytes=${data.length} data=${data}");
+
+   var _buf = new Uint8List.view(data.buffer);
+
+   var bytesRead = 0;
+   var totalBytes = 0;
+   while(_buf.length > 0) {
+     //logger.finest("TOP len=${_buf.length}  buf=$_buf");
      // pass binary buffer to handler. Handler
      // returns the number of bytes it consumed
      // when parsing the binary bits
-     var bytesRead = _handleMessage(_buf);
-     i += bytesRead;
-     if( i >= data.length)
+
+     try {
+      bytesRead = _handleMessage(_buf);
+     }
+     catch(e,stacktrace) {
+       logger.severe("Exception while processing message. Exception $e");
+       logger.severe(stacktrace);
        break;
-     // This could be a little expensive.
-     // May want to investigate a list struct that returns a sublist with less cost
-     _buf = data.sublist(i);
+     }
+     //logger.finest("Message READ bytes=$bytesRead");
+
+
+     totalBytes += bytesRead;
+     //logger.finest("i=$i processed $bytesRead remaining = ${_buf.length - bytesRead}");
+
+     _buf = new Uint8List.view(_buf.buffer,totalBytes);
+     //logger.finest("**** remaining ${_buf.length} _buf=$_buf");
    }
+
+   //logger.finest("EXIT +++++++ _handleData i=$i");
 
    _sendPendingMessage();
   }
@@ -274,6 +298,7 @@ class ConnectionManager {
   // parse the buffer into a LDAPMessage, and handle the message
   // return the number of bytes consumed
   int _handleMessage(Uint8List buffer) {
+    //logger.finest("ENTER _handleMessage ${buffer.length} $buffer");
     // get a generic LDAP message envelope from the buffer
     var m = new LDAPMessage.fromBytes(buffer);
     logger.fine("Received LDAP message ${m} byte length=${m.messageLength}");

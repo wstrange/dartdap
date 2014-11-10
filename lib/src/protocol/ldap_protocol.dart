@@ -58,9 +58,8 @@ const int EXTENDED_REQUEST = 0x77;
 const int INTERMEDIATE_RESPONSE = 0x79;
 
 
-
+// encoding of LDAP controls sequence type
 const int CONTROLS = 0xA0;
-
 
 
 

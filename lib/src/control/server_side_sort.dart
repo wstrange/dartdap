@@ -23,7 +23,7 @@ class ServerSideSortRequestControl extends Control {
     var sortKeyseq = new ASN1Sequence();
 
     sortKeys.forEach( (key) {
-      _clogger.finest("Adding sort key $key");
+      //_clogger.finest("Adding sort key $key");
       var s = new ASN1Sequence();
       s.add( new ASN1OctetString(key.attributeDescription));
       if( key.orderMatchingRule != null) {
@@ -38,7 +38,7 @@ class ServerSideSortRequestControl extends Control {
     });
     var os = new ASN1OctetString(sortKeyseq.encodedBytes);
     seq.add(os);
-    _clogger.finest("asn1 = $seq");
+    //_clogger.finest("asn1 = $seq");
 
     return seq;
   }
