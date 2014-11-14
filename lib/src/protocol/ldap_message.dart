@@ -46,6 +46,8 @@ class LDAPMessage {
   /// return the message id sequence number.
   int get messageId => _messageId;
 
+  ASN1Sequence get controls => _controls;
+
   /// return the [ASN1Sequence] that makes up this LDAP message
   ASN1Sequence get protocolOp => _protocolOp;
 
@@ -57,7 +59,7 @@ class LDAPMessage {
     _protocolTag = rop.protocolOpCode;
     _obj = rop.toASN1();
     if( controls != null && controls.length > 0) {
-      _controls = new ASN1Sequence();
+      _controls = new ASN1Sequence(tag:CONTROLS);
       controls.forEach((control) {
         _controls.add( control.toASN1());
         logger.finest("adding control $control");

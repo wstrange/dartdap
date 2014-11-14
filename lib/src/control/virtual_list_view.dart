@@ -101,8 +101,7 @@ class VLVRequestControl extends Control {
 
 
 class VLVResponseControl extends Control {
-  get oid => "2.16.840.1.113730.3.4.10";
-  get controlName => "VirtualListViewResponseControl";
+  get oid => Control.VLV_RESPONSE;
 
   int targetPosition;
   int contentCount;
@@ -110,8 +109,17 @@ class VLVResponseControl extends Control {
 
   List<int> contextID;
 
-  // we dont implement this because the server does the encoding
-  ASN1Sequence toASN1() => throw new Exception("Encoding of VLVResponse not implemented");
+  VLVResponseControl.fromASN1(ASN1OctetString s) {
+    var bytes = s.encodedBytes;
+    bytes[0] = SEQUENCE_TYPE;
+    // hack The octet string is actually a sequence. We
+    var seq = new ASN1Sequence.fromBytes(bytes);
+    _clogger.finest("Create control from $s  seq=${seq}");
+
+    var x = (seq.elements.first as ASN1Sequence);
+
+    x.elements.forEach( (e) => _clogger.finest(" ${e.runtimeType}  $e"));
+  }
 
 
 

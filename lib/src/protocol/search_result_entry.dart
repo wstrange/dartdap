@@ -9,13 +9,14 @@ part of ldap_protocol;
  * are kept out of SearchEntry for library consumers.
  */
 
-class SearchResultEntry extends ProtocolOp {
+class SearchResultEntry extends ResponseOp {
 
   SearchEntry _searchEntry ;
 
   SearchEntry get searchEntry => _searchEntry;
 
-  SearchResultEntry(ASN1Sequence s): super(s.tag) {
+  SearchResultEntry(LDAPMessage m):super.searchEntry() {
+    var s = m.protocolOp;
 
     var t = s.elements[0] as ASN1OctetString;
 

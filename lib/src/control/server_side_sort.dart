@@ -4,7 +4,6 @@ part of control;
 class ServerSideSortRequestControl extends Control {
 
   String get oid => "1.2.840.113556.1.4.473";
-  String get controlName => "ServerSideSortRequestControl";
 
 
   // The BER type to use when encoding the orderingRule element.
@@ -42,4 +41,17 @@ class ServerSideSortRequestControl extends Control {
 
     return seq;
   }
+}
+
+class ServerSideSortResponseControl extends Control {
+  String get oid => Control.SERVER_SIDE_SORT_RESPONSE;
+  String get controlName => "ServerSideSortRequestControl";
+
+
+  ServerSideSortResponseControl.fromASN1(ASN1OctetString s) {
+
+  }
+
+
+
 }

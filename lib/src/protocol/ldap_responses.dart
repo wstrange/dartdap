@@ -13,7 +13,7 @@ part of ldap_protocol;
  */
 
 class BindResponse extends ResponseOp {
-  BindResponse(ASN1Sequence o) : super(o) ;
+  BindResponse(LDAPMessage m) : super(m) ;
 }
 
 /**
@@ -23,14 +23,14 @@ class BindResponse extends ResponseOp {
  */
 
 class SearchResultDone extends ResponseOp {
-  SearchResultDone(ASN1Sequence s): super(s);
+  SearchResultDone(LDAPMessage m): super(m);
 }
 
 /**
  * ModifyResponse ::= [APPLICATION 7] LDAPResult
 */
 class ModifyResponse extends ResponseOp {
-  ModifyResponse(ASN1Sequence s): super(s);
+  ModifyResponse(LDAPMessage m): super(m);
 }
 
 /**
@@ -43,7 +43,7 @@ class ModifyResponse extends ResponseOp {
  *
  */
 class GenericResponse extends ResponseOp {
-  GenericResponse(ASN1Sequence s): super(s);
+  GenericResponse(LDAPMessage m): super(m);
 }
 
 
@@ -62,7 +62,7 @@ class ExtendedResponse extends ResponseOp {
    */
   static const int TYPE_EXTENDED_RESPONSE_VALUE = 0x8B;
 
-  ExtendedResponse(ASN1Sequence s):super.extended(s) {
+  ExtendedResponse(LDAPMessage m):super.extended(m) {
     // complete rest or parsing
   }
 }

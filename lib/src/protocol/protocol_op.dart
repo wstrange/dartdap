@@ -1,5 +1,8 @@
 part of ldap_protocol;
 
+
+// todo: Do we need this base class. Really only applies to requests
+
 class ProtocolOp {
   int _protocolOp;
   int get protocolOpCode  => _protocolOp;
@@ -34,8 +37,11 @@ abstract class RequestOp extends ProtocolOp {
 
 }
 
-class ResponseOp extends ProtocolOp {
+class ResponseOp {
   LDAPResult _ldapResult;
+  List<Control> _controls = [];
+
+  List<Control> get controls => _controls;
   int _opCode;
 
   // type for LDAP refereals urls in ldapresults
@@ -44,8 +50,14 @@ class ResponseOp extends ProtocolOp {
 
   LDAPResult get ldapResult => _ldapResult;
 
-  ResponseOp(ASN1Sequence s) : super(s.tag){
-    _ldapResult = _parseLDAPResult(s);
+  ResponseOp.searchEntry(); // needed for SearchResultEntry - that does not have an LDAPMessage
+
+  ResponseOp(LDAPMessage m) {
+    logger.finest("+++++ new response op = $m");
+    _ldapResult = _parseLDAPResult(m.protocolOp);
+    // todo: Parse controls;
+   _controls = Control.parseControls(m._controls);
+
   }
 
   // special case - required for extended results
@@ -56,10 +68,10 @@ class ResponseOp extends ProtocolOp {
                 responseName     [10] LDAPOID OPTIONAL,
                 response         [11] OCTET STRING OPTIONAL }
   */
-  ResponseOp.extended(ASN1Sequence s):super(EXTENDED_RESPONSE){
+  ResponseOp.extended(LDAPMessage m) {
 
     //var lr = s.elements[0] as ASN1Sequence;
-    _parseLDAPResult(s);
+    _parseLDAPResult(m.protocolOp);
     // todo: Do we let the subclass handle the rest of the response
   }
 
@@ -67,6 +79,7 @@ class ResponseOp extends ProtocolOp {
 
   // parse the embedded LDAP Response
   LDAPResult _parseLDAPResult(ASN1Sequence s) {
+    logger.finest("parse ldap result == $s");
     ASN1Integer rc = s.elements[0];
     var resultCode = rc.intValue;
 

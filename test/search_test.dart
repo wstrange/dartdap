@@ -13,7 +13,7 @@ import 'package:logging/logging.dart';
  * TODO: Have the integration test create its pre-req entries.
  */
 
-main() async {
+main()  {
   LDAPConnection ldap;
   var ldapConfig = new LDAPConfiguration("ldap.yaml","default");
 
@@ -56,6 +56,29 @@ main() async {
        });
 
     });
+
+    solo_test('VLV Search2', () {
+
+         var slist = [new SortKey("sn")];
+
+         var sortControl = new ServerSideSortRequestControl(slist);
+         var vlvControl = new VLVRequestControl.offsetControl(1, 0, 0, 1, null);
+
+         // ldapsearch -p 1389 -b "ou=people,dc=example,dc=com" -s one -D "cn=Directory Manager" -w password
+         // -G 0:1:1:0 --sortOrder sn "objectclass=inetOrgPerson"
+
+         //var filter = Filter.substring("cn=Ac*");
+         //var filter = Filter.or( [Filter.equals("givenName", "A"), Filter.equals("sn", "Annas")]);
+         var filter =  Filter.equals("objectclass", "inetOrgPerson");
+         var result = ldap.search("dc=example, dc=com", filter, ["sn","cn","uid","mail"], controls:[sortControl,vlvControl]);
+
+
+         return result.stream.listen( (SearchEntry entry)
+            => info('======== entry: $entry'),
+
+              onDone: () => info('======== Controls: ${result.controls}'));
+
+       });
 
 
   });

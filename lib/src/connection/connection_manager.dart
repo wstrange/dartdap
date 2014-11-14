@@ -9,6 +9,7 @@ import '../protocol/ldap_protocol.dart';
 import '../ldap_exception.dart';
 import '../ldap_result.dart';
 import '../control/control.dart';
+import '../search_result.dart';
 
 
 /**
@@ -33,7 +34,7 @@ abstract class _PendingOp {
   String toString() => "PendingOp m=${message}";
 
   // Process an LDAP result. Return true if this operation is now complete
-  bool processResult(ProtocolOp op);
+  bool processResult(ResponseOp op);
 
 }
 
@@ -41,30 +42,38 @@ abstract class _PendingOp {
 // Stream. Used for SearchResults.
 class _StreamPendingOp extends _PendingOp {
 
-  _StreamPendingOp(LDAPMessage m):super(m);
+  StreamController<SearchEntry> _controller = new StreamController<SearchEntry>();
+  SearchResult _searchResult;
+  SearchResult get searchResult => _searchResult;
 
-  StreamController<SearchEntry> controller = new StreamController<SearchEntry>();
+  _StreamPendingOp(LDAPMessage m):super(m) {
+    _searchResult = new SearchResult(_controller.stream);
+  }
+
+
 
   // process the stream op - return false if we expect more data to come
   // or true if the search is complete
-  bool processResult(ProtocolOp op) {
+  bool processResult(ResponseOp op) {
     // op is Search Entry. Add it to our stream and keep
     if( op is SearchResultEntry ) {
-      controller.add(op.searchEntry);
+      _controller.add(op.searchEntry);
       return false;
     }
     else { // we should be done now
       // if this is not a done message we are in trouble...
       var x = (op as SearchResultDone);
 
-      // todo: how do we handle simple paged search here?
-      // we need to launch another search request with the cookie
-      // that we get from the ldap server
 
       if( x.ldapResult.resultCode != 0)
-        controller.addError(x.ldapResult);
+        _controller.addError(x.ldapResult);
 
-      controller.close();
+      _searchResult.controls = x.controls;
+
+      //x.
+      //_searchResult.controls.add(value)
+      _controller.close();
+
     }
     return true; // op complete
   }
@@ -78,7 +87,7 @@ class _FuturePendingOp extends _PendingOp {
 
   _FuturePendingOp(LDAPMessage m):super(m);
 
-  bool processResult(ProtocolOp op) {
+  bool processResult(ResponseOp op) {
     var ldapResult = (op as ResponseOp).ldapResult;
     if(_isError(ldapResult.resultCode))
       completer.completeError(ldapResult);
@@ -158,11 +167,11 @@ class ConnectionManager {
   }
 
   // process an LDAP Search Request
-  Stream<SearchEntry> processSearch(SearchRequest rop, List<Control> controls) {
+  SearchResult processSearch(SearchRequest rop, List<Control> controls) {
     var m = new LDAPMessage(++_nextMessageId, rop,controls);
     var op = new _StreamPendingOp(m);
     _queueOp(op);
-    return op.controller.stream;
+    return op.searchResult;
   }
 
   // Process a generic LDAP operation.

@@ -6,24 +6,23 @@ class ResponseHandler {
 
   ResponseHandler(this._ldapMessage);
 
-  static ProtocolOp handleResponse(LDAPMessage m) {
+  static ResponseOp handleResponse(LDAPMessage m) {
 
-    var p = m.protocolOp;
-    logger.finest("handle response tag=${_op2String(p.tag)}");
+    logger.finest("handle response tag=${_op2String(m.protocolOp.tag)}");
 
-    ProtocolOp op;
-    switch(p.tag) {
+    ResponseOp op;
+    switch(m.protocolOp.tag) {
       case BIND_RESPONSE:
-        return new BindResponse(p);
+        return new BindResponse(m);
 
       case SEARCH_RESULT_ENTRY:
-        return new SearchResultEntry(p);
+        return new SearchResultEntry(m);
 
       case SEARCH_RESULT_DONE:
-        return new SearchResultDone(p);
+        return new SearchResultDone(m);
 
       case EXTENDED_RESPONSE:
-         return new ExtendedResponse(p);
+         return new ExtendedResponse(m);
 
 
       case ADD_RESPONSE:
@@ -31,7 +30,7 @@ class ResponseHandler {
       case MODIFY_RESPONSE:
       case MODIFY_DN_RESPONSE:
       case COMPARE_RESPONSE:
-        return new GenericResponse(p);
+        return new GenericResponse(m);
 
 
       default:
