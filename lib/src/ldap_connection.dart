@@ -39,6 +39,8 @@ class LDAPConnection {
 
   Function onError; // global error handler
 
+  bool isClosed() => (_cmgr == null || _cmgr.isClosed() );
+
   /**
    * Create a new LDAP connection to [host] and [port].
    *
@@ -105,7 +107,7 @@ class LDAPConnection {
    */
 
   Future<LDAPResult> add(String dn, Map<String,dynamic> attrs) =>
-      _cmgr.process(new AddRequest(dn,Attributes.fromMap(attrs)));
+      _cmgr.process(new AddRequest(dn,Attribute.newAttributeMap(attrs)));
 
   /// Delete the ldap entry identified by [dn]
   Future<LDAPResult> delete(String dn) => _cmgr.process(new DeleteRequest(dn));
@@ -131,5 +133,8 @@ class LDAPConnection {
   // close the ldap connection. If [immediate] is true, close the
   // connection immediately. This could result in queued operations
   // being discarded
-  close([bool immediate = false]) => _cmgr.close(immediate);
+  close([bool immediate = false]) async {
+    await _cmgr.close(immediate);
+    _cmgr = null;
+  }
 }

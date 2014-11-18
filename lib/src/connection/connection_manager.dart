@@ -38,7 +38,7 @@ abstract class _PendingOp {
 
 }
 
-// A pending op that has multiple values returned via a
+// A pending operation that has multiple values returned via a
 // Stream. Used for SearchResults.
 class _StreamPendingOp extends _PendingOp {
 
@@ -49,7 +49,6 @@ class _StreamPendingOp extends _PendingOp {
   _StreamPendingOp(LDAPMessage m):super(m) {
     _searchResult = new SearchResult(_controller.stream);
   }
-
 
 
   // process the stream op - return false if we expect more data to come
@@ -69,9 +68,7 @@ class _StreamPendingOp extends _PendingOp {
         _controller.addError(x.ldapResult);
 
       _searchResult.controls = x.controls;
-
-      //x.
-      //_searchResult.controls.add(value)
+      _searchResult.ldapResult = x.ldapResult;
       _controller.close();
 
     }
@@ -88,7 +85,7 @@ class _FuturePendingOp extends _PendingOp {
   _FuturePendingOp(LDAPMessage m):super(m);
 
   bool processResult(ResponseOp op) {
-    var ldapResult = (op as ResponseOp).ldapResult;
+    var ldapResult = op.ldapResult;
     if(_isError(ldapResult.resultCode))
       completer.completeError(ldapResult);
     else
@@ -132,6 +129,10 @@ class ConnectionManager {
   //
   bool _bindPending = false; // true if a BIND is pending
   Socket _socket;
+
+  // true if this connection is closed
+  // (if the socket is null, we consider it closed)
+  bool isClosed() => _socket == null;
 
   int _nextMessageId = 1;  // message counter for this connection
 
@@ -232,6 +233,7 @@ class ConnectionManager {
     }
     else {
       var c = new Completer();
+      // todo: dont wait if there are no pending ops....
       new Timer.periodic(PENDING_OP_TIMEOUT, (Timer t) {
         if( _canClose() ) {
           t.cancel();

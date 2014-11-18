@@ -51,7 +51,7 @@ main() {
     var m = { "cn":"Foo", "sn": ["one", "two"],
               "objectclass":new Attribute("objectclass",["top", "inetorgperson"]) };
 
-    var m2 = Attributes.fromMap(m);
+    var m2 = Attribute.newAttributeMap(m);
 
     m2.forEach( (k,v) => expect(v, new isInstanceOf<Attribute>()));
 

@@ -50,7 +50,7 @@ main() {
      var expected = Math.min(NUM_ENTRIES,1000);
 
      // todo - use listen onDone: to hook in
-     return ldap.search("ou=People,dc=example,dc=com",f,["uid","sn"]).
+     return ldap.search("ou=People,dc=example,dc=com",f,["uid","sn"]).stream.
           listen((SearchEntry entry) {
            //logMessage("${entry} ");
            count += 1;

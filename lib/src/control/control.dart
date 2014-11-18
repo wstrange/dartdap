@@ -17,12 +17,17 @@ var _clogger = new Logger("ldap_control");
  *  See
  */
 abstract class Control {
-  static const VLV_RESPONSE = "2.16.840.1.113730.3.4.10";
-  static const SERVER_SIDE_SORT_RESPONSE = "1.2.840.113556.1.4.474";
+//  static const VLV_REQUEST = "2.16.840.1.113730.3.4.9";
+//  static const VLV_RESPONSE = "2.16.840.1.113730.3.4.10";
+//
+//  static const SERVER_SIDE_SORT_REQUEST = "1.2.840.113556.1.4.473";
+//  static const SERVER_SIDE_SORT_RESPONSE = "1.2.840.113556.1.4.474";
+
+  String get oid;
+
 
   static const CONTROLS_TAG = 0xA0; // seq encoding for controls
 
-  String get oid;  // the LDAP OIN that represents this control
   bool isCritical = false;  // true if this control is critical (the server must implement)
 
   // Control subclasses must override this to return their encoded representation
@@ -58,9 +63,9 @@ abstract class Control {
     var oid = (s.elements.first as ASN1OctetString).stringValue;
     _clogger.finest("Got control $oid");
     switch(oid) {
-      case VLV_RESPONSE:
+      case VLVResponseControl.OID:
         return new VLVResponseControl.fromASN1(s.elements[1]);
-      case SERVER_SIDE_SORT_RESPONSE:
+      case ServerSideSortResponseControl.OID:
         return new ServerSideSortResponseControl.fromASN1(s.elements[1]);
       default:
         throw new Exception("Control $oid not implemented");

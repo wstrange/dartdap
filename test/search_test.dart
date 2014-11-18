@@ -29,44 +29,20 @@ main()  {
 
     tearDown( () async {
       // nothing to do. We can keep the connection open between tests
-      await ldap.close();
+      //await ldap.close();
+      return ldap.close();
     });
 
-    test('VLV Search', () {
 
-      var slist = [new SortKey("sn")];
-
-      var sortControl = new ServerSideSortRequestControl(slist);
-      var vlvControl = new VLVRequestControl.offsetControl(1, 0, 0, 1, null);
-
-      // ldapsearch -p 1389 -b "ou=people,dc=example,dc=com" -s one -D "cn=Directory Manager" -w password
-      // -G 0:1:1:0 --sortOrder sn "objectclass=inetOrgPerson"
-
-      //var filter = Filter.substring("cn=Ac*");
-      //var filter = Filter.or( [Filter.equals("givenName", "A"), Filter.equals("sn", "Annas")]);
-      var filter =  Filter.equals("objectclass", "inetOrgPerson");
-      var s = ldap.search("dc=example, dc=com", filter, ["sn","cn","uid","mail"], controls:[sortControl,vlvControl]);
-
-
-      //var s = ldap.search("dc=example, dc=com", filter, ["sn","cn","uid","mail"]);
-
-      return s.listen( (SearchEntry entry) {
-        // expected.
-        info("Found ${entry}");
-       });
-
-    });
-
-    solo_test('VLV Search2', () {
-
+    test('VLV Search2', () {
          var slist = [new SortKey("sn")];
 
          var sortControl = new ServerSideSortRequestControl(slist);
          var vlvControl = new VLVRequestControl.offsetControl(1, 0, 0, 1, null);
 
+         // using OpenDJ ldapsearch command:
          // ldapsearch -p 1389 -b "ou=people,dc=example,dc=com" -s one -D "cn=Directory Manager" -w password
          // -G 0:1:1:0 --sortOrder sn "objectclass=inetOrgPerson"
-
          //var filter = Filter.substring("cn=Ac*");
          //var filter = Filter.or( [Filter.equals("givenName", "A"), Filter.equals("sn", "Annas")]);
          var filter =  Filter.equals("objectclass", "inetOrgPerson");
@@ -74,11 +50,27 @@ main()  {
 
 
          return result.stream.listen( (SearchEntry entry)
-            => info('======== entry: $entry'),
+            =>  info('======== entry: $entry'),
 
               onDone: () => info('======== Controls: ${result.controls}'));
 
-       });
+     });
+
+    test('VLV using assertion control' ,(){
+      var sortControl = new ServerSideSortRequestControl([new SortKey("sn")]);
+      var vlvControl = new VLVRequestControl.assertionControl("Billard", 2, 3);
+      var filter =  Filter.equals("objectclass", "inetOrgPerson");
+      var result = ldap.search("dc=example, dc=com", filter, ["sn","cn","uid","mail"], controls:[sortControl,vlvControl]);
+
+      return result.stream.listen( (SearchEntry entry)
+         =>  info('======== entry: $entry'),
+
+           onDone: () => info('======== Controls: ${result.controls}'));
+
+    });
+
+    // todo: how to run final method?
+    //test('clean up', () => ldap.close());
 
 
   });

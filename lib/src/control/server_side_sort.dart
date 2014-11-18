@@ -2,8 +2,8 @@ part of control;
 
 
 class ServerSideSortRequestControl extends Control {
-
-  String get oid => "1.2.840.113556.1.4.473";
+  static const OID =  "1.2.840.113556.1.4.473";
+  String get oid => OID;
 
 
   // The BER type to use when encoding the orderingRule element.
@@ -44,14 +44,13 @@ class ServerSideSortRequestControl extends Control {
 }
 
 class ServerSideSortResponseControl extends Control {
-  String get oid => Control.SERVER_SIDE_SORT_RESPONSE;
-  String get controlName => "ServerSideSortRequestControl";
+  static const OID = "1.2.840.113556.1.4.474";
+  String get oid => OID;
 
 
   ServerSideSortResponseControl.fromASN1(ASN1OctetString s) {
 
   }
-
 
 
 }

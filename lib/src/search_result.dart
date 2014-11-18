@@ -12,8 +12,7 @@ import 'ldap_result.dart';
 ///
 
 class SearchResult {
-
-  bool _searchComplete = false;
+  LDAPResult ldapResult;
 
   SearchResult(this._stream);
 
@@ -26,6 +25,4 @@ class SearchResult {
   // The controls that may have been returned on search completion
   // These can be used to obtain the cursor, number of remaing results, etc. for VLV search
   List<Control> controls;
-
-
 }

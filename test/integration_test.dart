@@ -37,7 +37,7 @@ main() async {
      var filter = Filter.substring("cn=A*");
 
       // we expect to find entries starting with A in the directory root.
-     ldap.search("dc=example,dc=com", filter, attrs)
+     ldap.search("dc=example,dc=com", filter, attrs).stream
        .listen( (SearchEntry entry) {
          // expected.
           //print("Found ${entry}");
@@ -47,7 +47,7 @@ main() async {
 
 
       // we expect to find non A entries
-     ldap.search("dc=example,dc=com", notFilter, attrs)
+     ldap.search("dc=example,dc=com", notFilter, attrs).stream
       .listen( (SearchEntry entry) {
          //print("Not search = ${entry}");
          // todo: test entries.
@@ -55,7 +55,7 @@ main() async {
 
      // bad search
 
-     ldap.search("dn=foofoo", notFilter, attrs)
+     ldap.search("dn=foofoo", notFilter, attrs).stream
       .listen(
           expectAsync( (r) => print("should not be called!"), count:0),
           onError: expectAsync( (e) =>  expect( e.resultCode, equals(ResultCode.NO_SUCH_OBJECT)))

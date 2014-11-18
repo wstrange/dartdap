@@ -81,7 +81,7 @@ class LDAPConfiguration {
 
   Future<LDAPConnection> getConnection   ([bool doBind = true])  async {
     // if we have an existing connection - return that immediatley
-    if( _connection != null )
+    if( _connection != null && ! _connection.isClosed())
       return  _connection;
 
     Map m = await getConfig();
