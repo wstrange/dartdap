@@ -18,19 +18,20 @@ main()  {
   var ldapConfig = new LDAPConfiguration("ldap.yaml","default");
 
   startQuickLogging();
-  Logger.root.level = Level.ALL;
+  Logger.root.level = Level.FINE;
 
-  group('LDAP Integration ', ()  {
+  group('LDAP Search tests ', ()  {
     // create a connection. Return a future that completes when
     // the connection is available and bound
     setUp( ()  async {
      ldap = await ldapConfig.getConnection();
+     info("Created ldap connection");
     });
 
     tearDown( () async {
-      // nothing to do. We can keep the connection open between tests
-      //await ldap.close();
-      return ldap.close();
+      await ldap.close();
+      //ldap.close();
+      info("connection closed");
     });
 
 
@@ -52,7 +53,7 @@ main()  {
          return result.stream.listen( (SearchEntry entry)
             =>  info('======== entry: $entry'),
 
-              onDone: () => info('======== Controls: ${result.controls}'));
+              onDone: expectAsync(() => info('======== Controls: ${result.controls}')));
 
      });
 
@@ -65,7 +66,7 @@ main()  {
       return result.stream.listen( (SearchEntry entry)
          =>  info('======== entry: $entry'),
 
-           onDone: () => info('======== Controls: ${result.controls}'));
+           onDone: expectAsync(() => info('======== Controls: ${result.controls}')));
 
     });
 

@@ -36,6 +36,11 @@ abstract class _PendingOp {
   // Process an LDAP result. Return true if this operation is now complete
   bool processResult(ResponseOp op);
 
+  done() {
+    var ms = _stopwatch.elapsedMilliseconds;
+    logger.fine("Request $message serviced in $ms ms");
+  }
+
 }
 
 // A pending operation that has multiple values returned via a
@@ -70,6 +75,7 @@ class _StreamPendingOp extends _PendingOp {
       _searchResult.controls = x.controls;
       _searchResult.ldapResult = x.ldapResult;
       _controller.close();
+      done();
 
     }
     return true; // op complete
@@ -90,6 +96,7 @@ class _FuturePendingOp extends _PendingOp {
       completer.completeError(ldapResult);
     else
       completer.complete(ldapResult);
+    done();
     return true;
   }
 
@@ -125,7 +132,7 @@ class ConnectionManager {
   Map<int,_PendingOp> _pendingResponseMessages = new Map();
 
   // TIMEOUT when waiting for a pending op to come back from the server.
-  static const PENDING_OP_TIMEOUT = const Duration(seconds: 6);
+  static const PENDING_OP_TIMEOUT = const Duration(seconds: 3);
   //
   bool _bindPending = false; // true if a BIND is pending
   Socket _socket;
@@ -257,7 +264,7 @@ class ConnectionManager {
   }
 
   Future _doClose() {
-    logger.fine("Final Close");
+    logger.info("Closing ldap connection");
     var f = _socket.close();
     _socket = null;
     return f;
