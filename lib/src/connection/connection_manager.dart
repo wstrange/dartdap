@@ -272,8 +272,8 @@ class ConnectionManager {
 
   // handle incoming message bytes from the server
   // at this point this is just binary data
-  // TODO: Broken. This can be called in a reentrant fashion
-  // bytes from a previous call could still being processed. i/o (logging for example) could cause
+  // TODO: Is this Broken?. This can be called in a reentrant fashion
+  // bytes from a previous call could still being processed? i/o (logging for example) could cause
   // this to not run to completion before the next batch of bytes is read on the socket.
   _handleData(Uint8List data) {
 
@@ -294,7 +294,7 @@ class ConnectionManager {
      }
      catch(e,stacktrace) {
        logger.severe("Exception while processing message. Exception $e");
-       logger.severe(stacktrace);
+       logger.severe("$stacktrace");
        break;
      }
      //logger.finest("Message READ bytes=$bytesRead");

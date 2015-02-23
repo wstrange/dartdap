@@ -41,7 +41,7 @@ class LDAPMessage {
   ASN1Sequence _controls;
 
 
-  ASN1Object _obj;
+  ASN1Sequence _obj;
 
   /// return the message id sequence number.
   int get messageId => _messageId;
@@ -71,28 +71,29 @@ class LDAPMessage {
 
   }
 
-
+  /// Constructs an LDAP message from list of raw bytes.
+  /// Bytes will be parsed as an ASN1Sequence
   LDAPMessage.fromBytes(Uint8List bytes) {
-    var o = new ASN1Sequence.fromBytes(bytes);
+    _obj = new ASN1Sequence.fromBytes(bytes);
 
-    checkCondition(o !=null,"Parsing error on ${bytes}");
-    checkCondition( o.elements.length == 2 || o.elements.length == 3, "Expecting two or three elements.actual = ${o.elements.length} obj=$o");
+    checkCondition(_obj !=null,"Parsing error on ${bytes}");
+    checkCondition( _obj.elements.length == 2 || _obj.elements.length == 3, "Expecting two or three elements.actual = ${_obj.elements.length} obj=$_obj");
 
 
-    var i = o.elements[0] as ASN1Integer;
+    var i = _obj.elements[0] as ASN1Integer;
     _messageId = i.intValue;
 
-    _protocolOp = o.elements[1] as ASN1Sequence;
+    _protocolOp = _obj.elements[1] as ASN1Sequence;
 
     _protocolTag = _protocolOp.tag;
 
     // optional - message has controls....
-    if( o.elements.length == 3) {
-      logger.finest("Controls = ${o.elements[2]} ${o.elements[2].encodedBytes}");
+    if( _obj.elements.length == 3) {
+      logger.finest("Controls = ${_obj.elements[2]} ${_obj.elements[2].encodedBytes}");
       // todo: Get rid of this hack
       // See http://stackoverflow.com/questions/15035349/how-does-0-and-3-work-in-asn1
       // The control sequeunce is encoded with a tag of 0xA0 - which is a context specific encoding
-      var c = o.elements[2].encodedBytes;
+      var c = _obj.elements[2].encodedBytes;
       c[0] = 0x10; // wack the tag and set it to a sequence
       var c2 = new ASN1Sequence.fromBytes(c);
 
@@ -100,8 +101,6 @@ class LDAPMessage {
       _controls = c2;
     }
 
-
-    _obj = o; // save this?
     logger.fine("Got LDAP Message. Id = ${messageId} protocolOp = ${protocolOp}");
 
   }
