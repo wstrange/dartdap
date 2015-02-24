@@ -332,6 +332,8 @@ class ConnectionManager {
     // the message contains.
     var rop = ResponseHandler.handleResponse(m);
     // match it to a pending operation based on message id
+    // todo: AN extended protocol op may not match an outstanding request
+    // we should
     var pending_op = _pendingResponseMessages[m.messageId];
 
     // If this is not true, the server sent us possibly
@@ -339,7 +341,7 @@ class ConnectionManager {
     // we should throw an exception or try to ignore the error bytes
     // and carry on....
     if( pending_op == null )
-      throw new LDAPException("Server sent us an unknown message id = ${m.messageId}");
+      throw new LDAPException("Server sent us an unknown message id = ${m.messageId} opCode=${m.protocolTag}");
 
 
     if( pending_op.processResult(rop) ) {

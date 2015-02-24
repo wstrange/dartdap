@@ -10,7 +10,7 @@ var dn = new DN("ou=People,dc=example,dc=com");
 
 main() {
 
-  var ldapConfig = new LDAPConfiguration('ldap.yaml','default');
+  var ldapConfig = new LDAPConfiguration('test/ldap.yaml','default');
   startQuickLogging();
 
 
