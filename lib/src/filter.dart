@@ -35,9 +35,9 @@ class Filter {
   static const int TYPE_GREATER_OR_EQUAL = 0xA5;
   static const int TYPE_LESS_OR_EQUAL = 0xA6;
 
-  // correct??? should it be 0xA7 or 0x87???
-  //static const int TYPE_PRESENCE =  0x87;
-  static const int TYPE_PRESENCE = 0xA7;
+
+  // Note form Chris Ridd: 0x87 is correct
+  static const int TYPE_PRESENCE =  0x87;
 
   static const int TYPE_APPROXIMATE_MATCH = 0xA8;
   static const int TYPE_EXTENSIBLE_MATCH = 0xA9;
