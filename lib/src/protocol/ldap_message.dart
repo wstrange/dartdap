@@ -39,8 +39,6 @@ class LDAPMessage {
 
   ASN1Sequence _protocolOp;
   ASN1Sequence _controls;
-
-
   ASN1Sequence _obj;
 
   /// return the message id sequence number.
@@ -79,7 +77,6 @@ class LDAPMessage {
     checkCondition(_obj !=null,"Parsing error on ${bytes}");
     checkCondition( _obj.elements.length == 2 || _obj.elements.length == 3, "Expecting two or three elements.actual = ${_obj.elements.length} obj=$_obj");
 
-
     var i = _obj.elements[0] as ASN1Integer;
     _messageId = i.intValue;
 
@@ -92,13 +89,29 @@ class LDAPMessage {
       logger.finest("Controls = ${_obj.elements[2]} ${_obj.elements[2].encodedBytes}");
       // todo: Get rid of this hack
       // See http://stackoverflow.com/questions/15035349/how-does-0-and-3-work-in-asn1
-      // The control sequeunce is encoded with a tag of 0xA0 - which is a context specific encoding
-      var c = _obj.elements[2].encodedBytes;
-      c[0] = 0x10; // wack the tag and set it to a sequence
-      var c2 = new ASN1Sequence.fromBytes(c);
 
-      //_controls = o.elements[2];
-      _controls = c2;
+      // todo: figure out how to decode controls properly
+
+      var c = _obj.elements[2].encodedBytes;
+
+      // controls are encoded using "context specific" BER encoding
+      // you need to know the specific value to understand how to decode the bytes
+
+      switch( c[0]) {
+        case ExtendedResponse.TYPE_EXTENDED_RESPONSE_OID:
+          // encoded value is an octet string representing an OID
+          var s = new ASN1OctetString(c);
+          logger.fine("Got response OID = ${s.stringValue}");
+
+          break;
+        case Control.CONTROLS_TAG:
+          // control - decode as sequence...
+          _controls = new ASN1Sequence.fromBytes(c);
+          break;
+        default:
+          throw new LDAPException("unknown LDAP control. Please fix me");
+      }
+
     }
 
     logger.fine("Got LDAP Message. Id = ${messageId} protocolOp = ${protocolOp}");

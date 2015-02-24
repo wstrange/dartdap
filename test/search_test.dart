@@ -18,7 +18,7 @@ main()  {
   var ldapConfig = new LDAPConfiguration("ldap.yaml","default");
 
   startQuickLogging();
-  Logger.root.level = Level.FINE;
+  Logger.root.level = Level.FINEST;
 
   group('LDAP Search tests ', ()  {
     // create a connection. Return a future that completes when

@@ -272,23 +272,29 @@ class ConnectionManager {
 
   // handle incoming message bytes from the server
   // at this point this is just binary data
-  // TODO: Is this Broken?. This can be called in a reentrant fashion
+  // TODO: Is this OK?. This can be called in a reentrant fashion
   // bytes from a previous call could still being processed? i/o (logging for example) could cause
   // this to not run to completion before the next batch of bytes is read on the socket.
+  //
+  // i have never seen this behavior - so I think Dart is not calling this in  reentrant function
+
   _handleData(Uint8List data) {
 
    logger.finest("ENTER ******* _handleData  bytes=${data.length} data=${data}");
 
+   // create a view buffer into the data
+   // as bytes are processed/consumed, the view window will be adjusted
+   // to the remaining bytes
    var _buf = new Uint8List.view(data.buffer);
 
    var bytesRead = 0;
    var totalBytes = 0;
    while(_buf.length > 0) {
      //logger.finest("TOP len=${_buf.length}  buf=$_buf");
-     // pass binary buffer to handler. Handler
-     // returns the number of bytes it consumed
-     // when parsing the binary bits
 
+     // pass binary buffer to message handler. Handler
+     // returns the number of bytes it consumed
+     // when parsing the binary bytes
      try {
       bytesRead = _handleMessage(_buf);
      }
@@ -303,6 +309,7 @@ class ConnectionManager {
      totalBytes += bytesRead;
      //logger.finest("i=$i processed $bytesRead remaining = ${_buf.length - bytesRead}");
 
+     // adjust view to remaining bytes
      _buf = new Uint8List.view(_buf.buffer,totalBytes);
      //logger.finest("**** remaining ${_buf.length} _buf=$_buf");
    }
