@@ -34,7 +34,6 @@ main()  {
       info("connection closed");
     });
 
-
     test('VLV Search2', () {
          var slist = [new SortKey("sn")];
 

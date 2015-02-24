@@ -41,10 +41,17 @@ class LDAPMessage {
   ASN1Sequence _controls;
   ASN1Sequence _obj;
 
+  /// Return the ASN1 element at position i in the LDAP message
+  /// This is used later when decoding the protocol operation
+  /// to get at other elements in the message.
+  List<ASN1Object> get elements => _obj.elements;
+
   /// return the message id sequence number.
   int get messageId => _messageId;
 
   ASN1Sequence get controls => _controls;
+  // True if this message has LDAP controls
+   bool get hasControls => _controls != null;
 
   /// return the [ASN1Sequence] that makes up this LDAP message
   ASN1Sequence get protocolOp => _protocolOp;
@@ -84,36 +91,12 @@ class LDAPMessage {
 
     _protocolTag = _protocolOp.tag;
 
-    // optional - message has controls....
+    // Check if message has controls....
     if( _obj.elements.length == 3) {
-      logger.finest("Controls = ${_obj.elements[2]} ${_obj.elements[2].encodedBytes}");
-      // todo: Get rid of this hack
-      // See http://stackoverflow.com/questions/15035349/how-does-0-and-3-work-in-asn1
-
-      // todo: figure out how to decode controls properly
-
       var c = _obj.elements[2].encodedBytes;
-
-      // controls are encoded using "context specific" BER encoding
-      // you need to know the specific value to understand how to decode the bytes
-
-      switch( c[0]) {
-        case ExtendedResponse.TYPE_EXTENDED_RESPONSE_OID:
-          // encoded value is an octet string representing an OID
-          var s = new ASN1OctetString(c);
-          logger.fine("Got response OID = ${s.stringValue}");
-
-          break;
-        case Control.CONTROLS_TAG:
-          // control - decode as sequence...
-          _controls = new ASN1Sequence.fromBytes(c);
-          break;
-        default:
-          throw new LDAPException("unknown LDAP control. Please fix me");
-      }
-
+      if( c[0] == Control.CONTROLS_TAG )
+        _controls = new ASN1Sequence.fromBytes(c);
     }
-
     logger.fine("Got LDAP Message. Id = ${messageId} protocolOp = ${protocolOp}");
 
   }
@@ -133,8 +116,8 @@ class LDAPMessage {
 
     var b = seq.encodedBytes;
 
-    var xx = LDAPUtil.toHexString(b);
-    logger.finest("LdapMesssage bytes = ${xx}");
+    //var xx = LDAPUtil.toHexString(b);
+    //logger.finest("LdapMesssage bytes = ${xx}");
     return b;
 
   }

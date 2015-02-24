@@ -55,27 +55,10 @@ class ResponseOp {
   ResponseOp(LDAPMessage m) {
     logger.finest("+++++ new response op = $m");
     _ldapResult = _parseLDAPResult(m.protocolOp);
-    // todo: Parse controls;
-   _controls = Control.parseControls(m._controls);
-
+    // Parse controls;
+    if( m.hasControls )
+      _controls = Control.parseControls(m._controls);
   }
-
-  // special case - required for extended results
-  // todo: this feels like a hack / ugly
-  /*
-   *  ExtendedResponse ::= [APPLICATION 24] SEQUENCE {
-                COMPONENTS OF LDAPResult,
-                responseName     [10] LDAPOID OPTIONAL,
-                response         [11] OCTET STRING OPTIONAL }
-  */
-  ResponseOp.extended(LDAPMessage m) {
-
-    //var lr = s.elements[0] as ASN1Sequence;
-    _parseLDAPResult(m.protocolOp);
-    // todo: Do we let the subclass handle the rest of the response
-  }
-
-
 
   // parse the embedded LDAP Response
   LDAPResult _parseLDAPResult(ASN1Sequence s) {

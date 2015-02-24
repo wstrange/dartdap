@@ -56,14 +56,25 @@ class GenericResponse extends ResponseOp {
 
 class ExtendedResponse extends ResponseOp {
   static const int TYPE_EXTENDED_RESPONSE_OID = 0x8A;
+  String responseName;
+  String response;
 
   /**
    * The BER type for the extended response value element.
    */
   static const int TYPE_EXTENDED_RESPONSE_VALUE = 0x8B;
 
-  ExtendedResponse(LDAPMessage m):super.extended(m) {
-    // complete rest or parsing
+  ExtendedResponse(LDAPMessage m):super(m) {
+    responseName = _elementAsString(m.elements[2]);
+    // check for optional response
+    if( m.elements.length == 4) {
+      response = _elementAsString(m.elements[3]);
+    }
+  }
+
+  String _elementAsString(ASN1Object _obj) {
+    var octets = new ASN1OctetString.fromBytes(_obj.encodedBytes);
+    return octets.stringValue;
   }
 }
 
