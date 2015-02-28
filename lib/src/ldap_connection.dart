@@ -94,9 +94,9 @@ class LDAPConnection {
    */
 
   SearchResult search(String baseDN, Filter filter,
-      List<String> attributes, {int scope: SearchScope.SUB_LEVEL,
+      List<String> attributes, {int scope: SearchScope.SUB_LEVEL,int sizeLimit:0,
         List<Control> controls:null}) =>
-          _cmgr.processSearch(new SearchRequest(baseDN,filter, attributes,scope),controls);
+          _cmgr.processSearch(new SearchRequest(baseDN,filter, attributes,scope,sizeLimit),controls);
 
   /**
    * Add a new LDAP entry.

@@ -39,12 +39,13 @@ class LDAPMessage {
 
   ASN1Sequence _protocolOp;
   ASN1Sequence _controls;
-  ASN1Sequence _obj;
+  //ASN1Sequence _obj;
+  ASN1Object _obj;
 
   /// Return the ASN1 element at position i in the LDAP message
   /// This is used later when decoding the protocol operation
   /// to get at other elements in the message.
-  List<ASN1Object> get elements => _obj.elements;
+  List<ASN1Object> get elements => (_obj as ASN1Sequence).elements;
 
   /// return the message id sequence number.
   int get messageId => _messageId;
@@ -82,18 +83,18 @@ class LDAPMessage {
     _obj = new ASN1Sequence.fromBytes(bytes);
 
     checkCondition(_obj !=null,"Parsing error on ${bytes}");
-    checkCondition( _obj.elements.length == 2 || _obj.elements.length == 3, "Expecting two or three elements.actual = ${_obj.elements.length} obj=$_obj");
+    checkCondition(elements.length == 2 || elements.length == 3, "Expecting two or three elements.actual = ${elements.length} obj=$_obj");
 
-    var i = _obj.elements[0] as ASN1Integer;
+    var i = elements[0] as ASN1Integer;
     _messageId = i.intValue;
 
-    _protocolOp = _obj.elements[1] as ASN1Sequence;
+    _protocolOp = elements[1] as ASN1Sequence;
 
     _protocolTag = _protocolOp.tag;
 
     // Check if message has controls....
-    if( _obj.elements.length == 3) {
-      var c = _obj.elements[2].encodedBytes;
+    if( elements.length == 3) {
+      var c = elements[2].encodedBytes;
       if( c[0] == Control.CONTROLS_TAG )
         _controls = new ASN1Sequence.fromBytes(c);
     }

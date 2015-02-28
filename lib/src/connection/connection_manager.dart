@@ -2,7 +2,6 @@ library connection_manager;
 
 import 'dart:io';
 import 'dart:async';
-import 'dart:typed_data';
 import 'dart:collection';
 import '../protocol/ldap_protocol.dart';
 
@@ -10,6 +9,7 @@ import '../ldap_exception.dart';
 import '../ldap_result.dart';
 import '../control/control.dart';
 import '../search_result.dart';
+import 'ldap_transformer.dart';
 
 
 /**
@@ -51,7 +51,7 @@ class _StreamPendingOp extends _PendingOp {
   SearchResult _searchResult;
   SearchResult get searchResult => _searchResult;
 
-  _StreamPendingOp(LDAPMessage m):super(m) {
+  _StreamPendingOp(LDAPMessage m) : super(m) {
     _searchResult = new SearchResult(_controller.stream);
   }
 
@@ -60,17 +60,15 @@ class _StreamPendingOp extends _PendingOp {
   // or true if the search is complete
   bool processResult(ResponseOp op) {
     // op is Search Entry. Add it to our stream and keep
-    if( op is SearchResultEntry ) {
+    if (op is SearchResultEntry) {
       _controller.add(op.searchEntry);
       return false;
-    }
-    else { // we should be done now
+    } else { // we should be done now
       // if this is not a done message we are in trouble...
       var x = (op as SearchResultDone);
 
 
-      if( x.ldapResult.resultCode != 0)
-        _controller.addError(x.ldapResult);
+      if (x.ldapResult.resultCode != 0) _controller.addError(x.ldapResult);
 
       _searchResult.controls = x.controls;
       _searchResult.ldapResult = x.ldapResult;
@@ -88,14 +86,15 @@ class _FuturePendingOp extends _PendingOp {
 
   var completer = new Completer();
 
-  _FuturePendingOp(LDAPMessage m):super(m);
+  _FuturePendingOp(LDAPMessage m) : super(m);
 
   bool processResult(ResponseOp op) {
     var ldapResult = op.ldapResult;
-    if(_isError(ldapResult.resultCode))
+    if (_isError(ldapResult.resultCode)) {
       completer.completeError(ldapResult);
-    else
+    } else {
       completer.complete(ldapResult);
+    }
     done();
     return true;
   }
@@ -107,7 +106,7 @@ class _FuturePendingOp extends _PendingOp {
   // example: for LDAP compare the caller wants to know the result
   // so we dont generate an error -but let the result code propagate back
   bool _isError(int resultCode) {
-    switch( resultCode) {
+    switch (resultCode) {
       case 0:
       case ResultCode.COMPARE_TRUE:
       case ResultCode.COMPARE_FALSE:
@@ -129,7 +128,7 @@ class ConnectionManager {
   Queue<_PendingOp> _outgoingMessageQueue = new Queue<_PendingOp>();
 
   // Messages that we are expecting a response back from the LDAP server
-  Map<int,_PendingOp> _pendingResponseMessages = new Map();
+  Map<int, _PendingOp> _pendingResponseMessages = new Map();
 
   // TIMEOUT when waiting for a pending op to come back from the server.
   static const PENDING_OP_TIMEOUT = const Duration(seconds: 3);
@@ -141,28 +140,27 @@ class ConnectionManager {
   // (if the socket is null, we consider it closed)
   bool isClosed() => _socket == null;
 
-  int _nextMessageId = 1;  // message counter for this connection
+  int _nextMessageId = 1; // message counter for this connection
 
   int _port;
   String _host;
   bool _ssl;
 
-  ConnectionManager(this._host,this._port,this._ssl);
+  ConnectionManager(this._host, this._port, this._ssl);
 
 
   Future<ConnectionManager> connect() async {
     logger.finest("Creating socket to ${_host}:${_port} ssl=$_ssl");
-    var s = (_ssl ?  SecureSocket.connect(_host, _port, onBadCertificate:_badCertHandler) :
-                    Socket.connect(_host,_port));
+    var s = (_ssl ? SecureSocket.connect(_host, _port, onBadCertificate: _badCertHandler) : Socket.connect(_host, _port));
 
     _socket = await s;
     logger.fine("Connected to $_host:$_port");
-    _socket.listen(_handleData,
-        onError: (error) {
-          logger.severe("Socket error = $error");
-          throw new LDAPException("Socket error = $error");
+    _socket.transform(createTransformer()).listen( (m) => _handleLDAPMessage(m),
+        onError: (error,stacktrace) {
+         logger.severe("Socket error = $error  stacktrace=${stacktrace}");
+         throw new LDAPException("Socket error = $error stacktrace=${stacktrace}");
 
-        });
+       });
     return this;
   }
 
@@ -176,7 +174,7 @@ class ConnectionManager {
 
   // process an LDAP Search Request
   SearchResult processSearch(SearchRequest rop, List<Control> controls) {
-    var m = new LDAPMessage(++_nextMessageId, rop,controls);
+    var m = new LDAPMessage(++_nextMessageId, rop, controls);
     var op = new _StreamPendingOp(m);
     _queueOp(op);
     return op.searchResult;
@@ -191,13 +189,13 @@ class ConnectionManager {
   }
 
   _queueOp(_PendingOp op) {
-    _outgoingMessageQueue.add( op);
+    _outgoingMessageQueue.add(op);
     _sendPendingMessage();
   }
 
   _sendPendingMessage() {
-    logger.finest("Send pending message()");
-    while( _messagesToSend() ) {
+    //logger.finest("Send pending message()");
+    while (_messagesToSend()) {
       var op = _outgoingMessageQueue.removeFirst();
       _sendMessage(op);
     }
@@ -210,7 +208,7 @@ class ConnectionManager {
    * we must wait to send more messages until the BIND response comes back from the
    * server
    */
-  bool _messagesToSend() =>  (! _outgoingMessageQueue.isEmpty ) && (_bindPending == false );
+  bool _messagesToSend() => (!_outgoingMessageQueue.isEmpty) && (_bindPending == false);
 
 
   // Send a single message to the server
@@ -219,8 +217,7 @@ class ConnectionManager {
     var l = op.message.toBytes();
     _socket.add(l);
     _pendingResponseMessages[op.message.messageId] = op;
-    if( op.message.protocolTag == BIND_REQUEST)
-      _bindPending = true;
+    if (op.message.protocolTag == BIND_REQUEST) _bindPending = true;
   }
 
 
@@ -235,16 +232,15 @@ class ConnectionManager {
    */
 
   Future close(bool immediate) {
-    if( immediate || _canClose() ) {
+    if (immediate || _canClose()) {
       return _doClose();
-    }
-    else {
+    } else {
       var c = new Completer();
       // todo: dont wait if there are no pending ops....
       new Timer.periodic(PENDING_OP_TIMEOUT, (Timer t) {
-        if( _canClose() ) {
+        if (_canClose()) {
           t.cancel();
-          _doClose().then( (_) => c.complete());
+          _doClose().then((_) => c.complete());
         }
       });
       return c.future;
@@ -255,7 +251,7 @@ class ConnectionManager {
    * Return true if there are no more pending messages.
    */
   bool _canClose() {
-    if( _pendingResponseMessages.isEmpty && _outgoingMessageQueue.isEmpty) {
+    if (_pendingResponseMessages.isEmpty && _outgoingMessageQueue.isEmpty) {
       return true;
     }
     logger.finest("close() waiting for queue to drain pendingResponse=$_pendingResponseMessages");
@@ -270,97 +266,37 @@ class ConnectionManager {
     return f;
   }
 
-  // handle incoming message bytes from the server
-  // at this point this is just binary data
-  // TODO: Is this OK?. This can be called in a reentrant fashion
-  // bytes from a previous call could still being processed? i/o (logging for example) could cause
-  // this to not run to completion before the next batch of bytes is read on the socket.
-  //
-  // i have never seen this behavior - so I think Dart is not calling this in  reentrant function
 
-  _handleData(Uint8List data) {
-
-   logger.finest("ENTER ******* _handleData  bytes=${data.length} data=${data}");
-
-   // create a view buffer into the data
-   // as bytes are processed/consumed, the view window will be adjusted
-   // to the remaining bytes
-   var _buf = new Uint8List.view(data.buffer);
-
-   var bytesRead = 0;
-   var totalBytes = 0;
-   while(_buf.length > 0) {
-     //logger.finest("TOP len=${_buf.length}  buf=$_buf");
-
-     // pass binary buffer to message handler. Handler
-     // returns the number of bytes it consumed
-     // when parsing the binary bytes
-     try {
-      bytesRead = _handleMessage(_buf);
-     }
-     catch(e,stacktrace) {
-       logger.severe("Exception while processing message. Exception $e");
-       logger.severe("$stacktrace");
-       break;
-     }
-     //logger.finest("Message READ bytes=$bytesRead");
-
-
-     totalBytes += bytesRead;
-     //logger.finest("i=$i processed $bytesRead remaining = ${_buf.length - bytesRead}");
-
-     // adjust view to remaining bytes
-     _buf = new Uint8List.view(_buf.buffer,totalBytes);
-     //logger.finest("**** remaining ${_buf.length} _buf=$_buf");
-   }
-
-   //logger.finest("EXIT +++++++ _handleData i=$i");
-
-   _sendPendingMessage();
-  }
-
-
-  // parse the buffer into a LDAPMessage, and handle the message
-  // return the number of bytes consumed
-  int _handleMessage(Uint8List buffer) {
-    //logger.finest("ENTER _handleMessage ${buffer.length} $buffer");
-    // get a generic LDAP message envelope from the buffer
-    var m = new LDAPMessage.fromBytes(buffer);
-    logger.fine("Received LDAP message ${m} byte length=${m.messageLength}");
-
-    // now call response handler to figure out what kind of resposnse
+  /// called for each LDAP message recevied from the server
+  void _handleLDAPMessage(LDAPMessage m) {
+    // call response handler to figure out what kind of resposnse
     // the message contains.
     var rop = ResponseHandler.handleResponse(m);
     // match it to a pending operation based on message id
     // todo: AN extended protocol op may not match an outstanding request
-    // we should
+    // hanndle this case
+
+    if( rop is ExtendedResponse ) {
+      var o = rop as ExtendedResponse;
+      logger.severe("Got extended response ${o.responseName} code=${rop.ldapResult.resultCode}");
+
+    }
+
     var pending_op = _pendingResponseMessages[m.messageId];
 
     // If this is not true, the server sent us possibly
     // malformed LDAP. What should we do?? Not clear if
     // we should throw an exception or try to ignore the error bytes
     // and carry on....
-    if( pending_op == null )
-      throw new LDAPException("Server sent us an unknown message id = ${m.messageId} opCode=${m.protocolTag}");
+    if (pending_op == null) throw new LDAPException("Server sent us an unknown message id = ${m.messageId} opCode=${m.protocolTag}");
 
-
-    if( pending_op.processResult(rop) ) {
+    if (pending_op.processResult(rop)) {
       // op is now complete. Remove it from pending q
       _pendingResponseMessages.remove(m.messageId);
     }
 
-    if( m.protocolTag == BIND_RESPONSE)
-      _bindPending = false;
+    if (m.protocolTag == BIND_RESPONSE) _bindPending = false;
 
-    return m.messageLength;
   }
-
-//  This was used for the pre-async code.
-// Need to figure out if we still need this or not
-//  _errorHandler(e) {
-//    logger.severe("LDAP Error ${e}");
-//    var ex = new LDAPException(e.toString());
-//    throw ex;
-//  }
 
 }

@@ -1,7 +1,7 @@
 # LDAP configuration file
 # default is used if no connection name is specified
 default:
-  port: 1389
+  port: 2389
   host: localhost
   bindDN: cn=Directory Manager
   password: password

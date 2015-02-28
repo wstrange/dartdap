@@ -55,6 +55,15 @@ main() {
 
   test('Filter Encoding', () {
     // put test here.
+    // foo == 66 6f 6f
+    // bar = 62 61 72
+    // (foo=bar)
+
+    var a = [0xa3, 0x0a, 0x04, 0x03, 0x66, 0x6f, 0x6f, 0x04, 0x03, 0x62,0x61,0x72];
+    var f = Filter.equals("foo", "bar");
+    var bytes = f.toASN1().encodedBytes;
+    print("a = $a \nBytes = $bytes");
+    expect(a, equals(bytes));
 
   });
 }
