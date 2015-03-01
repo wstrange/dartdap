@@ -51,22 +51,23 @@ class Filter {
 
   Filter(this._filterType, [this._attributeName, this._assertionValue, this._subFilters]);
 
-  static Filter equals(String attributeName, String attrValue) => new Filter(TYPE_EQUALITY, attributeName, attrValue);
-
-
   static Filter and(List<Filter> filters) => new Filter(TYPE_AND, null, null, filters);
-
 
   static Filter or(List<Filter> filters) => new Filter(TYPE_OR, null, null, filters);
 
-
   static Filter not(Filter f) => new Filter(TYPE_NOT, null, null, [f]);
 
-  static Filter present(String attrName) => new Filter(TYPE_PRESENCE, attrName);
-
+  static Filter equals(String attributeName, String attrValue) => new Filter(TYPE_EQUALITY, attributeName, attrValue);
 
   static Filter substring(String pattern) => new SubstringFilter(pattern);
 
+  static Filter greaterOrEquals(String attributeName, String attrValue) => new Filter(TYPE_GREATER_OR_EQUAL, attributeName, attrValue);
+
+  static Filter lessOrEquals(String attributeName, String attrValue) => new Filter(TYPE_LESS_OR_EQUAL, attributeName, attrValue);
+
+  static Filter present(String attrName) => new Filter(TYPE_PRESENCE, attrName);
+
+  static Filter approx(String attributeName, String attrValue) => new Filter(TYPE_APPROXIMATE_MATCH, attributeName, attrValue);
 
   Filter operator &(Filter other) => Filter.and([this, other]);
   Filter operator |(Filter other) => Filter.or([this, other]);
@@ -103,15 +104,12 @@ class Filter {
 
 
       case Filter.TYPE_NOT:
-        // encoded as
-        // tag=NOT, length bytes, filter bytes....
-
+        // like AND/OR but with only one subFilter.
         assert(subFilters != null);
-        var notObj = subFilters[0];
-        assert(notObj != null);
+        var notObj = new ASN1Set(tag: filterType);
+        notObj.add(subFilters[0].toASN1());
+        return notObj;
 
-        var enc = notObj.toASN1();
-        return new ASN1Object.preEncoded(Filter.TYPE_NOT, enc.encodedBytes);
 
       case Filter.TYPE_EXTENSIBLE_MATCH:
         throw "Not Done yet. Fix me!!";

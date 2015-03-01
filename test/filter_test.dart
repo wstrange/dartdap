@@ -15,19 +15,19 @@ main() {
     });
 
     test('(foo<=bar)', () {
-      var f = new Filter(Filter.TYPE_LESS_OR_EQUAL, "foo", "bar");
+      var f = Filter.lessOrEquals("foo", "bar");
       var b = f.toASN1().encodedBytes;
       expect(b, equals([0xa6, 0x0a, 0x04, 0x03, 0x66, 0x6f, 0x6f, 0x04, 0x03, 0x62, 0x61, 0x72]));
     });
 
     test('(foo>=bar)', () {
-      var f = new Filter(Filter.TYPE_GREATER_OR_EQUAL, "foo", "bar");
+      var f = Filter.greaterOrEquals("foo", "bar");
       var b = f.toASN1().encodedBytes;
       expect(b, equals([0xa5, 0x0a, 0x04, 0x03, 0x66, 0x6f, 0x6f, 0x04, 0x03, 0x62, 0x61, 0x72]));
     });
 
     test('(foo~=bar)', () {
-      var f = new Filter(Filter.TYPE_APPROXIMATE_MATCH, "foo", "bar");
+      var f = Filter.approx("foo", "bar");
       var b = f.toASN1().encodedBytes;
       expect(b, equals([0xa8, 0x0a, 0x04, 0x03, 0x66, 0x6f, 0x6f, 0x04, 0x03, 0x62, 0x61, 0x72]));
     });
@@ -51,19 +51,19 @@ main() {
     });
 
     test('(!(foo<=bar))', () {
-      var f = Filter.not(new Filter(Filter.TYPE_LESS_OR_EQUAL, "foo", "bar"));
+      var f = Filter.not(Filter.lessOrEquals("foo", "bar"));
       var b = f.toASN1().encodedBytes;
       expect(b, equals([0xa2, 0x0c, 0xa6, 0x0a, 0x04, 0x03, 0x66, 0x6f, 0x6f, 0x04, 0x03, 0x62, 0x61, 0x72]));
     });
 
     test('(!(foo>=bar))', () {
-      var f = Filter.not(new Filter(Filter.TYPE_GREATER_OR_EQUAL, "foo", "bar"));
+      var f = Filter.not(Filter.greaterOrEquals("foo", "bar"));
       var b = f.toASN1().encodedBytes;
       expect(b, equals([0xa2, 0x0c, 0xa5, 0x0a, 0x04, 0x03, 0x66, 0x6f, 0x6f, 0x04, 0x03, 0x62, 0x61, 0x72]));
     });
 
     test('(!(foo~=bar))', () {
-      var f = Filter.not(new Filter(Filter.TYPE_APPROXIMATE_MATCH, "foo", "bar"));
+      var f = Filter.not(Filter.approx("foo", "bar"));
       var b = f.toASN1().encodedBytes;
       expect(b, equals([0xa2, 0x0c, 0xa8, 0x0a, 0x04, 0x03, 0x66, 0x6f, 0x6f, 0x04, 0x03, 0x62, 0x61, 0x72]));
     });
