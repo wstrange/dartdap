@@ -53,13 +53,15 @@ class Filter {
   static Filter not(Filter f) => new Filter(TYPE_NOT, null, null, [f]);
   static Filter present(String attrName) => new Filter(TYPE_PRESENCE, attrName);
 
-
   static Filter substring(String pattern) => new SubstringFilter(pattern);
+  static Filter greaterOrEquals(String attributeName, String attrValue) => new Filter(TYPE_GREATER_OR_EQUAL, attributeName, attrValue);
+  static Filter lessOrEquals(String attributeName, String attrValue) => new Filter(TYPE_LESS_OR_EQUAL, attributeName, attrValue);
 
+  static Filter approx(String attributeName, String attrValue) => new Filter(TYPE_APPROXIMATE_MATCH, attributeName, attrValue);
 
   Filter operator &(Filter other) => Filter.and([this, other]);
   Filter operator |(Filter other) => Filter.or([this, other]);
- 
+
   String toString() => "Filter(type=$_filterType attrName=$_attributeName val=$_assertionValue, subFilters=$_subFilters)";
 
   /**
@@ -86,21 +88,15 @@ class Filter {
         });
         return aset;
 
-
       case Filter.TYPE_PRESENCE:
         return new ASN1OctetString(attributeName, tag: filterType);
 
-
       case Filter.TYPE_NOT:
-        // encoded as
-        // tag=NOT, length bytes, filter bytes....
-
+        // like AND/OR but with only one subFilter.
         assert(subFilters != null);
-        var notObj = subFilters[0];
-        assert(notObj != null);
-
-        var enc = notObj.toASN1();
-        return new ASN1Object.preEncoded(Filter.TYPE_NOT, enc.encodedBytes);
+        var notObj = new ASN1Set(tag: filterType);
+        notObj.add(subFilters[0].toASN1());
+        return notObj;
 
       case Filter.TYPE_EXTENSIBLE_MATCH:
         throw "Not Done yet. Fix me!!";
