@@ -13,19 +13,26 @@ part of ldap_protocol;
                                   bindResponse        BindResponse,
                                   unbindRequest       UnbindRequest,
                                   searchRequest       SearchRequest,
-                                  searchResponse      SearchResponse,
+                                  searchResEntry      SearchResultEntry,
+                                  searchResDone       SearchResultDone,
+                                  searchResRef        SearchResultReference,
                                   modifyRequest       ModifyRequest,
                                   modifyResponse      ModifyResponse,
                                   addRequest          AddRequest,
                                   addResponse         AddResponse,
                                   delRequest          DelRequest,
                                   delResponse         DelResponse,
-                                  modifyRDNRequest    ModifyRDNRequest,
-                                  modifyRDNResponse   ModifyRDNResponse,
-                                  compareDNRequest    CompareRequest,
-                                  compareDNResponse   CompareResponse,
-                                  abandonRequest      AbandonRequest
-                             }
+                                  modifyDNRequest     ModifyDNRequest,
+                                  modifyDNResponse    ModifyDNResponse,
+                                  compareRequest      CompareRequest,
+                                  compareResponse     CompareResponse,
+                                  abandonRequest      AbandonRequest,
+                                  extendedRequest     ExtendedRequest,
+                                  extendedResponse    ExtendedResponse,
+                                  ...,
+                                  intermediateResponse IntermediateResponse
+                             },
+              controls       [0] Controls OPTIONAL
          }
  *
  *
