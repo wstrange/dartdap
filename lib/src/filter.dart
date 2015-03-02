@@ -11,7 +11,6 @@ import 'ldap_util.dart';
 class Filter {
 
   int _filterType;
-
   int get filterType => _filterType;
 
   // The assertion value for this filter.
@@ -35,10 +34,7 @@ class Filter {
   static const int TYPE_GREATER_OR_EQUAL = 0xA5;
   static const int TYPE_LESS_OR_EQUAL = 0xA6;
 
-
-  // Note form Chris Ridd: 0x87 is correct
   static const int TYPE_PRESENCE =  0x87;
-
   static const int TYPE_APPROXIMATE_MATCH = 0xA8;
   static const int TYPE_EXTENSIBLE_MATCH = 0xA9;
 
@@ -52,16 +48,9 @@ class Filter {
   Filter(this._filterType, [this._attributeName, this._assertionValue, this._subFilters]);
 
   static Filter equals(String attributeName, String attrValue) => new Filter(TYPE_EQUALITY, attributeName, attrValue);
-
-
   static Filter and(List<Filter> filters) => new Filter(TYPE_AND, null, null, filters);
-
-
   static Filter or(List<Filter> filters) => new Filter(TYPE_OR, null, null, filters);
-
-
   static Filter not(Filter f) => new Filter(TYPE_NOT, null, null, [f]);
-
   static Filter present(String attrName) => new Filter(TYPE_PRESENCE, attrName);
 
 
@@ -70,7 +59,7 @@ class Filter {
 
   Filter operator &(Filter other) => Filter.and([this, other]);
   Filter operator |(Filter other) => Filter.or([this, other]);
-
+ 
   String toString() => "Filter(type=$_filterType attrName=$_attributeName val=$_assertionValue, subFilters=$_subFilters)";
 
   /**
