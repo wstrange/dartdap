@@ -34,11 +34,11 @@ abstract class Control {
 
   ASN1Sequence toASN1() => throw new Exception("Not implemented. Subclass must implement");
 
-  /// Subclasses may may want to call this to start the encoding sequence. All
+  /// Subclasses may want to call this to start the encoding sequence. All
   /// controls start with the OID and a critical flag, followed by the
   /// optional encoded control values
   ASN1Sequence startSequence() {
-    var seq = new ASN1Sequence(tag:CONTROLS_TAG);
+    var seq = new ASN1Sequence();
     seq.add(new ASN1OctetString(oid));
     if( isCritical )
       seq.add(new ASN1Boolean(isCritical));
