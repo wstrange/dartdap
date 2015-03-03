@@ -14,6 +14,7 @@ createTransformer() => new StreamTransformer.fromHandlers(
            logger.fine("Received LDAP message ${m}");
            sink.add(m);
            totalBytes += m.messageLength;
+           // slide the buffer view window to the remaining bytes
            _buf = new Uint8List.view(_buf.buffer,totalBytes);
         }
     });

@@ -29,8 +29,7 @@ class ServerSideSortRequestControl extends Control {
         s.add( new ASN1OctetString(key.orderMatchingRule,tag:TYPE_ORDERING_RULE_ID));
       }
       if( key.isReverseOrder ) {
-        var b = new ASN1Boolean(true); //todo: we should support tag override for asn1 bool
-        b.tag = TYPE_REVERSE_ORDER; // override tag for CHOICE type
+        var b = new ASN1Boolean(true,tag:TYPE_REVERSE_ORDER); //todo: we should support tag override for asn1 bool
         s.add(b);
       }
       sortKeyseq.add(s);
