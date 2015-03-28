@@ -1,25 +1,53 @@
-An LDAP Client Library for Dart
+# An LDAP Client Library for Dart
 
-Implements the LDAP v3 protocol. This library depends on the ASN1 parser library .
+This library allows LDAP v3 clients to be implemented.
 
+The Lightweight Directory Access Protocol (LDAP) is a protocol for
+accessing directories. These directories are organised as a hierarchy
+(or tree) of entries. Each entry contains a set of attribute and
+values. Each entry can be identified by a _distinguished name_, which
+is a sequence of attribute/value pairs.  The LDAP protocol can be used
+to query, as well as modify, these directories.
 
-Implemented operations include BIND, ADD, MODIFY, DEL, MODIFYDN, SEARCH, COMPARE
+This library supports the LDAP v3 protocol, which is defined in
+IETF [RFC 4511](http://tools.ietf.org/html/rfc4511).
 
-Example:
+The operations supported by this implementation include: BIND, ADD,
+MODIFY, DEL, MODIFYDN, SEARCH and COMPARE.
+
+## Examples
+
+### Search
+
+Create an LDAP connection and perform a simple search using it.
+
 ```dart
-var ldapConfig = new LDAPConfiguration("ldap.yaml");
-var attrs = ["dn", "cn", "objectClass"];
-var filter = Filter.substring("cn=A*");
+var ldap_settings = {
+  "default": {
+    "host": "10.211.55.35",
+    "port": 389,
+    "bindDN": "cn=admin,dc=example,dc=com",
+    "password": "p@ssw0rd",
+    "ssl": false
+  }
+};
 
-ldapConfig.getConnection().then( (LDAPConnection ldap) {
-	ldap.search("dc=example,dc=com", filter, attrs).
-		listen( (SearchEntry entry) => print('Found $entry'));
+var ldapConfig = new LDAPConfiguration.fromMap(ldap_settings);
+
+ldapConfig.getConnection().then((LDAPConnection ldap) {
+  var attrs = ["dn", "cn", "objectClass"];
+  var filter = Filter.present("objectClass");
+
+  ldap.search("dc=example,dc=com", filter, attrs).stream
+      .listen((SearchEntry entry) => print("Found $entry"));
 });
 ```
 
-See the integration test for more examples
+### Other examples
 
-TODO List:
+See the integration test for more examples.
+
+## TODO
 
 * Documentation. For now please see integration_test.dart for sample usage
 * Improve conciseness / usability of API

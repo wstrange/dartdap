@@ -4,9 +4,24 @@ import 'ldap_exception.dart';
 import 'package:asn1lib/asn1lib.dart';
 import 'ldap_util.dart';
 
-/**
- * Represents an LDAP search filter
- */
+/// Represents an LDAP search filter.
+///
+/// An LDAP search filter can be a single filter created using either of these
+/// factory methods:
+///
+/// * [present] - matches if the entry contains the attribute
+/// * [equals] - matches if an attribute has a given value
+/// * [substring] - matches wildcard
+/// * [approx] - matches if an attribute approximately has the value
+/// * [greaterOrEquals] - matches if the value is greater than or equal
+/// * [lessOrEquals] - matches if the entry has the attribute with a value that is less than or equal to the supplied value
+///
+/// Or it can be a compound filter that composes other filters created using
+/// these factory methods:
+///
+/// * [not] - matches if its member filter does not match
+/// * [and] - matches if all of its member filters match
+/// * [or] - matches if at least one of its member filters match
 
 class Filter {
 
@@ -44,22 +59,53 @@ class Filter {
   static const int EXTENSIBLE_TYPE_MATCH_VALUE = 0x83;
   static const int EXTENSIBLE_TYPE_DN_ATTRIBUTES = 0x84;
 
+  /// Constructor
+  ///
+  /// It is preferable to use one of the convenience methods ([present],
+  /// [equals], [substring], [approx], [greaterOrEquals], [lessOrEquals])
+  /// instead of directly using this constructor.
 
   Filter(this._filterType, [this._attributeName, this._assertionValue, this._subFilters]);
 
+  /// Creates a [Filter] that matches an entry that has an attribute with the given value.
   static Filter equals(String attributeName, String attrValue) => new Filter(TYPE_EQUALITY, attributeName, attrValue);
+
+  /// Creates a [Filter] that matches entries that matches all of the [filters].
   static Filter and(List<Filter> filters) => new Filter(TYPE_AND, null, null, filters);
+
+  /// Creates a [Filter] that matches entries that matches at least one of the [filters].
   static Filter or(List<Filter> filters) => new Filter(TYPE_OR, null, null, filters);
+
+  /// Creates a [Filter] that matches entries that don't match on [f].
   static Filter not(Filter f) => new Filter(TYPE_NOT, null, null, [f]);
+
+  /// Creates a [Filter] that matches an entry contains an attribute.
   static Filter present(String attrName) => new Filter(TYPE_PRESENCE, attrName);
 
+  /// Creates a [Filter] that matches on a substring.
+  ///
+  /// The [pattern] must be a [String] of the form "attr=match", where _attr_ is
+  /// the attribute name and _match_ is a value that has at least one `*`
+  /// character. There can be wildcard `*` chararcters at the beginning, middle
+  /// or end of _match_.
+
   static Filter substring(String pattern) => new SubstringFilter(pattern);
+
+  /// Creates a [Filter] that matches an entry that contains the [attributeName]
+  /// with a value that is greater than or equal to [attrValue].
   static Filter greaterOrEquals(String attributeName, String attrValue) => new Filter(TYPE_GREATER_OR_EQUAL, attributeName, attrValue);
+
+  /// Creates a [Filter] that matches an entry that contains the [attributeName]
+  /// with a value that is less than or equal to [attrValue].
   static Filter lessOrEquals(String attributeName, String attrValue) => new Filter(TYPE_LESS_OR_EQUAL, attributeName, attrValue);
 
+  /// Creates a [Filter] that matches an entry that contains the [attributeName]
+  /// that approximately matches [attrValue].
   static Filter approx(String attributeName, String attrValue) => new Filter(TYPE_APPROXIMATE_MATCH, attributeName, attrValue);
 
+  /// Operator version of the [and] filter factory method.
   Filter operator &(Filter other) => Filter.and([this, other]);
+  /// Operator version of the [or] filter factory method.
   Filter operator |(Filter other) => Filter.or([this, other]);
 
   String toString() => "Filter(type=$_filterType attrName=$_attributeName val=$_assertionValue, subFilters=$_subFilters)";
