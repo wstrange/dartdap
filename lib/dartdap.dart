@@ -10,8 +10,8 @@
 ///
 /// # Example
 ///
-/// See LDAPConfiguration class for some examples of how to connect to an LDAP
-/// server and perform a search.
+/// See the [LDAPConfiguration] class for examples of how to connect to an LDAP
+/// server.
 
 library ldapclient;
 

@@ -22,54 +22,11 @@ Logger logger = new Logger("ldap_configuration");
 ///
 /// It is also used to obtain an [LDAPConnection] using those settings.
 ///
-/// # Example 1: settings from Map
+/// There are three ways to create an LDAP configuration:
 ///
-/// Connects to an LDAP server using settings in a Map.
-///
-///     var ldap_settings = {
-///       "default": {
-///         "host": "10.211.55.35",
-///         "port": 389,
-///         "bindDN": "cn=admin,dc=example,dc=com",
-///         "password": "p@ssw0rd",
-///         "ssl": false
-///       }
-///     };
-///     
-///     var ldapConfig = new LDAPConfiguration.fromMap(ldap_settings);
-///     
-///     ldapConfig.getConnection().then((LDAPConnection ldap) {
-///       var attrs = ["dn", "cn", "objectClass"];
-///       var filter = Filter.present("objectClass");
-///
-///       ldap.search("dc=example,dc=com", filter, attrs).stream
-///           .listen((SearchEntry entry) => print("Found $entry"));
-///     });
-///     
-/// # Example 2: settings from YAML file
-///
-/// Connects to an LDAP server using settings in a YAML file.
-///
-///     var ldapConfig = new LDAPConfiguration("ldap.yaml", "default");
-///     
-///     ldapConfig.getConnection().then((LDAPConnection ldap) {
-///       var attrs = ["dn", "cn", "objectClass"];
-///       var filter = Filter.present("objectClass");
-///
-///       ldap.search("dc=example,dc=com", filter, attrs).stream
-///           .listen((SearchEntry entry) => print('Found $entry'));
-///     });
-///
-/// This example loads the LDAP configuration from a Map named "default" from
-/// the YAML file "ldap.yaml" in the current directory. That YAML file could
-/// contain:
-///
-///     default:
-///       host: "ldap.example.com"
-///       port: 389
-///       bindDN: "cn=admin,dc=example,dc=com"
-///       password: "p@ssw0rd"
-///       ssl: false
+/// * Providing the settings as parameters using the [settings] constructor.
+/// * Providing the settings in a Map using the [fromMap] constructor.
+/// * Loading the settings from a YAML file using the default constructor.
 
 class LDAPConfiguration {
 
@@ -79,7 +36,7 @@ class LDAPConfiguration {
   Map configMap;
 
   String  _configName = "default";
-  
+
   Map get config => configMap[_configName];
 
   /// Returns the binding distinguished name.
@@ -99,16 +56,64 @@ class LDAPConfiguration {
     return true;
   }
 
+  /// Creates a new LDAP configuration.
+  ///
+  /// The [hostname] is the hostname of the LDAP server.
+  ///
+  /// Set [ssl] to true to connect over TLS, otherwise TLS is not used. It
+  /// defaults to false.
+  ///
+  /// The [port] is the port number of the LDAP server. It defaults to the
+  /// standard LDAP port numbers: 389 when TLS is not used or 636 when TLS is
+  /// used.
+  ///
+  /// Set [bindDN] to the distinguish name for the binding. An empty string
+  /// means to perform an anonymous bind.  It defaults to an empty string.
+  ///
+  /// Set [password] to the password for bind. It defaults to an empty string.
+  ///
+  /// Examples:
+  ///
+  ///      // Anonymous bind
+  ///      LDAPConfiguration.settings("localhost");
+  ///      LDAPConfiguration.settings("ldap.example.com", ssl: true);
+  ///
+  ///      // Authenticated bind
+  ///      LDAPConfiguration.settings("ldap.example.com", ssl: true, bindDN: "cn=admin,dc=example,dc=com", password: "p@ssw0rd");
+
+  LDAPConfiguration.settings(String hostname, { bool ssl: false, int port: null, String bindDN: "", String password: "" }) {
+
+     if (port == null) {
+       port = (ssl) ? 636 : 389; // standard LDAPS and LDAP ports
+     }
+
+     configMap = new Map<String,Map>();
+     var m = new Map();
+     configMap[_configName] = m;
+
+     m["ssl"] = ssl;
+     m["host"] = hostname;
+     m["port"] = port;
+     m["bindDN"] = bindDN;
+     m["password"] = password;
+   }
+
   /// Creates a new LDAP configuration from a configuration Map in a YAML file.
   ///
   /// If [_fileName] is provided it is used as the filename of a YAML file
   /// containing the LDAP connection parameters. It defaults to `ldap.yaml` in
   /// the current directory if not provided.
-  /// 
+  ///
   /// The optional parameter [_configName] is the name of a config in the YAML
   /// file. It defaults to "default".
   ///
-  /// Example contents of the YAML file:
+  /// # Example
+  ///
+  ///     var ldapConfig = new LDAPConfiguration("ldap.yaml", "default");
+  ///
+  /// This example loads the LDAP configuration from a Map named "default" from
+  /// the YAML file "ldap.yaml" in the current directory. That YAML file could
+  /// contain:
   ///
   ///     default:
   ///       host: "ldap.example.com"
@@ -138,6 +143,23 @@ class LDAPConfiguration {
   /// These key-value pairs are optional:
   ///
   /// * `ssl` - true if binding using TLS/SSL (bool) - defaults to false
+  ///
+  /// # Example
+  ///
+  /// Create an LDAP configuration from settings in a [Map].
+  ///
+  ///     var ldap_settings = {
+  ///       "default": {
+  ///         "host": "ldap.example.com",
+  ///         "port": 389,
+  ///         "bindDN": "cn=admin,dc=example,dc=com",
+  ///         "password": "p@ssw0rd",
+  ///         "ssl": false
+  ///       }
+  ///     };
+  ///
+  ///     var ldapConfig = new LDAPConfiguration.fromMap(ldap_settings);
+
 
   LDAPConfiguration.fromMap(Map m) {
     configMap = m;

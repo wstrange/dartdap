@@ -1,13 +1,14 @@
 # An LDAP Client Library for Dart
 
-This library allows LDAP v3 clients to be implemented.
+This library is used to implement LDAP v3 clients.
 
 The Lightweight Directory Access Protocol (LDAP) is a protocol for
 accessing directories. These directories are organised as a hierarchy
-(or tree) of entries. Each entry contains a set of attribute and
-values. Each entry can be identified by a _distinguished name_, which
-is a sequence of attribute/value pairs.  The LDAP protocol can be used
-to query, as well as modify, these directories.
+of _entries_, where one or more root entries are allowed. Each entry
+contains a set of attribute and values. Each entry can be identified
+by a _distinguished name_, which is a sequence of attribute/value
+pairs.  The LDAP protocol can be used to query, as well as modify,
+these directories.
 
 This library supports the LDAP v3 protocol, which is defined in
 IETF [RFC 4511](http://tools.ietf.org/html/rfc4511).
@@ -17,33 +18,29 @@ MODIFY, DEL, MODIFYDN, SEARCH and COMPARE.
 
 ## Examples
 
-### Search
-
 Create an LDAP connection and perform a simple search using it.
 
 ```dart
-var ldap_settings = {
-  "default": {
-    "host": "10.211.55.35",
-    "port": 389,
-    "bindDN": "cn=admin,dc=example,dc=com",
-    "password": "p@ssw0rd",
-    "ssl": false
-  }
-};
+import 'package:dartdap/dartdap.dart';
 
-var ldapConfig = new LDAPConfiguration.fromMap(ldap_settings);
+void main() {
+  var ldapConfig = new LDAPConfiguration.settings("ldap.example.com", ssl: false, bindDN: "cn=admin,dc=example,dc=com", password: "p@ssw0rd");
 
-ldapConfig.getConnection().then((LDAPConnection ldap) {
-  var attrs = ["dn", "cn", "objectClass"];
-  var filter = Filter.present("objectClass");
+  ldapConfig.getConnection().then((LDAPConnection ldap) {
+    var base = "dc=example,dc=com";
+    var filter = Filter.present("objectClass");
+    var attrs = ["dn", "cn", "objectClass"];
 
-  ldap.search("dc=example,dc=com", filter, attrs).stream
-      .listen((SearchEntry entry) => print("Found $entry"));
-});
+    print("LDAP Search: baseDN=\"${base}\", attributes=${attrs}");
+
+    var count = 0;
+
+    ldap.search(base, filter, attrs).stream.listen(
+        (SearchEntry entry) => print("${++count}: $entry"),
+        onDone: () => print("Found ${count} entries"));
+  });
+}
 ```
-
-### Other examples
 
 See the integration test for more examples.
 
