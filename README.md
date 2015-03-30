@@ -1,25 +1,53 @@
-An LDAP Client Library for Dart
+# An LDAP Client Library for Dart
 
-Implements the LDAP v3 protocol. This library depends on the ASN1 parser library .
+This library is used to implement LDAP v3 clients.
 
+The Lightweight Directory Access Protocol (LDAP) is a protocol for
+accessing directories. These directories are organised as a hierarchy
+of _entries_, where one or more root entries are allowed. Each entry
+contains a set of attribute and values. Each entry can be identified
+by a _distinguished name_, which is a sequence of attribute/value
+pairs.  The LDAP protocol can be used to query, as well as modify,
+these directories.
 
-Implemented operations include BIND, ADD, MODIFY, DEL, MODIFYDN, SEARCH, COMPARE
+This library supports the LDAP v3 protocol, which is defined in
+IETF [RFC 4511](http://tools.ietf.org/html/rfc4511).
 
-Example:
+The operations supported by this implementation include: BIND, ADD,
+MODIFY, DEL, MODIFYDN, SEARCH and COMPARE.
+
+## Examples
+
+Create an LDAP connection and perform a simple search using it.
+
 ```dart
-var ldapConfig = new LDAPConfiguration("ldap.yaml");
-var attrs = ["dn", "cn", "objectClass"];
-var filter = Filter.substring("cn=A*");
+import 'package:dartdap/dartdap.dart';
 
-ldapConfig.getConnection().then( (LDAPConnection ldap) {
-	ldap.search("dc=example,dc=com", filter, attrs).
-		listen( (SearchEntry entry) => print('Found $entry'));
-});
+void main() {
+  var ldapConfig = new LDAPConfiguration.settings("ldap.example.com",
+                                                  ssl: false, 
+                                                  bindDN: "cn=admin,dc=example,dc=com",
+                                                  password: "p@ssw0rd");
+
+  ldapConfig.getConnection().then((LDAPConnection ldap) {
+    var base = "dc=example,dc=com";
+    var filter = Filter.present("objectClass");
+    var attrs = ["dn", "cn", "objectClass"];
+
+    print("LDAP Search: baseDN=\"${base}\", attributes=${attrs}");
+
+    var count = 0;
+
+    ldap.search(base, filter, attrs).stream.listen(
+        (SearchEntry entry) => print("${++count}: $entry"),
+        onDone: () => print("Found ${count} entries"));
+  });
+}
 ```
 
-See the integration test for more examples
+See the integration test for more examples.
 
-TODO List:
+## TODO
 
 * Documentation. For now please see integration_test.dart for sample usage
 * Improve conciseness / usability of API
@@ -27,7 +55,5 @@ TODO List:
 * VLV Search. See [https://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv-09]
 * An LDIF parser would be nice for creating integration test data
 * Do we need to implement flow control so the client does not overwhelm
- the server?
-
-
+  the server?
 

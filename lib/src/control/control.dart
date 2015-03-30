@@ -14,7 +14,6 @@ var _clogger = new Logger("ldap_control");
 
 /**
  * An LDAP Control
- *  See
  */
 abstract class Control {
 //  static const VLV_REQUEST = "2.16.840.1.113730.3.4.9";
