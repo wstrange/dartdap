@@ -24,7 +24,10 @@ Create an LDAP connection and perform a simple search using it.
 import 'package:dartdap/dartdap.dart';
 
 void main() {
-  var ldapConfig = new LDAPConfiguration.settings("ldap.example.com", ssl: false, bindDN: "cn=admin,dc=example,dc=com", password: "p@ssw0rd");
+  var ldapConfig = new LDAPConfiguration.settings("ldap.example.com",
+                                                  ssl: false, 
+                                                  bindDN: "cn=admin,dc=example,dc=com",
+                                                  password: "p@ssw0rd");
 
   ldapConfig.getConnection().then((LDAPConnection ldap) {
     var base = "dc=example,dc=com";
@@ -52,7 +55,5 @@ See the integration test for more examples.
 * VLV Search. See [https://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv-09]
 * An LDIF parser would be nice for creating integration test data
 * Do we need to implement flow control so the client does not overwhelm
- the server?
-
-
+  the server?
 
