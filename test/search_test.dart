@@ -16,7 +16,7 @@ import 'package:logging/logging.dart';
 
 main()  {
   LDAPConnection ldap;
-  var ldapConfig = new LDAPConfiguration("test/ldap.yaml","default");
+  var ldapConfig = new LDAPConfiguration.fromFile("test/ldap.yaml","default");
 
   startQuickLogging();
   Logger.root.level = Level.FINEST;

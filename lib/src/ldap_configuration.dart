@@ -1,6 +1,5 @@
 library ldap_configuration;
 
-
 import 'dart:async';
 import 'package:dart_config/default_server.dart' as server_config;
 import 'package:logging/logging.dart';
@@ -39,7 +38,7 @@ class LDAPConfiguration {
 
   Map get config => configMap[_configName];
 
-  /// Returns the binding distinguished name.
+  /// Returns the bind distinguished name.
   String get bindDN   => config['bindDN'];
   /// Returns the password.
   String get password => config['password'];
@@ -48,7 +47,7 @@ class LDAPConfiguration {
   /// Returns the LDAP server port number.
   int    get port     => config['port'];
 
-  /// Returns true if the binding is TLS/SSL, false otherwise.
+  /// Returns true if the connection is TLS/SSL, false otherwise.
   bool get ssl {
     var x = config['ssl'];
     if( x == null || x != true)
@@ -67,7 +66,7 @@ class LDAPConfiguration {
   /// standard LDAP port numbers: 389 when TLS is not used or 636 when TLS is
   /// used.
   ///
-  /// Set [bindDN] to the distinguish name for the binding. An empty string
+  /// Set [bindDN] to the distinguish name for the bind. An empty string
   /// means to perform an anonymous bind.  It defaults to an empty string.
   ///
   /// Set [password] to the password for bind. It defaults to an empty string.
@@ -81,7 +80,11 @@ class LDAPConfiguration {
   ///      // Authenticated bind
   ///      LDAPConfiguration.settings("ldap.example.com", ssl: true, bindDN: "cn=admin,dc=example,dc=com", password: "p@ssw0rd");
 
-  LDAPConfiguration.settings(String hostname, { bool ssl: false, int port: null, String bindDN: "", String password: "" }) {
+  LDAPConfiguration(String hostname, { bool ssl: false, int port: null, String bindDN: "", String password: "" }) {
+
+     if (hostname == null) {
+       hostname = "localhost";
+     }
 
      if (port == null) {
        port = (ssl) ? 636 : 389; // standard LDAPS and LDAP ports
@@ -122,7 +125,7 @@ class LDAPConfiguration {
   ///       password: "p@ssw0rd"
   ///       ssl: false
 
-  LDAPConfiguration([this._fileName = 'ldap.yaml', this._configName = "default"]);
+  LDAPConfiguration.fromFile([this._fileName = 'ldap.yaml', this._configName = "default"]);
 
 
   /// Creates an LDAP configuration from a Map of values.
@@ -137,12 +140,12 @@ class LDAPConfiguration {
   ///
   /// * `host` - host name of IP address of LDAP server (String)
   /// * `port` - port number (**int**)
-  /// * `bindDN` - distinguished name of binding entry (String)
-  /// * `password` - credential to use for binding (String)
+  /// * `bindDN` - distinguished name of the bind entry (String)
+  /// * `password` - credential to use for the bind (String)
   ///
   /// These key-value pairs are optional:
   ///
-  /// * `ssl` - true if binding using TLS/SSL (bool) - defaults to false
+  /// * `ssl` - true to use a TLS/SSL connection to the LDAP server (bool) - defaults to false
   ///
   /// # Example
   ///
