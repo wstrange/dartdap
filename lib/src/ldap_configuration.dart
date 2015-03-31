@@ -34,8 +34,6 @@ class LDAPConfiguration {
   static const int _STANDARD_LDAP_PORT = 389;
   static const int _STANDARD_LDAPS_PORT = 636;
 
-  static const String _DEFAULT_CONFIG_NAME = "default";
-
   // Configuration settings
 
   /// The LDAP server hostname or IP address
@@ -53,10 +51,11 @@ class LDAPConfiguration {
   /// The password used for the bind operation
   String password;
 
-  // File details (only used if object created by the fromFile constructor)
+  // File details (only set if object created by the fromFile constructor)
 
-  String _fileName; // null if settings don't need to be loaded from file
-  String _configName; // name of map to use in the YAML file
+  bool _file_load; // true if settings need to be loaded from file
+  String _file_name; // file containing settings
+  String _file_entry; // name of map in the YAML settings file
 
   // Cached connection
 
@@ -74,7 +73,7 @@ class LDAPConfiguration {
     this.ssl = (ssl != null) ? ssl : false;
     this.port = (port != null)
         ? port
-        : ((ssl) ? _STANDARD_LDAPS_PORT : _STANDARD_LDAP_PORT);
+        : ((this.ssl) ? _STANDARD_LDAPS_PORT : _STANDARD_LDAP_PORT);
     this.bindDN = (bindDN != null) ? bindDN : "";
     this.password = (password != null) ? password : "";
   }
@@ -109,6 +108,7 @@ class LDAPConfiguration {
   LDAPConfiguration(String hostname,
       {int port, bool ssl: false, String bindDN, String password}) {
     _setAll(hostname, port, ssl, bindDN, password);
+    _file_load = false;
   }
 
   /// Constructor for a new LDAP configuration from a YAML file.
@@ -116,8 +116,7 @@ class LDAPConfiguration {
   /// The [fileName] is the name of a YAML file
   /// containing the LDAP connection settings.
   ///
-  /// The optional parameter [configName] is the name of a Map in the YAML
-  /// file. It defaults to "default".
+  /// The [configName] is the name of a Map in the YAML file.
   ///
   /// # Example
   ///
@@ -137,12 +136,13 @@ class LDAPConfiguration {
   ///  The only mandatory attribute is "host". See the default constructor
   ///  for a description of the other attributes, and their values if they are not specified.
 
-  LDAPConfiguration.fromFile(String fileName, [String configName]) {
+  LDAPConfiguration.fromFile(String fileName, String configName) {
     assert(fileName != null && fileName.isNotEmpty);
-    assert(configName == null || configName.isNotEmpty);
+    assert(configName != null && configName.isNotEmpty);
 
-    this._fileName = fileName;
-    this._configName = (configName != null) ? configName : _DEFAULT_CONFIG_NAME;
+    this._file_name = fileName;
+    this._file_entry = configName;
+    this._file_load = true;
   }
 
   /// Loads the settings from the YAML file, if needed.
@@ -151,22 +151,28 @@ class LDAPConfiguration {
   /// does nothign and returns immediately.
 
   Future _load_values() async {
-    if (_fileName == null) {
-      // No file to load: settings are already set
-      return;
+    if (_file_load == false) {
+      // File does not need to be loaded: settings are already set
+      // This occurs if the fromFile constructor was not used, or the settings
+      // were loaded in a previous invocation of _load_values.
     } else {
       // Load settings from file
 
-      var configMap = await server_config.loadConfig(_fileName);
+      if (_file_name == null || _file_entry == null) {
+        assert(false); // this should never happen: can't load from file
+        return;
+      }
 
-      var m = configMap[_configName];
+      var configMap = await server_config.loadConfig(_file_name);
+
+      var m = configMap[_file_entry];
 
       if (m == null) {
-        throw new LDAPException("${_fileName}: missing \"${_configName}\"");
+        throw new LDAPException("${_file_name}: missing \"${_file_entry}\"");
       }
       if (!(m is Map)) {
         throw new LDAPException(
-            "${_fileName}: \"${_configName}\" is not a map");
+            "${_file_name}: \"${_file_entry}\" is not a map");
       }
 
       // Get and check the host
@@ -174,11 +180,11 @@ class LDAPConfiguration {
       var host_value = m["host"];
       if (host_value == null) {
         throw new LDAPException(
-            "${_fileName}: \"${_configName}\" missing \"host\"");
+            "${_file_name}: \"${_file_entry}\" missing \"host\"");
       }
       if (!(host_value is String)) {
         throw new LDAPException(
-            "${_fileName}: host in \"${_configName}\" is not a string");
+            "${_file_name}: host in \"${_file_entry}\" is not a string");
       }
 
       // Get and check the port
@@ -186,7 +192,7 @@ class LDAPConfiguration {
       var port_value = m["port"];
       if (port_value != null && !(port_value is int)) {
         throw new LDAPException(
-            "${_fileName}: port in \"${_configName}\" is not an int");
+            "${_file_name}: port in \"${_file_entry}\" is not an int");
       }
 
       // Get and check the ssl
@@ -194,7 +200,7 @@ class LDAPConfiguration {
       var ssl_value = m["ssl"];
       if (ssl_value != null && !(ssl_value is bool)) {
         throw new LDAPException(
-            "${_fileName}: ssl in \"${_configName}\" is not true/false");
+            "${_file_name}: ssl in \"${_file_entry}\" is not true/false");
       }
 
       // Get and check bindDN
@@ -202,7 +208,7 @@ class LDAPConfiguration {
       var bindDN_value = m["bindDN"];
       if (bindDN_value != null && !(bindDN_value is String)) {
         throw new LDAPException(
-            "${_fileName}: bindDN in \"${_configName}\" is not a string");
+            "${_file_name}: bindDN in \"${_file_entry}\" is not a string");
       }
 
       // Get and check password
@@ -210,14 +216,13 @@ class LDAPConfiguration {
       var password_value = m["password"];
       if (password_value != null && !(password_value is String)) {
         throw new LDAPException(
-            "${_fileName}: password in \"${_configName}\" is not a string");
+            "${_file_name}: password in \"${_file_entry}\" is not a string");
       }
 
       this._setAll(
           host_value, port_value, ssl_value, bindDN_value, password_value);
 
-      _fileName = null; // prevent future invocations from reloading it
-      return;
+      _file_load = false; // prevent future invocations from reloading it
     }
   }
 
