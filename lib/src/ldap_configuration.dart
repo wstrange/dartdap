@@ -106,8 +106,8 @@ class LDAPConfiguration {
   ///      // Authenticated bind
   ///      LDAPConfiguration.settings("ldap.example.com", ssl: true, bindDN: "cn=admin,dc=example,dc=com", password: "p@ssw0rd");
 
-  LDAPConfiguration(String hostname, {bool ssl: false, int port: null,
-      String bindDN: null, String password: null}) {
+  LDAPConfiguration(String hostname,
+      {int port, bool ssl: false, String bindDN, String password}) {
     _setAll(hostname, port, ssl, bindDN, password);
   }
 
@@ -247,8 +247,7 @@ class LDAPConfiguration {
 
     // Connect
 
-    logger.info(
-        "LDAP connection: ${ssl ? "ldaps://" : "ldap://"}${host}:${port}");
+    logger.info(this.toString());
 
     _connection = new LDAPConnection(host, port, ssl, bindDN, password);
     await _connection.connect();
@@ -274,5 +273,11 @@ class LDAPConfiguration {
       assert(_connection != null);
       return null;
     }
+  }
+
+  /// Returns a string representation of this object.
+
+  String toString() {
+    return "${ssl ? "ldaps://" : "ldap://"}${host}:${port}${(bindDN != null) ? "/${bindDN}" : ""}";
   }
 }
