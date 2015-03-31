@@ -28,6 +28,8 @@ The search operation produces a stream of SearchResult objects: in
 this example, the entries are each printed out along with a total
 count at the end.
 
+To perform an anonymous bind, leave out the bindDN and password.
+
 ```dart
 import 'package:dartdap/dartdap.dart';
 

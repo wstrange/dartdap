@@ -95,6 +95,8 @@ class LDAPConfiguration {
   ///
   /// Set [password] to the password for bind. It defaults to an empty string.
   ///
+  /// To perform an anonymous bind, omit the [bindDN] and [password].
+  ///
   /// Examples:
   ///
   ///      // Anonymous bind
