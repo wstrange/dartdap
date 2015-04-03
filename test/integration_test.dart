@@ -14,7 +14,7 @@ import 'package:logging_handlers/logging_handlers_shared.dart';
 
 main() async {
   LDAPConnection ldap;
-  var ldapConfig = new LDAPConfiguration("test/ldap.yaml","default");
+  var ldapConfig = new LDAPConfiguration.fromFile("test/ldap.yaml","default");
 
   startQuickLogging();
 

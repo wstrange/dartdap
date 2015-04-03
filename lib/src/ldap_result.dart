@@ -165,6 +165,9 @@ class ResultCode {
     switch(code) {
       case OK:                return "OK";
       case OPERATIONS_ERROR:  return "Operations Error";
+      case PROTOCOL_ERROR:    return "Protocol Error";
+      case TIME_LIMIT_EXCEEDED: return "Time Limit Exceeded";
+      case SIZE_LIMIT_EXCEEDED: return "Size Limit Exceeded";
       case COMPARE_TRUE:      return "Compare True";
       case COMPARE_FALSE:     return "Compare False";
       case AUTH_METHOD_NOT_SUPPORTED: return "Auth Method Not supported";

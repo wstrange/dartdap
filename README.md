@@ -13,21 +13,31 @@ these directories.
 This library supports the LDAP v3 protocol, which is defined in
 IETF [RFC 4511](http://tools.ietf.org/html/rfc4511).
 
-The operations supported by this implementation include: BIND, ADD,
-MODIFY, DEL, MODIFYDN, SEARCH and COMPARE.
+The LDAP operations supported by this implementation include: bind, add,
+modify, delete, modify, search and compare.
 
 ## Examples
 
 Create an LDAP connection and perform a simple search using it.
 
+This example first creates an LDAPConfiguration object with the
+settings for connecting to the LDAP server.  It then gets the
+LDAPConnection object using those settings (i.e. performs an LDAP bind
+operation). With the connection, it performs an LDAP search operation.
+The search operation produces a stream of SearchResult objects: in
+this example, the entries are each printed out along with a total
+count at the end.
+
+To perform an anonymous bind, leave out the bindDN and password.
+
 ```dart
 import 'package:dartdap/dartdap.dart';
 
 void main() {
-  var ldapConfig = new LDAPConfiguration.settings("ldap.example.com",
-                                                  ssl: false, 
-                                                  bindDN: "cn=admin,dc=example,dc=com",
-                                                  password: "p@ssw0rd");
+  var ldapConfig = new LDAPConfiguration("ldap.example.com",
+                                         ssl: false, 
+                                         bindDN: "cn=admin,dc=example,dc=com",
+                                         password: "p@ssw0rd");
 
   ldapConfig.getConnection().then((LDAPConnection ldap) {
     var base = "dc=example,dc=com";
