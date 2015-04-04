@@ -109,8 +109,6 @@ main()  {
 
     // todo: how to run final method?
     //test('clean up', () => ldap.close());
-
-
   });
 
 }
