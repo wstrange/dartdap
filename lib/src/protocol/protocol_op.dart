@@ -47,7 +47,6 @@ class ResponseOp {
   // type for LDAP refereals urls in ldapresults
   static const int TYPE_REFERRAL_URLS = 0xA3;
 
-
   LDAPResult get ldapResult => _ldapResult;
 
   ResponseOp.searchEntry(); // needed for SearchResultEntry - that does not have an LDAPMessage
