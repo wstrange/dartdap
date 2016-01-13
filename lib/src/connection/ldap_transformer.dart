@@ -88,7 +88,7 @@ StreamTransformer<Uint8List, LDAPMessage> createTransformer() {
         if (buf.length == message_size) {
           buf = null; // all bytes completely processed
         } else {
-          buf = new Uint8List.view(buf.buffer, message_size);
+          buf = new Uint8List.view(buf.buffer, buf.offsetInBytes + message_size);
         }
       } else {
         // Insufficient data for a complete ASN1 object.
