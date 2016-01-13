@@ -88,6 +88,9 @@ class Filter {
   /// the attribute name and _match_ is a value that has at least one `*`
   /// character. There can be wildcard `*` chararcters at the beginning, middle
   /// or end of _match_.
+  ///
+  /// The _match_ must not be a single `*` (e.g. "foo=*" is not permitted). If
+  /// such a filter is required, use the [present] filter instead.
 
   static Filter substring(String pattern) => new SubstringFilter(pattern);
 
@@ -186,7 +189,7 @@ class SubstringFilter extends Filter {
     // todo: We probaby need to properly escape special chars = and *
     var l = pattern.split("=");
     if (l.length != 2 || l[0] == "" || l[1] == "") {
-      throw new LDAPException("Invalid substring search pattern '$pattern'");
+      throw new LDAPException("Invalid substring pattern: expecting attr=match: '$pattern'");
     }
 
     _attributeName = l[0];
@@ -195,8 +198,14 @@ class SubstringFilter extends Filter {
     // now parse initial, any, final
 
     var x = matchString.split("*");
-    // must be at least one * -giving a split of at least two strings
-    assert(x.length > 1);
+
+    if (x.length == 1) {
+      throw new LDAPException("Invalid substring pattern: missing '*': '$pattern'");
+    }
+
+    if (! x.any((s) => s.isNotEmpty)) {
+      throw new LDAPException("Invalid substring pattern: use \"present\" filter instead: '$pattern'");
+    }
 
     /*
      *  foo*
