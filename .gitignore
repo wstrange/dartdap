@@ -1,7 +1,8 @@
 packages
 pubspec.lock
-.project
 tags
-test/data/output/
-extension/output/
+.packages
 .pub
+.idea
+.project
+*~

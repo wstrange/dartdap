@@ -1,4 +1,4 @@
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 
 
@@ -28,10 +28,10 @@ main() {
 
     var c1 =  f1 & f2;
 
-    print(c1.toString());
+    //print(c1.toString());
 
     var f3 = Filter.or( [Filter.equals("givenName", "A"), Filter.equals("sn", "Annas")]);
-    print("f3 = $f3 asn1=${f3.toASN1()}");
+    //print("f3 = $f3 asn1=${f3.toASN1()}");
     // make sure this encodes without throwing exception.
     f3.toASN1().encodedBytes;
 
@@ -65,7 +65,7 @@ main() {
     var m = Modification.modList([
       ["a","sn","Mickey Mouse"]
                                   ]);
-    print("$m");
+    //print("$m");
 
   });
 
