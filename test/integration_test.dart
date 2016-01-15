@@ -1,19 +1,24 @@
-// Example of how to use the package.
+// Example of how to perform LDAP operations.
 //
 //----------------------------------------------------------------
 
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
+import 'package:logging/logging.dart';
 
 //----------------------------------------------------------------
 
 const String testConfigFile = "test/TEST-config.yaml";
 
+/// Set to true to not clean up LDAP directory after test runs.
+///
 const bool KEEP_ENTRIES_FOR_DEBUGGING = false;
 
+//----------------------------------------------------------------
+
 void doTests(String configName) {
-  // Normally, unit tests open the LDAP connection in the setUp
-  // and close the connection in the tearDown functions.
+  // Normally, unit tests open the LDAP connection in the [setUp]
+  // and close the connection in the [tearDown] functions.
   // Since this integration test demonstrates how the LDAP package
   // is used in a real application, everything is done inside the
   // test instead of using setUp/tearDown functions.
@@ -190,11 +195,44 @@ void doTests(String configName) {
   });
 }
 
-main() async {
-  // Since this is a test, don't do any logging. But if logging is required,
-  // you can use:
-  //
-  // startQuickLogging();
+//----------------------------------------------------------------
+/// Setup logging
+///
+/// Change the values in this function to change the level of logging
+/// that is done during debugging.
+///
+/// Note: the default for the root level logger is Level.INFO, so if
+/// no levels are set shout/severe/warning/info are logged, but
+/// config/fine/finer/finest are not.
+///
+void setupLogging([Level commonLevel = Level.OFF]) {
+  Logger.root.onRecord.listen((LogRecord rec) {
+    print('${rec.time}: ${rec.loggerName}: ${rec.level.name}: ${rec.message}');
+  });
+
+  hierarchicalLoggingEnabled = true;
+
+  // Normally, only change the values below:
+
+  // Log level: an integer between 0 (ALL) and 2000 (OFF) or a string value:
+  // "OFF", "SHOUT", "SEVERE", "WARNING", "INFO", "CONFIG", "FINE" "FINER",
+  // "FINEST" or "ALL".
+
+  //Logger.root.level = Level.OFF;
+  //new Logger("ldap").level = Level.OFF;
+  //new Logger("ldap.connection").level = Level.OFF;
+  //new Logger("ldap.recv").level = Level.OFF;
+  //new Logger("ldap.recv.ldap").level = Level.OFF;
+  //new Logger("ldap.send").level = Level.OFF;
+  //new Logger("ldap.recv.ldap").level = Level.OFF;
+  //new Logger("ldap.recv.asn1").level = Level.OFF;
+  //new Logger("ldap.recv.bytes").level = Level.OFF;
+}
+
+//----------------------------------------------------------------
+
+void main() {
+  setupLogging();
 
   group("LDAP", () => doTests("test-LDAP"));
   group("LDAPS", () => doTests("test-LDAPS"));

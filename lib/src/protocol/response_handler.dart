@@ -8,7 +8,7 @@ class ResponseHandler {
 
   static ResponseOp handleResponse(LDAPMessage m) {
 
-    logger.finest("handle response tag=${_op2String(m.protocolOp.tag)}");
+    loggeRecvLdap.finer("LDAP response received: ${_op2String(m.protocolOp.tag)}");
 
     ResponseOp op;
     switch(m.protocolOp.tag) {

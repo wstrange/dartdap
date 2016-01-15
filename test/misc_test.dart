@@ -26,7 +26,7 @@ main() {
     expect(f2.finalString, equals("bar"));
 
 
-    var c1 =  f1 & f2;
+    //var c1 =  f1 & f2;
 
     //print(c1.toString());
 
@@ -60,7 +60,7 @@ main() {
     expect(m2,containsPair("objectclass", new Attribute("objectclass",["top", "inetorgperson"]) ));
 
   });
-
+/*
   test("Modifications",  () {
     var m = Modification.modList([
       ["a","sn","Mickey Mouse"]
@@ -68,6 +68,6 @@ main() {
     //print("$m");
 
   });
-
+*/
 
 }

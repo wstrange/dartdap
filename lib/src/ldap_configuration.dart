@@ -2,16 +2,9 @@ library ldap_configuration;
 
 import 'dart:async';
 import 'package:dart_config/default_server.dart' as server_config;
-import 'package:logging/logging.dart';
 
 import 'ldap_connection.dart';
 import 'ldap_exception.dart';
-
-/// Logger for the LDAP client library.
-///
-/// The logger name is "ldap_configuration".
-
-Logger logger = new Logger("ldap_configuration");
 
 /// A LDAP configuration settings and a LDAP connection created from it.
 ///
@@ -251,8 +244,6 @@ class LDAPConfiguration {
     await _load_values();
 
     // Connect
-
-    logger.info(this.toString());
 
     _connection = new LDAPConnection(host, port, ssl, bindDN, password);
     await _connection.connect();

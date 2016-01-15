@@ -25,7 +25,7 @@ final branchAttrs = {
   "description": branchDescription
 };
 
-const int NUM_ENTRIES = 3; // TODO: increase to 2000
+const int NUM_ENTRIES = 2000;
 
 //----------------------------------------------------------------
 // Create entries needed for testing.
@@ -84,7 +84,7 @@ void doTests(String configName) {
 
   //----------------
 
-  test("under load of $NUM_ENTRIES add/search/delete", () async {
+  test("add/search/delete under load with $NUM_ENTRIES entries", () async {
     const cnPrefix = "user";
 
     // Bulk add
@@ -101,7 +101,6 @@ void doTests(String configName) {
     // Bulk search
 
     var filter = Filter.substring("cn=${cnPrefix}*");
-    filter = Filter.equals("ou", "People"); // TODO: substring filter does not work
 
     var attrs = ["cn"];
 
@@ -127,7 +126,7 @@ void doTests(String configName) {
       count++;
     }
 
-    expect(count, equals(expected));
+    expect(count, equals(expected), reason: "Unexpected number of entries");
 
     /*
               onError: (LDAPResult r) {
@@ -144,8 +143,7 @@ void doTests(String configName) {
     for (int x = 0; x < NUM_ENTRIES; x++) {
       await ldap.delete(branchDN.concat("cn=$cnPrefix$x").dn);
     }
-  },
-      skip: "search filters not working");
+  }, timeout: new Timeout(new Duration(minutes: 5)));
 }
 
 //================================================================

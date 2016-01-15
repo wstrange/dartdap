@@ -7,7 +7,7 @@
 import 'dart:async';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
-
+import 'package:logging/logging.dart';
 
 //----------------------------------------------------------------
 
@@ -51,7 +51,6 @@ Future populateEntries(LDAPConnection ldap) async {
 /// Clean up before/after testing.
 
 Future purgeEntries(LDAPConnection ldap) async {
-
   // Delete subentries
 
   for (int j = 0; j < NUM_ENTRIES; ++j) {
@@ -95,48 +94,109 @@ void doTest(String configName) {
   });
 
   //----------------
+  // Searches for cn=user0 under ou=People,dc=example,dc=com
 
-  test("search with single result", () async {
-    var filter = Filter.equals("ou", "People");
-    var searchAttrs = ["ou", "description"];
+  test("search with filter: equals attribute in DN", () async {
+    var filter = Filter.equals("cn", "user0");
+    var searchAttrs = ["cn", "sn"];
 
     var count = 0;
 
     await for (SearchEntry entry
-        in ldap.search(baseDN.dn, filter, searchAttrs).stream) {
+        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
       expect(entry, isNotNull);
 
-      var ouSet = entry.attributes["ou"];
-      expect(ouSet, isNotNull);
-      expect(ouSet.values.length, equals(1));
-      expect(ouSet.values.first, equals("People"));
+      var cnSet = entry.attributes["cn"];
+      expect(cnSet, isNotNull);
+      expect(cnSet.values.length, equals(1));
+      expect(cnSet.values.first, equals("user0"));
 
-      var descSet = entry.attributes["description"];
+      var descSet = entry.attributes["sn"];
       expect(descSet, isNotNull);
       expect(descSet.values.length, equals(1));
-      expect(descSet.values.first, equals(descriptionStr));
+      expect(descSet.values.first, equals("User 0"));
 
       expect(entry.attributes.length, equals(2)); // no other attributes
 
       count++;
     }
 
-    expect(count, equals(1));
+    expect(count, equals(1), reason: "Unexpected number of entries");
+  });
+
+  //----------------
+  // Searches for sn="User 1" under ou=People,dc=example,dc=com
+
+  test("search with filter: equals attribute not in DN", () async {
+    var filter = Filter.equals("sN", "uSeR 1"); // Note: sn is case-insensitve
+    var searchAttrs = ["cN", "sN"];
+
+    var count = 0;
+
+    await for (SearchEntry entry
+        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+      expect(entry, isNotNull);
+
+      var cnSet = entry.attributes["cn"];
+      expect(cnSet, isNotNull, reason: "Requested attribute not found");
+      expect(cnSet.values.length, equals(1));
+      expect(cnSet.values.first, equals("user1"));
+
+      var descSet = entry.attributes["sn"];
+      expect(descSet, isNotNull, reason: "Requested attribute not found");
+      expect(descSet.values.length, equals(1));
+      expect(descSet.values.first, equals("User 1"));
+
+      expect(entry.attributes.length, equals(2)); // no other attributes
+
+      count++;
+    }
+
+    expect(count, equals(1), reason: "Unexpected number of entries");
+  });
+
+  //----------------
+  // Searches for cn is present under ou=People,dc=example,dc=com
+
+  test("search with filter: present", () async {
+    var filter = Filter.present("cn");
+    var searchAttrs = ["cn", "sn"];
+
+    var count = 0;
+
+    await for (SearchEntry entry
+        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+      expect(entry, isNotNull);
+      expect(entry, new isInstanceOf<SearchEntry>());
+
+      var cnSet = entry.attributes["cn"];
+      expect(cnSet, isNotNull);
+      expect(cnSet.values.length, equals(1));
+      expect(cnSet.values.first, startsWith("user"));
+
+      var descSet = entry.attributes["sn"];
+      expect(descSet, isNotNull);
+      expect(descSet.values.length, equals(1));
+      expect(descSet.values.first, startsWith("User "));
+
+      expect(entry.attributes.length, equals(2)); // no other attributes
+
+      count++;
+    }
+
+    expect(count, equals(NUM_ENTRIES), reason: "Unexpected number of entries");
   });
 
   //----------------
 
-  test("search with multiple results", () async {
-
-    // var filter = Filter.present("cn"); // TODO: fix this, bug?
-    var filter = Filter.substring("cn=*");
-    filter = Filter.equals("cn", "user0");
+  test("search with filter: substring", () async {
+    var filter = Filter.substring("cn=uS*"); // note: cn is case-insensitive
     var searchAttrs = ["cn"];
 
     var count = 0;
 
     await for (SearchEntry entry
-    in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
       expect(entry, isNotNull);
       expect(entry, new isInstanceOf<SearchEntry>());
 
@@ -150,9 +210,8 @@ void doTest(String configName) {
       count++;
     }
 
-    expect(count, equals(NUM_ENTRIES));
-
-  }, skip: "filters not working properly");
+    expect(count, equals(NUM_ENTRIES), reason: "Unexpected number of entries");
+  });
 
   //----------------
 
@@ -164,8 +223,7 @@ void doTest(String configName) {
     var gotException = false;
 
     try {
-      await for (SearchEntry entry
-      in ldap
+      await for (SearchEntry entry in ldap
           .search("ou=NoSuchEntry,dc=example,dc=com", filter, searchAttrs)
           .stream) {
         fail("Unexpected result from search under non-existant entry");
@@ -178,14 +236,52 @@ void doTest(String configName) {
       gotException = true;
     }
 
-    expect(count, equals(0));
+    expect(count, equals(0), reason: "Unexpected number of entries");
     expect(gotException, isTrue);
   });
 }
 
 //================================================================
 
+/// Setup logging
+///
+/// Change the values in this function to change the level of logging
+/// that is done during debugging.
+///
+/// Note: the default for the root level logger is Level.INFO, so if
+/// no levels are set shout/severe/warning/info are logged, but
+/// config/fine/finer/finest are not.
+///
+void setupLogging([Level commonLevel = Level.OFF]) {
+
+  Logger.root.onRecord.listen((LogRecord rec) {
+    print('${rec.time}: ${rec.loggerName}: ${rec.level.name}: ${rec.message}');
+  });
+
+  hierarchicalLoggingEnabled = true;
+
+  // Normally, only change the values below:
+
+  // Log level: an integer between 0 (ALL) and 2000 (OFF) or a string value:
+  // "OFF", "SHOUT", "SEVERE", "WARNING", "INFO", "CONFIG", "FINE" "FINER",
+  // "FINEST" or "ALL".
+
+  //Logger.root.level = Level.OFF;
+  //new Logger("ldap").level = Level.OFF;
+  //new Logger("ldap.connection").level = Level.OFF;
+  //new Logger("ldap.recv").level = Level.OFF;
+  //new Logger("ldap.recv.ldap").level = Level.OFF;
+  //new Logger("ldap.send").level = Level.OFF;
+  //new Logger("ldap.recv.ldap").level = Level.OFF;
+  //new Logger("ldap.recv.asn1").level = Level.OFF;
+  //new Logger("ldap.recv.bytes").level = Level.OFF;
+}
+
+//----------------------------------------------------------------
+
 main() {
+  setupLogging();
+
   group("LDAP", () => doTest("test-LDAP"));
 
   // group("LDAPS", () => doTest("test-LDAPS")); // uncomment to test with LDAPS
