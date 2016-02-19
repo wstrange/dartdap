@@ -17,11 +17,11 @@ This document describes the unit tests for the _dartdap_ package.
    configuration expects LDAP on localhost port 10389 and LDAPS on
    localhost port 10636.
 
-       ssh -L 10389:localhost:389 -L 10636:localhost:636 username@testVM
+         ssh -L 10389:localhost:389 -L 10636:localhost:636 username@testVM
 
 3. Run the tests:
 
-       pub run test
+         pub run test
 
 
 
@@ -40,28 +40,38 @@ The tests requires an LDAP directory that:
 4. Allows clients to bind to "cn=Manager,dc=example,dc=com" using the
     password "p@ssw0rd".
 
+There are many LDAP directories to choose from, and many ways to
+deploy them.  The package should work with any standard implementation
+of LDAP, so the tests should work on other LDAP directories. If you
+can, please test it different implementations of LDAP.
+
+It is recommended to install the test LDAP directory in a virtual
+machine. That way there is no risk of damage to a production LDAP
+directory, and it can be easily deleted and recreated to run the tests
+from a known state.
+
+The sections below describe installing and configuring OpenLDAP on
+CentOS 7. It describes two alternative ways: using the provided shell
+script and doing it manually.
 
 ### Automatically creating the test LDAP directory server
 
-The recommended method is to install the test LDAP directory in a
-virtual machine running CentOS 7. That way there is no risk of damage
-to a production LDAP directory, and it can be easily deleted and
-recreated to run the tests from a known state.
+This is one way to deploy a test LDAP directory server.
 
 These instructions have been tested with CentOS 7.
 
 1. Copy the _test/SETUP-openldap-centOS7.sh_ script to the CentOS 7 virtual
    machine.
 
-       local$ scp SETUP-openldap-centOS7.sh username@testVM:
+        local$ scp SETUP-openldap-centOS7.sh username@testVM:
 
 2. SSH to the virtual machine.
 
-       local$ ssh username@testVM
+        local$ ssh username@testVM
 
 3. Run the script with root privileges:
 
-       testVM$ sudo ./SETUP-openldap-centOS7.sh
+        testVM$ sudo ./SETUP-openldap-centOS7.sh
 
 This will install and configure OpenLDAP with an automatically
 generated self-signed certificate with the domain of "localhost"
@@ -82,10 +92,11 @@ _/etc/openldap/password-admin.txt_.
 The script writes the manager password "p@ssw0rd" into
 _/etc/openldap/password-manager.txt_.
 
-The package should work with any standard implementation of LDAP, so
-the tests should work on other LDAP directories.
+Skip down to the "SSH tunnels to the LDAP directory section.
 
 ### Manually creating the test LDAP directory server
+
+This is another way to deploy a test LDAP directory server.
 
 Install the OpenLDAP client and server.
 
@@ -176,35 +187,67 @@ local port 10636).
 
 #### Checking the tunnels
 
+##### Checking LDAP
+
 The (non-TLS) LDAP service can be tested by running _ldapsearch_:
 
     ldapsearch -H ldap://localhost:10389 \
       -D cn=Manager,dc=example,dc=com -x -w p@ssw0rd -b dc=example,dc=com
+
+##### Checking LDAPS
+
+This check should be skipped, because it will most likely fail (see
+below for details) -- the unit tests will still work even though this
+check fails.
 
 The LDAPS (LDAP over TLS) service can be tested by running _ldapsearch_:
 
     ldapsearch -H ldaps://localhost:10636 \
       -D cn=Manager,dc=example,dc=com -x -w p@ssw0rd -b dc=example,dc=com
 
-Note: if the above fails, it could be because the server certificate
-is not trusted. Run with "-d 1" and see if it says "SSLHandshake()
-failed: misc. bad certificate". If so, put "TLS_REQCERT allow" in your
+This check usually fails because the self-signed server certificate is
+not trusted. Run it with "-d 1": if it prints out "SSLHandshake()
+failed: misc. bad certificate" that is the reason.
+
+To trust the self-signed certificate, put "TLS_REQCERT allow" in your
 "~/.ldaprc" file (see "man ldap.conf" for details).
 
+Important: remember to remove that entry when finished testing,
+otherwise the security of your local machine could be compromised.
+
 ## Running the tests
+
+### Running all the tests
+
+If you have not done so already, run:
+
+    pub get
 
 Run all the tests in the directory (tests are files ending in
 `_test.dart` in the default directory called `test`):
 
     pub run test
 
-Run a particular test by specifying the path to the test file:
+If the tests all run successfully, it will print out "All tests
+passed".
+
+Note: The load test might take about 30 seconds to run.
+
+### Running some of the tests
+
+Run a particular test file, by specifying the path to the test file:
 
     pub run test test/integration_test.dart
 
-Tests can also be run directly as a Dart program:
+Run a particular test in a particular test file, but specifying the
+path to the test file and the name of the test:
+
+    pub run test test/integration_test.dart --name "search with filter: equals attribute in DN"
+
+The tests can also be run directly as a Dart program:
 
     dart test/integration_test.dart
+
 
 ## See also
 
