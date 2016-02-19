@@ -6,7 +6,6 @@ import 'package:logging/logging.dart';
 
 import '../filter.dart';
 import '../ldap_exception.dart';
-import '../ldap_util.dart';
 import '../ldap_result.dart';
 import '../attribute.dart';
 import '../search_scope.dart';
@@ -85,6 +84,26 @@ String _op2String(int op) {
 
   }
 }
-// common logger for ldap errors
-Logger logger = new Logger("ldap_protocol");
 
+//----------------------------------------------------------------
+// Loggers
+
+/// Logger for connection events
+///
+Logger loggerConnection = new Logger("ldap.connection");
+
+/// Logger for sent LDAP messages
+///
+Logger loggerSendLdap = new Logger("ldap.send.ldap");
+
+/// Logger for received LDAP messages
+///
+Logger loggeRecvLdap = new Logger("ldap.recv.ldap");
+
+/// Logger for received ASN.1 objects
+///
+Logger loggerRecvAsn1 = new Logger("ldap.recv.asn1");
+
+/// Logger for received bytes
+///
+Logger loggerRecvBytes = new Logger("ldap.recv.bytes");

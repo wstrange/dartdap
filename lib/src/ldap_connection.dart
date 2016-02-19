@@ -64,8 +64,8 @@ class LDAPConnection {
     var c = new Completer<LDAPConnection>();
     _cmgr.connect().then( (cx) {
       c.complete(this);
-    }).catchError( ( e) {
-      logger.severe("Connect error ${e}");
+    }).catchError((e, st) {
+      loggerConnection.severe("Connect error", e, st);
       c.completeError(e);
     });
     return c.future;

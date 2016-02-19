@@ -22,7 +22,7 @@ class SearchResultEntry extends ResponseOp {
 
     var dn = t.stringValue;
 
-    logger.finest("Search Entry dn=${dn}");
+    loggeRecvLdap.fine("Search Result Entry: dn=${dn}");
 
     // embedded sequence is attr list
     var seq = s.elements[1] as ASN1Sequence;
@@ -37,12 +37,15 @@ class SearchResultEntry extends ResponseOp {
         (v as ASN1OctetString).stringValue).toSet();
 
       searchEntry.attributes[attrName.stringValue] = new Attribute(attrName.stringValue,valSet);
+
+      loggeRecvLdap.finest("attribute: ${attrName.stringValue}=${valSet}");
+
     });
 
     // controls are optional.
     if( s.elements.length >= 3) {
       var controls = s.elements[2];
-      logger.finest( "Controls = ${controls}");
+      loggeRecvLdap.finest( "controls: ${controls}");
     }
   }
 

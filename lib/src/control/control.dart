@@ -10,7 +10,7 @@ part 'virtual_list_view.dart';
 part 'server_side_sort.dart';
 
 
-var _clogger = new Logger("ldap_control");
+var _clogger = new Logger("ldap.control");
 
 /**
  * An LDAP Control
