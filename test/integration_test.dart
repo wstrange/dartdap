@@ -1,146 +1,240 @@
-import 'package:unittest/unittest.dart';
+// Example of how to perform LDAP operations.
+//
+//----------------------------------------------------------------
+
+import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
-import 'package:logging_handlers/logging_handlers_shared.dart';
+import 'package:logging/logging.dart';
 
+//----------------------------------------------------------------
 
-/**
- * LDAP integration tests
- *
- * These tests assume the LDAP server is pre-populated with some
- * sample entries - currently created by the OpenDJ installer.
- *
- * TODO: Have the integration test create its pre-req entries.
- */
+const String testConfigFile = "test/TEST-config.yaml";
 
-main() async {
-  LDAPConnection ldap;
-  var ldapConfig = new LDAPConfiguration.fromFile("test/ldap.yaml","default");
+/// Set to true to not clean up LDAP directory after test runs.
+///
+const bool KEEP_ENTRIES_FOR_DEBUGGING = false;
 
-  startQuickLogging();
+//----------------------------------------------------------------
 
-  group('LDAP Integration ', ()  {
-    // create a connection. Return a future that completes when
-    // the connection is available and bound
-    setUp( ()  async {
-     ldap = await ldapConfig.getConnection();
-    });
+void doTests(String configName) {
+  // Normally, unit tests open the LDAP connection in the [setUp]
+  // and close the connection in the [tearDown] functions.
+  // Since this integration test demonstrates how the LDAP package
+  // is used in a real application, everything is done inside the
+  // test instead of using setUp/tearDown functions.
 
-    tearDown( () {
-      // nothing to do. We can keep the connection open between tests
-    });
+  test('add/modify/search/delete', () async {
+    //----------------
+    // Create the connection (at the start of the test)
 
-    test('Search Test', () {
-     var attrs = ["dn", "cn", "objectClass"];
+    LDAPConfiguration ldapConfig;
+    LDAPConnection ldap;
 
-     ldap.onError = expectAsync((e) => expect(false, 'Should not be reached'), count: 0);
+    if (configName != null) {
+      // For testing purposes, load connection parameters from the
+      // configName section of a config file.
+      ldapConfig = new LDAPConfiguration.fromFile(testConfigFile, configName);
+    } else {
+      // Or the connection parameters can be explicitly specified in code.
+      ldapConfig = new LDAPConfiguration("localhost",
+          port: 10389,
+          ssl: false,
+          bindDN: "cn=Manager,dc=example,dc=com",
+          password: "p@ssw0rd");
+    }
 
-     var filter = Filter.substring("cn=A*");
+    // Establish a connection to the LDAP directory and bind to it
+    ldap = await ldapConfig.getConnection();
 
-      // we expect to find entries starting with A in the directory root.
-     ldap.search("dc=example,dc=com", filter, attrs).stream
-       .listen( (SearchEntry entry) {
-         // expected.
-          //print("Found ${entry}");
-        });
+    //----------------
+    // The distinguished name is a String value
 
-     var notFilter = Filter.not(filter);
+    var engineeringDN = "ou=Engineering,dc=example,dc=com";
+    var salesDN = "ou=Sales,dc=example,dc=com";
+    var businessDevelopmentDN = "ou=Business Development,dc=example,dc=com";
+    var supportDN = "ou=Support,ou=Engineering,dc=example,dc=com";
 
+    // For testing purposes, make sure entries do not exist before proceeding.
 
-      // we expect to find non A entries
-     ldap.search("dc=example,dc=com", notFilter, attrs).stream
-      .listen( (SearchEntry entry) {
-         //print("Not search = ${entry}");
-         // todo: test entries.
-      });
-
-     // bad search
-
-     ldap.search("dn=foofoo", notFilter, attrs).stream
-      .listen(
-          expectAsync( (r) => print("should not be called!"), count:0),
-          onError: expectAsync( (e) =>  expect( e.resultCode, equals(ResultCode.NO_SUCH_OBJECT)))
-      );
-
-      //  ));
-   });
-
-
-   test('add/modify/delete request', () async {
-      var dn = "uid=mmouse,ou=People,dc=example,dc=com";
-
-      // clean up any previous failed test. We don't care about the result
+    for (var dn in [engineeringDN, salesDN, businessDevelopmentDN, supportDN]) {
       try {
         await ldap.delete(dn);
-      } catch(e) {};
+      } on LDAPResult catch (e) {
+        // Ignore any exceptions (i.e. thrown when the entry normally does not exist)
+        assert(e.resultCode == ResultCode.NO_SUCH_OBJECT);
+      }
+    }
 
-      var attrs = { "cn" : "Mickey Mouse", "uid": "mmouse", "sn":"Mouse",
-                    "objectClass":["inetorgperson"]};
+    //----
+    // Add the entries
 
-      // add mickey
-      var result = await ldap.add(dn, attrs);
-      expect( result.resultCode, equals(0));
-      // modify mickey's sn
-      var m = new Modification.replace("sn", ["Sir Mickey"]);
-      result = await ldap.modify(dn, [m]);
-      expect(result.resultCode,equals(0));
-      // finally delete mickey
-      result = await ldap.delete(dn);
-      expect(result.resultCode,equals(0));
-   }); // end test
+    var attrs = {
+      "objectClass": ["organizationalUnit"],
+      "description": "Example organizationalUnit entry"
+    };
 
-   test('test error handling', () async {
+    var result = await ldap.add(engineeringDN, attrs);
+    expect(result.resultCode, equals(0),
+        reason: "Could not add engineering entry");
 
-     // dn we know will fail to delete as it does not exist
-     var dn = "uid=FooDoesNotExist,ou=People,dc=example,dc=com";
+    result = await ldap.add(salesDN, attrs);
+    expect(result.resultCode, equals(0), reason: "Could not add sales entry");
 
-     try {
-       await ldap.delete(dn);
-       fail("Should not be able to delete a non existing DN");
-     }
-     catch (e) {
-       expect( e.resultCode, equals(ResultCode.NO_SUCH_OBJECT));
-     }
-  });
+    //----
+    // Modify: change attribute values
 
+    var mod1 =
+        new Modification.replace("description", ["Engineering department"]);
+    result = await ldap.modify(engineeringDN, [mod1]);
+    expect(result.resultCode, equals(0),
+        reason: "could not change engineering description attribute");
 
-   test('Modify DN', () async {
-     var dn = "uid=mmouse,ou=People,dc=example,dc=com";
-     var newrdn = "uid=mmouse2";
-     var renamedDN =  "uid=mmouse2,ou=People,dc=example,dc=com";
-     var renamedDN2 =  "uid=mmouse2,dc=example,dc=com";
+    var mod2 = new Modification.replace(
+        "description", ["Sales department", "Business development department"]);
+    result = await ldap.modify(salesDN, [mod2]);
+    expect(result.resultCode, equals(0),
+        reason: "Could not change sales description attribute");
 
-     var newParent = "dc=example,dc=com";
+    //----
+    // Modify: rename
 
-     var attrs = { "cn" : "Mickey Mouse", "uid": "mmouse", "sn":"Mouse",
-                   "objectClass":["inetorgperson"]};
-
-     /*
-        For some reason OUD does not seem to respect the deleteOldRDN flag
+    /* TODO: For some reason OUD does not seem to respect the deleteOldRDN flag
         It always moves the entry - and does not leave the old one
      */
 
-     var r =  await ldap.add(dn, attrs); // create mmouse
-     expect( r.resultCode, equals(0));
-     r = await ldap.modifyDN(dn,"uid=mmouse2"); // rename to mmouse2
-     expect( r.resultCode, equals(0));
-     // try to rename and reparent
-     r = await ldap.modifyDN(renamedDN,newrdn,false,newParent);
-     expect( r.resultCode, equals(0));
-     r = await ldap.delete(renamedDN2);
-     expect( r.resultCode, equals(0));
-   });
+    var tmpRDN = "ou=Business Development";
+    var r = await ldap.modifyDN(
+        salesDN, tmpRDN); // rename "Sales" to "Business Development"
+    expect(r.resultCode, equals(0), reason: "Could not rename sales entry");
 
-  // test ldap compare operation. This assumes OpenDJ has been
-  // populated with the sample user: user.0
-  test('Compare test',()  async {
-    String dn = "uid=user.0,ou=People,dc=example,dc=com";
+    // Modify: rename and change parent
+    //
+    //   true = delete old RDN
+    //   engineeringDN = new parent
 
-    var r = await ldap.compare(dn, "postalCode", "50369");
-    expect( r.resultCode, equals(ResultCode.COMPARE_TRUE));
+    /*
+    TODO: get this working
+
+    r = await ldap.modifyDN(
+        businessDevelopmentDN, "ou=Support", true, engineeringDN);
+    expect(r.resultCode, equals(0),
+        reason: "Could not change Business Development to Support");
+    */
+
+    //----
+    // Compare
+
+    r = await ldap.compare(
+        engineeringDN, "description", "ENGINEERING DEPARTMENT");
+    expect(r.resultCode, equals(ResultCode.COMPARE_TRUE),
+        reason: "Compare failed");
+
+    //----------------
+    // Search
+
+    var queryAttrs = ["ou", "objectClass"];
+
+    //TODO:  ldap.onError = expectAsync((e) => expect(false, 'Should not be reached'), count: 0);
+
+    // ou=Engineering
+
+    var filter = Filter.equals("ou", "Engineering");
+
+    int numFound = 0;
+    await for (var entry
+        in ldap.search("dc=example,dc=com", filter, queryAttrs).stream) {
+      expect(entry, new isInstanceOf<SearchEntry>());
+      numFound++;
+    }
+    expect(numFound, equals(1),
+        reason: "Did not find expected number of entries in (ou=Engineering)");
+
+    /*
+    // not(ou=Engineering)
+
+    var notFilter = Filter.not(filter);
+
+    numFound = 0;
+    await for (var entry
+        in ldap.search("dc=example,dc=com", notFilter, queryAttrs).stream) {
+      expect(entry, new isInstanceOf<SearchEntry>());
+      numFound++;
+    }
+    expect(numFound, equals(1),
+        reason:
+            "Did not find expected number of entries in (not(ou=Engineering))");
+            */
+
+    //----
+    // Delete the entries
+
+    if (!KEEP_ENTRIES_FOR_DEBUGGING) {
+      result = await ldap.delete(businessDevelopmentDN);
+      expect(result.resultCode, equals(0),
+          reason: "Could not delete business development entry");
+
+      result = await ldap.delete(engineeringDN);
+      expect(result.resultCode, equals(0),
+          reason: "Could not delete engineering entry");
+    }
+
+    //----
+    // Deleting a non-existent entry will raise an exception
+
+    try {
+      await ldap.delete(salesDN);
+      fail("Delete should not have succeeded: $salesDN");
+    } catch (e) {
+      expect(e.resultCode, equals(ResultCode.NO_SUCH_OBJECT));
+    }
+
+    //----
+    // Close the connection
+
+    await ldapConfig.close();
+  });
+}
+
+//----------------------------------------------------------------
+/// Setup logging
+///
+/// Change the values in this function to change the level of logging
+/// that is done during debugging.
+///
+/// Note: the default for the root level logger is Level.INFO, so if
+/// no levels are set shout/severe/warning/info are logged, but
+/// config/fine/finer/finest are not.
+///
+void setupLogging([Level commonLevel = Level.OFF]) {
+  Logger.root.onRecord.listen((LogRecord rec) {
+    print('${rec.time}: ${rec.loggerName}: ${rec.level.name}: ${rec.message}');
   });
 
-  }); // end group
+  hierarchicalLoggingEnabled = true;
 
-  test('clean up', () => ldapConfig.close() );
+  // Normally, only change the values below:
 
+  // Log level: an integer between 0 (ALL) and 2000 (OFF) or a string value:
+  // "OFF", "SHOUT", "SEVERE", "WARNING", "INFO", "CONFIG", "FINE" "FINER",
+  // "FINEST" or "ALL".
+
+  //Logger.root.level = Level.OFF;
+  //new Logger("ldap").level = Level.OFF;
+  //new Logger("ldap.connection").level = Level.OFF;
+  //new Logger("ldap.recv").level = Level.OFF;
+  //new Logger("ldap.recv.ldap").level = Level.OFF;
+  //new Logger("ldap.send").level = Level.OFF;
+  //new Logger("ldap.recv.ldap").level = Level.OFF;
+  //new Logger("ldap.recv.asn1").level = Level.OFF;
+  //new Logger("ldap.recv.bytes").level = Level.OFF;
+}
+
+//----------------------------------------------------------------
+
+void main() {
+  setupLogging();
+
+  group("LDAP", () => doTests("test-LDAP"));
+  group("LDAPS", () => doTests("test-LDAPS"));
+  group("LDAP (connection parameters in code)", () => doTests(null));
 }

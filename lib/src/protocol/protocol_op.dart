@@ -52,7 +52,7 @@ class ResponseOp {
   ResponseOp.searchEntry(); // needed for SearchResultEntry - that does not have an LDAPMessage
 
   ResponseOp(LDAPMessage m) {
-    logger.finest("+++++ new response op = $m");
+    loggeRecvLdap.finer("Response op=$m");
     _ldapResult = _parseLDAPResult(m.protocolOp);
     // Parse controls;
     if( m.hasControls )
@@ -61,7 +61,7 @@ class ResponseOp {
 
   // parse the embedded LDAP Response
   LDAPResult _parseLDAPResult(ASN1Sequence s) {
-    logger.finest("parse ldap result == $s");
+    loggeRecvLdap.finer("Parse LDAP result: $s");
     ASN1Integer rc = s.elements[0];
     var resultCode = rc.intValue;
 
@@ -73,7 +73,7 @@ class ResponseOp {
     var refURLs = [];
     if( s.elements.length > 3) {
       var o = s.elements[3];
-      logger.fine("parse LDAP Result type = $o");
+      loggeRecvLdap.finer("Parse LDAP result: type=$o");
       // collect refs.... we dont really deal with these now...
       //var rs = s.elements[3] as ASN1Sequence;
       //refURLs = new List.from(rs.elements);

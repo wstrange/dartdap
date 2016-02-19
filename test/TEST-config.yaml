@@ -1,0 +1,15 @@
+# LDAP configuration file
+
+test-LDAP:
+  port: 10389
+  host: localhost
+  bindDN: cn=Manager,dc=example,dc=com
+  password: p@ssw0rd
+
+test-LDAPS:
+  port: 10636
+  host: localhost
+  ssl: true
+  bindDN: cn=Manager,dc=example,dc=com
+  password: p@ssw0rd
+

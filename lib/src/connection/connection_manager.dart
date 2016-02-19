@@ -38,7 +38,7 @@ abstract class _PendingOp {
 
   done() {
     var ms = _stopwatch.elapsedMilliseconds;
-    logger.fine("Request $message serviced in $ms ms");
+    loggerSendLdap.fine("LDAP request serviced: $message ($ms ms)");
   }
 
 }
@@ -150,25 +150,28 @@ class ConnectionManager {
 
 
   Future<ConnectionManager> connect() async {
-    logger.finest("Creating socket to ${_host}:${_port} ssl=$_ssl");
+    loggerConnection.finer("Opening ${_ssl ? "secure " : ""}socket to ${_host}:${_port}");
     var s = (_ssl ? SecureSocket.connect(_host, _port, onBadCertificate: _badCertHandler) : Socket.connect(_host, _port));
 
     _socket = await s;
-    logger.fine("Connected to $_host:$_port");
+
     _socket.transform(createTransformer()).listen( (m) => _handleLDAPMessage(m),
         onError: (error,stacktrace) {
-         logger.severe("Socket error = $error  stacktrace=${stacktrace}");
+          loggerConnection.finer("Socket error", error, stacktrace);
          throw new LDAPException("Socket error = $error stacktrace=${stacktrace}");
 
        });
+
+    loggerConnection.fine("Opened ${_ssl ? "secure " : ""}socket to $_host:$_port");
+
     return this;
   }
 
   // Called when the SSL cert is not valid
   // Return true to carry on anyways. TODO: Make it configurable
   bool _badCertHandler(X509Certificate cert) {
-    logger.warning("Invalid Certificate issuer= ${cert.issuer} subject=${cert.subject}");
-    logger.warning("SSL Connection will proceed. Please fix the certificate");
+    loggerConnection.warning("Invalid Certificate: issuer=${cert.issuer} subject=${cert.subject}");
+    loggerConnection.warning("SSL Connection will proceed. Please fix the certificate");
     return true; // carry on
   }
 
@@ -213,7 +216,7 @@ class ConnectionManager {
 
   // Send a single message to the server
   _sendMessage(_PendingOp op) {
-    logger.fine("Sending message ${op.message}");
+    loggerSendLdap.fine("Send LDAP message: ${op.message}");
     var l = op.message.toBytes();
     _socket.add(l);
     _pendingResponseMessages[op.message.messageId] = op;
@@ -254,21 +257,26 @@ class ConnectionManager {
     if (_pendingResponseMessages.isEmpty && _outgoingMessageQueue.isEmpty) {
       return true;
     }
-    logger.finest("close() waiting for queue to drain pendingResponse=$_pendingResponseMessages");
+    loggerConnection.finer("close() waiting for queue to drain pendingResponse=$_pendingResponseMessages");
     _sendPendingMessage();
     return false;
   }
 
   Future _doClose() {
-    logger.info("Closing ldap connection");
+    loggerConnection.fine("Closing socket");
     var f = _socket.close();
     _socket = null;
     return f;
   }
 
+  /// Processes received LDAP messages.
+  ///
+  /// This method handles the LDAP messages which have been parsed from the
+  /// bytes read from the socket. It is invoked from the bytes-to-LDAPMessage
+  /// transformer on the socket.
 
-  /// called for each LDAP message recevied from the server
   void _handleLDAPMessage(LDAPMessage m) {
+
     // call response handler to figure out what kind of resposnse
     // the message contains.
     var rop = ResponseHandler.handleResponse(m);
@@ -278,7 +286,7 @@ class ConnectionManager {
 
     if( rop is ExtendedResponse ) {
       var o = rop as ExtendedResponse;
-      logger.severe("Got extended response ${o.responseName} code=${rop.ldapResult.resultCode}");
+      loggeRecvLdap.fine("Got extended response ${o.responseName} code=${rop.ldapResult.resultCode}");
 
     }
 

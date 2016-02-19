@@ -1,114 +1,288 @@
-import 'package:unittest/unittest.dart';
+// Tests searching for entries from the LDAP directory.
+//
+// Depends on add and delete working.
+//
+//----------------------------------------------------------------
+
+import 'dart:async';
+import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
-import 'package:dartdap/src/protocol/ldap_protocol.dart';
-import 'package:logging_handlers/logging_handlers_shared.dart';
 import 'package:logging/logging.dart';
 
+//----------------------------------------------------------------
 
-/**
- * LDAP search tests
- *
- * These tests assume the LDAP server is pre-populated with some
- * sample entries - currently created by the OpenDJ installer.
- *
- * TODO: Have the integration test create its pre-req entries.
- */
+const String testConfigFile = "test/TEST-config.yaml";
 
-main()  {
-  LDAPConnection ldap;
-  var ldapConfig = new LDAPConfiguration.fromFile("test/ldap.yaml","default");
+var baseDN = new DN("dc=example,dc=com");
+var testDN = baseDN.concat("ou=People");
+var nosuchDN = baseDN.concat("ou=NoSuchEntry");
 
-  startQuickLogging();
-  Logger.root.level = Level.FINEST;
+const String descriptionStr = "Test people branch";
 
-  group('Search encoding', () {
+const int NUM_ENTRIES = 3;
 
-    test('no controls', () {
-      var m = new LDAPMessage(1,
-                              new SearchRequest("dc=example,dc=com",
-                                                Filter.equals("cn", "bar"),
-                                                [], SearchScope.BASE_LEVEL, 0),
-                              null);
-      var b = m.toBytes();
-      expect(b, equals([0x30, 0x34, 0x02, 0x01, 0x01, 0x63, 0x2F, 0x04, 0x11, 0x64, 0x63, 0x3D, 0x65, 0x78, 0x61, 0x6D, 0x70, 0x6C, 0x65, 0x2C, 0x64, 0x63, 0x3D, 0x63, 0x6F, 0x6D, 0x0A, 0x01, 0x00, 0x0A, 0x01, 0x00, 0x02, 0x01, 0x00, 0x02, 0x01, 0x00, 0x01, 0x01, 0x00, 0xA3, 0x09, 0x04, 0x02, 0x63, 0x6E, 0x04, 0x03, 0x62, 0x61, 0x72, 0x30, 0x00]));
-    });
+//----------------------------------------------------------------
+// Create entries needed for testing.
 
-    test('one control', () {
-      var c = new ServerSideSortRequestControl([new SortKey('cn')]);
-      var m = new LDAPMessage(1,
-                              new SearchRequest("dc=example,dc=com",
-                                                Filter.equals("cn", "bar"),
-                                                [], SearchScope.BASE_LEVEL, 0),
-                              [c]);
-      var b = m.toBytes();
-      expect(b, equals([0x30, 0x5a, 0x02, 0x01, 0x01, 0x63, 0x2f, 0x04, 0x11, 0x64, 0x63, 0x3d, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2c, 0x64, 0x63, 0x3d, 0x63, 0x6f, 0x6d, 0x0a, 0x01, 0x00, 0x0a, 0x01, 0x00, 0x02, 0x01, 0x00, 0x02, 0x01, 0x00, 0x01, 0x01, 0x00, 0xa3, 0x09, 0x04, 0x02, 0x63, 0x6e, 0x04, 0x03, 0x62, 0x61, 0x72, 0x30, 0x00, 0xa0, 0x24, 0x30, 0x22, 0x04, 0x16, 0x31, 0x2e, 0x32, 0x2e, 0x38, 0x34, 0x30, 0x2e, 0x31, 0x31, 0x33, 0x35, 0x35, 0x36, 0x2e, 0x31, 0x2e, 0x34, 0x2e, 0x34, 0x37, 0x33, 0x04, 0x08, 0x30, 0x06, 0x30, 0x04, 0x04, 0x02, 0x63, 0x6e]));
-    });
+Future populateEntries(LDAPConnection ldap) async {
+  // Create entry
 
-    test('two controls', () {
-      var c1 = new ServerSideSortRequestControl([new SortKey('cn')]);
-      var c2 = new VLVRequestControl.assertionControl('example', 0, 19, critical: true);
-      var m = new LDAPMessage(1,
-                              new SearchRequest("dc=example,dc=com",
-                                                Filter.equals("cn", "bar"),
-                                                [], SearchScope.BASE_LEVEL, 0),
-                              [c1, c2]);
-      var b = m.toBytes();
-      expect(b, equals([0x30, 0x81, 0x8b, 0x02, 0x01, 0x01, 0x63, 0x2f, 0x04, 0x11, 0x64, 0x63, 0x3d, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2c, 0x64, 0x63, 0x3d, 0x63, 0x6f, 0x6d, 0x0a, 0x01, 0x00, 0x0a, 0x01, 0x00, 0x02, 0x01, 0x00, 0x02, 0x01, 0x00, 0x01, 0x01, 0x00, 0xa3, 0x09, 0x04, 0x02, 0x63, 0x6e, 0x04, 0x03, 0x62, 0x61, 0x72, 0x30, 0x00, 0xa0, 0x55, 0x30, 0x22, 0x04, 0x16, 0x31, 0x2e, 0x32, 0x2e, 0x38, 0x34, 0x30, 0x2e, 0x31, 0x31, 0x33, 0x35, 0x35, 0x36, 0x2e, 0x31, 0x2e, 0x34, 0x2e, 0x34, 0x37, 0x33, 0x04, 0x08, 0x30, 0x06, 0x30, 0x04, 0x04, 0x02, 0x63, 0x6e, 0x30, 0x2f, 0x04, 0x17, 0x32, 0x2e, 0x31, 0x36, 0x2e, 0x38, 0x34, 0x30, 0x2e, 0x31, 0x2e, 0x31, 0x31, 0x33, 0x37, 0x33, 0x30, 0x2e, 0x33, 0x2e, 0x34, 0x2e, 0x39, 0x01, 0x01, 0xff, 0x04, 0x11, 0x30, 0x0f, 0x02, 0x01, 0x00, 0x02, 0x01, 0x13, 0x81, 0x07, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65]));
-    });
+  var addResult = await ldap.add(testDN.dn, {
+    "objectclass": ["organizationalUnit"],
+    "description": descriptionStr
+  });
+  assert(addResult is LDAPResult);
+  assert(addResult.resultCode == 0);
 
+  // Create subentries
+
+  for (int j = 0; j < NUM_ENTRIES; ++j) {
+    var attrs = {
+      "objectclass": ["inetorgperson"],
+      "sn": "User $j"
+    };
+    var addResult = await ldap.add(testDN.concat("cn=user$j").dn, attrs);
+    assert(addResult is LDAPResult);
+    assert(addResult.resultCode == 0);
+  }
+}
+
+//----------------------------------------------------------------
+/// Clean up before/after testing.
+
+Future purgeEntries(LDAPConnection ldap) async {
+  // Delete subentries
+
+  for (int j = 0; j < NUM_ENTRIES; ++j) {
+    try {
+      await ldap.delete(testDN.concat("cn=user$j").dn);
+    } catch (e) {
+      // ignore any exceptions
+    }
+  }
+
+  // Delete entry
+
+  try {
+    // this is designed to clean up any failed tests
+    await ldap.delete(testDN.dn);
+  } catch (e) {
+    // ignore any exceptions
+  }
+}
+
+//----------------------------------------------------------------
+
+void doTest(String configName) {
+  var ldapConfig;
+  var ldap;
+
+  //----------------
+
+  setUp(() async {
+    ldapConfig = new LDAPConfiguration.fromFile(testConfigFile, configName);
+    ldap = await ldapConfig.getConnection();
+    await purgeEntries(ldap);
+    await populateEntries(ldap);
   });
 
-  group('LDAP Search tests ', ()  {
-    // create a connection. Return a future that completes when
-    // the connection is available and bound
-    setUp( ()  async {
-     ldap = await ldapConfig.getConnection();
-     info("Created ldap connection");
-    });
+  //----------------
 
-    tearDown( () async {
-      await ldap.close();
-      //ldap.close();
-      info("connection closed");
-    });
-
-    test('VLV Search2', () {
-         var slist = [new SortKey("sn")];
-
-         var sortControl = new ServerSideSortRequestControl(slist);
-         var vlvControl = new VLVRequestControl.offsetControl(1, 0, 0, 1, null);
-
-         // using OpenDJ ldapsearch command:
-         // ldapsearch -p 1389 -b "ou=people,dc=example,dc=com" -s one -D "cn=Directory Manager" -w password
-         // -G 0:1:1:0 --sortOrder sn "objectclass=inetOrgPerson"
-         //var filter = Filter.substring("cn=Ac*");
-         //var filter = Filter.or( [Filter.equals("givenName", "A"), Filter.equals("sn", "Annas")]);
-         var filter =  Filter.equals("objectclass", "inetOrgPerson");
-         var result = ldap.search("dc=example, dc=com", filter, ["sn","cn","uid","mail"], controls:[sortControl,vlvControl]);
-
-
-         return result.stream.listen( (SearchEntry entry)
-            =>  info('======== entry: $entry'),
-
-              onDone: expectAsync(() => info('======== Controls: ${result.controls}')));
-
-     });
-
-    test('VLV using assertion control' ,(){
-      var sortControl = new ServerSideSortRequestControl([new SortKey("sn")]);
-      var vlvControl = new VLVRequestControl.assertionControl("Billard", 2, 3);
-      var filter =  Filter.equals("objectclass", "inetOrgPerson");
-      var result = ldap.search("dc=example, dc=com", filter, ["sn","cn","uid","mail"], controls:[sortControl,vlvControl]);
-
-      return result.stream.listen( (SearchEntry entry)
-         =>  info('======== entry: $entry'),
-
-           onDone: expectAsync(() => info('======== Controls: ${result.controls}')));
-
-    });
-
-    // todo: how to run final method?
-    //test('clean up', () => ldap.close());
+  tearDown(() async {
+    await purgeEntries(ldap);
+    await ldapConfig.close();
   });
 
+  //----------------
+  // Searches for cn=user0 under ou=People,dc=example,dc=com
+
+  test("search with filter: equals attribute in DN", () async {
+    var filter = Filter.equals("cn", "user0");
+    var searchAttrs = ["cn", "sn"];
+
+    var count = 0;
+
+    await for (SearchEntry entry
+        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+      expect(entry, isNotNull);
+
+      var cnSet = entry.attributes["cn"];
+      expect(cnSet, isNotNull);
+      expect(cnSet.values.length, equals(1));
+      expect(cnSet.values.first, equals("user0"));
+
+      var descSet = entry.attributes["sn"];
+      expect(descSet, isNotNull);
+      expect(descSet.values.length, equals(1));
+      expect(descSet.values.first, equals("User 0"));
+
+      expect(entry.attributes.length, equals(2)); // no other attributes
+
+      count++;
+    }
+
+    expect(count, equals(1), reason: "Unexpected number of entries");
+  });
+
+  //----------------
+  // Searches for sn="User 1" under ou=People,dc=example,dc=com
+
+  test("search with filter: equals attribute not in DN", () async {
+    var filter = Filter.equals("sN", "uSeR 1"); // Note: sn is case-insensitve
+    var searchAttrs = ["cN", "sN"];
+
+    var count = 0;
+
+    await for (SearchEntry entry
+        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+      expect(entry, isNotNull);
+
+      var cnSet = entry.attributes["cn"];
+      expect(cnSet, isNotNull, reason: "Requested attribute not found");
+      expect(cnSet.values.length, equals(1));
+      expect(cnSet.values.first, equals("user1"));
+
+      var descSet = entry.attributes["sn"];
+      expect(descSet, isNotNull, reason: "Requested attribute not found");
+      expect(descSet.values.length, equals(1));
+      expect(descSet.values.first, equals("User 1"));
+
+      expect(entry.attributes.length, equals(2)); // no other attributes
+
+      count++;
+    }
+
+    expect(count, equals(1), reason: "Unexpected number of entries");
+  });
+
+  //----------------
+  // Searches for cn is present under ou=People,dc=example,dc=com
+
+  test("search with filter: present", () async {
+    var filter = Filter.present("cn");
+    var searchAttrs = ["cn", "sn"];
+
+    var count = 0;
+
+    await for (SearchEntry entry
+        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+      expect(entry, isNotNull);
+      expect(entry, new isInstanceOf<SearchEntry>());
+
+      var cnSet = entry.attributes["cn"];
+      expect(cnSet, isNotNull);
+      expect(cnSet.values.length, equals(1));
+      expect(cnSet.values.first, startsWith("user"));
+
+      var descSet = entry.attributes["sn"];
+      expect(descSet, isNotNull);
+      expect(descSet.values.length, equals(1));
+      expect(descSet.values.first, startsWith("User "));
+
+      expect(entry.attributes.length, equals(2)); // no other attributes
+
+      count++;
+    }
+
+    expect(count, equals(NUM_ENTRIES), reason: "Unexpected number of entries");
+  });
+
+  //----------------
+
+  test("search with filter: substring", () async {
+    var filter = Filter.substring("cn=uS*"); // note: cn is case-insensitive
+    var searchAttrs = ["cn"];
+
+    var count = 0;
+
+    await for (SearchEntry entry
+        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+      expect(entry, isNotNull);
+      expect(entry, new isInstanceOf<SearchEntry>());
+
+      var cnSet = entry.attributes["cn"];
+      expect(cnSet, isNotNull);
+      expect(cnSet.values.length, equals(1));
+      expect(cnSet.values.first, startsWith("user"));
+
+      expect(entry.attributes.length, equals(1)); // no other attributes
+
+      count++;
+    }
+
+    expect(count, equals(NUM_ENTRIES), reason: "Unexpected number of entries");
+  });
+
+  //----------------
+
+  test("search from non-existant entry", () async {
+    var filter = Filter.equals("ou", "People");
+    var searchAttrs = ["ou", "description"];
+
+    var count = 0;
+    var gotException = false;
+
+    try {
+      await for (SearchEntry entry in ldap
+          .search("ou=NoSuchEntry,dc=example,dc=com", filter, searchAttrs)
+          .stream) {
+        fail("Unexpected result from search under non-existant entry");
+        expect(entry, isNotNull);
+        count++;
+      }
+    } catch (e) {
+      expect(e, new isInstanceOf<LDAPResult>());
+      expect(e.resultCode, equals(ResultCode.NO_SUCH_OBJECT));
+      gotException = true;
+    }
+
+    expect(count, equals(0), reason: "Unexpected number of entries");
+    expect(gotException, isTrue);
+  });
+}
+
+//================================================================
+
+/// Setup logging
+///
+/// Change the values in this function to change the level of logging
+/// that is done during debugging.
+///
+/// Note: the default for the root level logger is Level.INFO, so if
+/// no levels are set shout/severe/warning/info are logged, but
+/// config/fine/finer/finest are not.
+///
+void setupLogging([Level commonLevel = Level.OFF]) {
+
+  Logger.root.onRecord.listen((LogRecord rec) {
+    print('${rec.time}: ${rec.loggerName}: ${rec.level.name}: ${rec.message}');
+  });
+
+  hierarchicalLoggingEnabled = true;
+
+  // Normally, only change the values below:
+
+  // Log level: an integer between 0 (ALL) and 2000 (OFF) or a string value:
+  // "OFF", "SHOUT", "SEVERE", "WARNING", "INFO", "CONFIG", "FINE" "FINER",
+  // "FINEST" or "ALL".
+
+  //Logger.root.level = Level.OFF;
+  //new Logger("ldap").level = Level.OFF;
+  //new Logger("ldap.connection").level = Level.OFF;
+  //new Logger("ldap.recv").level = Level.OFF;
+  //new Logger("ldap.recv.ldap").level = Level.OFF;
+  //new Logger("ldap.send").level = Level.OFF;
+  //new Logger("ldap.recv.ldap").level = Level.OFF;
+  //new Logger("ldap.recv.asn1").level = Level.OFF;
+  //new Logger("ldap.recv.bytes").level = Level.OFF;
+}
+
+//----------------------------------------------------------------
+
+main() {
+  setupLogging();
+
+  group("LDAP", () => doTest("test-LDAP"));
+
+  // group("LDAPS", () => doTest("test-LDAPS")); // uncomment to test with LDAPS
 }

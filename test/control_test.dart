@@ -1,7 +1,7 @@
 /// Unit tests for control encodings
 
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 
 main() {

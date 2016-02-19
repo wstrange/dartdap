@@ -75,7 +75,7 @@ class LDAPMessage {
       _controls = new ASN1Sequence(tag:CONTROLS);
       controls.forEach((control) {
         _controls.add( control.toASN1());
-        logger.finest("adding control $control");
+        loggerSendLdap.finest("Adding control $control");
       });
     }
 
@@ -105,7 +105,7 @@ class LDAPMessage {
       if( c[0] == Control.CONTROLS_TAG )
         _controls = new ASN1Sequence.fromBytes(c);
     }
-    logger.fine("Got LDAP Message. Id = ${messageId} protocolOp = ${protocolOp}");
+    loggeRecvLdap.fine("LDAP message received: Id=${messageId} protocolOp=${protocolOp}");
 
   }
 

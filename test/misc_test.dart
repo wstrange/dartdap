@@ -1,4 +1,4 @@
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 
 
@@ -26,9 +26,9 @@ main() {
     expect(f2.finalString, equals("bar"));
 
 
-    var c1 =  f1 & f2;
+    //var c1 =  f1 & f2;
 
-    print(c1.toString());
+    //print(c1.toString());
 
     var f3 = Filter.or( [Filter.equals("givenName", "A"), Filter.equals("sn", "Annas")]);
     //print("f3 = $f3 asn1=${f3.toASN1()}");
@@ -60,8 +60,7 @@ main() {
     expect(m2,containsPair("objectclass", new Attribute("objectclass",["top", "inetorgperson"]) ));
 
   });
-
-  // todo
+/*
   test("Modifications",  () {
     var m = Modification.modList([
       ["a","sn","Mickey Mouse"]
@@ -69,6 +68,6 @@ main() {
     //print("$m");
 
   });
-
+*/
 
 }
