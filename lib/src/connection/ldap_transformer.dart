@@ -127,5 +127,3 @@ StreamTransformer<Uint8List, LDAPMessage> createTransformer() {
     throw error;
   });
 }
-
-//EOF
