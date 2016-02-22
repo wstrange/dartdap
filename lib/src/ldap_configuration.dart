@@ -20,7 +20,6 @@ import 'ldap_exception.dart';
 /// * Loading the settings from a YAML file using the fromFile constructor.
 
 class LDAPConfiguration {
-
   // Constants
 
   static const String _DEFAULT_HOST = "localhost";

@@ -1,4 +1,5 @@
 part of control;
+
 /// Virtual List View Controls
 /// See [http://www.ietf.org/archive/id/draft-ietf-ldapext-ldapv3-vlv-09.txt]
 
@@ -13,7 +14,6 @@ class VLVRequestControl extends Control {
   // The BER type to use when encoding the greaterThanOrEqual target element.
   static const TYPE_TARGET_GREATERTHANOREQUAL = 0x81;
 
-
   get controlName => "VirtualListViewRequestControl";
 
   int beforeCount;
@@ -26,8 +26,8 @@ class VLVRequestControl extends Control {
   String assertionValue;
   List<int> contextId;
 
-  VLVRequestControl(this.beforeCount, this.afterCount, this.offset, this.contentCount);
-
+  VLVRequestControl(
+      this.beforeCount, this.afterCount, this.offset, this.contentCount);
 
   /// Creates a new virtual list view request control that will identify the
   /// target entry by a positional offset within the complete result set.
@@ -52,7 +52,9 @@ class VLVRequestControl extends Control {
   ///           there was no previous virtual list view response or the server
   ///          did not include a context ID in the last response.
 
-  VLVRequestControl.offsetControl(this.offset, this.contentCount, this.beforeCount, this.afterCount, this.contextId, {critical: false}) {
+  VLVRequestControl.offsetControl(this.offset, this.contentCount,
+      this.beforeCount, this.afterCount, this.contextId,
+      {critical: false}) {
     // todo: Sanity checking!!!
     isCritical = critical;
     assertionValue = null;
@@ -68,15 +70,14 @@ class VLVRequestControl extends Control {
   //  than or equal to when the sort order is reversed) the supplied value is
   //  the target entry.
 
-  VLVRequestControl.assertionControl(this.assertionValue, this.beforeCount, this.afterCount, {this.contextId: null, critical: false}) {
+  VLVRequestControl.assertionControl(
+      this.assertionValue, this.beforeCount, this.afterCount,
+      {this.contextId: null, critical: false}) {
     // todo: Sanity checking!!!
     isCritical = critical;
-
   }
 
-
   bool get hasTargetOffset => assertionValue == null;
-
 
   ASN1Sequence toASN1() {
     var s = startSequence();
@@ -91,16 +92,15 @@ class VLVRequestControl extends Control {
       seq.add(s);
     } else {
       _clogger.finest("VLV request Assertion value = $assertionValue");
-      seq.add(new ASN1OctetString(assertionValue.codeUnits, tag: TYPE_TARGET_GREATERTHANOREQUAL));
+      seq.add(new ASN1OctetString(assertionValue.codeUnits,
+          tag: TYPE_TARGET_GREATERTHANOREQUAL));
     }
     if (contextId != null) seq.add(new ASN1OctetString(contextId));
 
     s.add(new ASN1OctetString(seq.encodedBytes));
     return s;
-
   }
 }
-
 
 class VLVResponseControl extends Control {
   static const OID = "2.16.840.1.113730.3.4.10";
@@ -125,12 +125,12 @@ class VLVResponseControl extends Control {
     var x = (seq.elements.first as ASN1Sequence);
 
     // todo: confirm order of response
-    x.elements.forEach( (e) => _clogger.finest(" ${e.runtimeType}  $e"));
+    x.elements.forEach((e) => _clogger.finest(" ${e.runtimeType}  $e"));
     targetPosition = (x.elements[0] as ASN1Integer).intValue;
     contentCount = (x.elements[1] as ASN1Integer).intValue;
     extraParam = (x.elements[2] as ASN1Integer).intValue;
   }
 
-  String toString() => "${super.toString()}(targetpos=$targetPosition, contentCount=$contentCount,x=$extraParam)";
-
+  String toString() =>
+      "${super.toString()}(targetpos=$targetPosition, contentCount=$contentCount,x=$extraParam)";
 }

@@ -26,8 +26,8 @@ StreamTransformer<Uint8List, LDAPMessage> createTransformer() {
       buf.setRange(0, leftover.length, leftover);
       buf.setRange(leftover.length, buf.length, data);
       leftover = null;
-      loggerRecvBytes
-          .fine("Bytes received: ${data.length} (+${leftover.length} leftover)");
+      loggerRecvBytes.fine(
+          "Bytes received: ${data.length} (+${leftover.length} leftover)");
     }
 
     if (Level.FINEST <= loggerRecvBytes.level) {

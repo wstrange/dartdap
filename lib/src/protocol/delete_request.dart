@@ -1,10 +1,9 @@
 part of ldap_protocol;
 
 class DeleteRequest extends RequestOp {
+  String _dn; // dn of entry we are deleting
 
-  String _dn;     // dn of entry we are deleting
-
-  DeleteRequest(this._dn) :super(DELETE_REQUEST);
+  DeleteRequest(this._dn) : super(DELETE_REQUEST);
 
   /*
    * Encode the add request to BER
@@ -13,5 +12,5 @@ class DeleteRequest extends RequestOp {
 
   */
 
-  ASN1Object toASN1() => new ASN1OctetString(_dn, tag:DELETE_REQUEST);
+  ASN1Object toASN1() => new ASN1OctetString(_dn, tag: DELETE_REQUEST);
 }

@@ -1,17 +1,16 @@
 part of ldap_protocol;
 
-
 class ResponseHandler {
   LDAPMessage _ldapMessage;
 
   ResponseHandler(this._ldapMessage);
 
   static ResponseOp handleResponse(LDAPMessage m) {
-
-    loggeRecvLdap.finer("LDAP response received: ${_op2String(m.protocolOp.tag)}");
+    loggeRecvLdap
+        .finer("LDAP response received: ${_op2String(m.protocolOp.tag)}");
 
     ResponseOp op;
-    switch(m.protocolOp.tag) {
+    switch (m.protocolOp.tag) {
       case BIND_RESPONSE:
         return new BindResponse(m);
 
@@ -22,8 +21,7 @@ class ResponseHandler {
         return new SearchResultDone(m);
 
       case EXTENDED_RESPONSE:
-         return new ExtendedResponse(m);
-
+        return new ExtendedResponse(m);
 
       case ADD_RESPONSE:
       case DELETE_RESPONSE:
@@ -32,11 +30,9 @@ class ResponseHandler {
       case COMPARE_RESPONSE:
         return new GenericResponse(m);
 
-
       default:
         throw "Not done";
     }
     return op;
-
   }
 }

@@ -4,7 +4,6 @@ part of ldap_protocol;
  * Defines various LDAP response types
  */
 
-
 /**
  *     BindResponse ::= [APPLICATION 1] SEQUENCE {
              COMPONENTS OF LDAPResult,
@@ -13,7 +12,7 @@ part of ldap_protocol;
  */
 
 class BindResponse extends ResponseOp {
-  BindResponse(LDAPMessage m) : super(m) ;
+  BindResponse(LDAPMessage m) : super(m);
 }
 
 /**
@@ -23,14 +22,14 @@ class BindResponse extends ResponseOp {
  */
 
 class SearchResultDone extends ResponseOp {
-  SearchResultDone(LDAPMessage m): super(m);
+  SearchResultDone(LDAPMessage m) : super(m);
 }
 
 /**
  * ModifyResponse ::= [APPLICATION 7] LDAPResult
 */
 class ModifyResponse extends ResponseOp {
-  ModifyResponse(LDAPMessage m): super(m);
+  ModifyResponse(LDAPMessage m) : super(m);
 }
 
 /**
@@ -43,9 +42,8 @@ class ModifyResponse extends ResponseOp {
  *
  */
 class GenericResponse extends ResponseOp {
-  GenericResponse(LDAPMessage m): super(m);
+  GenericResponse(LDAPMessage m) : super(m);
 }
-
 
 /***
       ExtendedResponse ::= [APPLICATION 24] SEQUENCE {
@@ -64,10 +62,10 @@ class ExtendedResponse extends ResponseOp {
    */
   static const int TYPE_EXTENDED_RESPONSE_VALUE = 0x8B;
 
-  ExtendedResponse(LDAPMessage m):super(m) {
+  ExtendedResponse(LDAPMessage m) : super(m) {
     responseName = _elementAsString(m.elements[2]);
     // check for optional response
-    if( m.elements.length == 4) {
+    if (m.elements.length == 4) {
       response = _elementAsString(m.elements[3]);
     }
   }
@@ -77,4 +75,3 @@ class ExtendedResponse extends ResponseOp {
     return octets.stringValue;
   }
 }
-

@@ -9,11 +9,12 @@ part of ldap_protocol;
 
  */
 class CompareRequest extends RequestOp {
-  String  _dn;
-  String  _attrName;
+  String _dn;
+  String _attrName;
   dynamic _attrValue;
 
-  CompareRequest(this._dn,this._attrName,this._attrValue):super(COMPARE_REQUEST);
+  CompareRequest(this._dn, this._attrName, this._attrValue)
+      : super(COMPARE_REQUEST);
 
   ASN1Object toASN1() {
     var seq = _startSequence();
@@ -25,6 +26,4 @@ class CompareRequest extends RequestOp {
     seq.add(attrSeq);
     return seq;
   }
-
-
 }

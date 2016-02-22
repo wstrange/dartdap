@@ -1,6 +1,5 @@
 library modification;
 
-
 /**
  * An LDAP modification operation type.
  *
@@ -29,7 +28,7 @@ class Modification {
 
   Modification(this._operation, this._attrName, this._values);
 
-  Modification.replace(this._attrName, this._values ) {
+  Modification.replace(this._attrName, this._values) {
     _operation = REPLACE;
   }
 
@@ -45,7 +44,6 @@ class Modification {
     _operation = DELETE;
   }
 
-
   /**
    *
    * TODO: This is a hack. Create a nicer way of handling this
@@ -59,32 +57,30 @@ class Modification {
    * For example, the list ["r","sn", "Mickey Mouse","i", "age",null]
    *
    */
-  static List<Modification> modList( List modList ) {
+  static List<Modification> modList(List modList) {
     var list = new List<Modification>();
-    modList.forEach(  (x) {
-      assert( x.length == 3);
+    modList.forEach((x) {
+      assert(x.length == 3);
       String op = x[0];
       var attr = x[1];
       var vals = x[2];
-      if( ! (vals is List))
-        vals = [vals];
+      if (!(vals is List)) vals = [vals];
 
       switch (op) {
-        case "a" :
-          list.add( new Modification.add(attr,vals));
+        case "a":
+          list.add(new Modification.add(attr, vals));
           break;
         case "d":
-          list.add( new Modification.delete(attr, vals));
+          list.add(new Modification.delete(attr, vals));
           break;
         case "r":
-          list.add( new Modification.replace(attr, vals));
+          list.add(new Modification.replace(attr, vals));
           break;
         case "i":
-          list.add( new Modification.increment(attr, vals));
+          list.add(new Modification.increment(attr, vals));
           break;
       }
     });
     return list;
   }
-
 }

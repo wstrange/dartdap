@@ -27,8 +27,10 @@ class Attribute {
 
   // two attributes are equal if they have the same name
   // and contain the same set of values.
-  bool operator ==(Attribute other) => (_name == other._name) && _values.containsAll(other._values) && other._values.containsAll(_values);
-
+  bool operator ==(Attribute other) =>
+      (_name == other._name) &&
+      _values.containsAll(other._values) &&
+      other._values.containsAll(_values);
 
   //  Convenience method to convert map [m] consisting of possibly simple string or list values
   //  to a map that contains only [Attribute] values.
@@ -36,7 +38,7 @@ class Attribute {
   static Map<String, Attribute> newAttributeMap(Map<String, dynamic> m) {
     var newmap = new Map<String, Attribute>();
     m.forEach((k, v) {
-      newmap[k] = (v is Attribute ? v : new Attribute(k,v));
+      newmap[k] = (v is Attribute ? v : new Attribute(k, v));
     });
     return newmap;
   }

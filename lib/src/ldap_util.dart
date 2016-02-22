@@ -2,7 +2,6 @@ library ldap_util;
 
 // todo: why a class? Make a top level functions?
 class LDAPUtil {
-
   /**
    * Escape an ldap string used in a search filter.
    * The LDAP spec requires *,),(,\ and null to be escaped.
@@ -10,14 +9,13 @@ class LDAPUtil {
    */
   static String escapeString(String s) {
     StringBuffer buf = new StringBuffer();
-    s.codeUnits.forEach( (c) {
-
-      switch(c) {
-      	case 0x2a:  // *
-      	case 0x28:  // )
-      	case 0x29:  // )
-      	case 0x00:  // null
-      	case 0x5c: // \
+    s.codeUnits.forEach((c) {
+      switch (c) {
+        case 0x2a: // *
+        case 0x28: // )
+        case 0x29: // )
+        case 0x00: // null
+        case 0x5c: // \
           buf.write('\\');
           buf.write(c.toRadixString(16));
           break;
@@ -25,7 +23,6 @@ class LDAPUtil {
           buf.writeCharCode(c);
           break;
       }
-
     });
 
     return buf.toString();
@@ -38,12 +35,12 @@ class LDAPUtil {
   static String toHexString(List<int> bytes) {
     var buf = new StringBuffer();
 
-    bytes.forEach( (b) {
+    bytes.forEach((b) {
       buf.write(b.toRadixString(16));
-      buf.write(' '); });
+      buf.write(' ');
+    });
     return buf.toString();
   }
-
 }
 
 /**
@@ -60,6 +57,3 @@ class DN {
 
   String toString() => _dn;
 }
-
-
-

@@ -26,42 +26,41 @@ part of ldap_protocol;
 
  */
 class SearchRequest extends RequestOp {
-
   String _baseDN;
-  int _scope ;
+  int _scope;
   int _sizeLimit;
   //int _derefPolicy = 3; // todo: read spec on this
   int _derefPolicy = 0; // todo: read spec on this
 
   List<String> _attributes;
-  bool _typesOnly  = false;
+  bool _typesOnly = false;
   int _timeLimit = 0; // default: no time limit
 
   Filter _filter;
 
- // todo: These should be named params
- SearchRequest(this._baseDN, this._filter, this._attributes,
-     [this._scope = SearchScope.SUB_LEVEL, this._sizeLimit = 0]):
-    super(SEARCH_REQUEST) ;
+  // todo: These should be named params
+  SearchRequest(this._baseDN, this._filter, this._attributes,
+      [this._scope = SearchScope.SUB_LEVEL, this._sizeLimit = 0])
+      : super(SEARCH_REQUEST);
 
   ASN1Object toASN1() {
     var seq = _startSequence();
 
-    var attrSet  = new ASN1Sequence();
-    _attributes.forEach((String attr) { attrSet.add(new ASN1OctetString(attr));});
+    var attrSet = new ASN1Sequence();
+    _attributes.forEach((String attr) {
+      attrSet.add(new ASN1OctetString(attr));
+    });
 
-    seq..add(new ASN1OctetString(_baseDN))
-        ..add(new ASN1Enumerated(_scope))
-        ..add(new ASN1Enumerated(_derefPolicy))
-        ..add(new ASN1Integer(_sizeLimit))
-        ..add(new ASN1Integer(_timeLimit))
-        ..add(new ASN1Boolean(_typesOnly))
-        ..add(_filter.toASN1())
-        ..add(attrSet);
+    seq
+      ..add(new ASN1OctetString(_baseDN))
+      ..add(new ASN1Enumerated(_scope))
+      ..add(new ASN1Enumerated(_derefPolicy))
+      ..add(new ASN1Integer(_sizeLimit))
+      ..add(new ASN1Integer(_timeLimit))
+      ..add(new ASN1Boolean(_typesOnly))
+      ..add(_filter.toASN1())
+      ..add(attrSet);
 
     return seq;
   }
-
 }
-
-

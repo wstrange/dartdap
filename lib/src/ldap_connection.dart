@@ -1,4 +1,3 @@
-
 library ldap_connection;
 
 import 'connection/connection_manager.dart';
@@ -39,7 +38,7 @@ class LDAPConnection {
 
   Function onError; // global error handler
 
-  bool isClosed() => (_cmgr == null || _cmgr.isClosed() );
+  bool isClosed() => (_cmgr == null || _cmgr.isClosed());
 
   /**
    * Create a new LDAP connection to [host] and [port].
@@ -49,8 +48,9 @@ class LDAPConnection {
    * Optionally store a bind [_bindDN] and [_password] which can be used to
    * rebind to the connection
    */
-  LDAPConnection(String host, int port, [bool ssl =false, this._bindDN, this._password]) {
-    _cmgr = new ConnectionManager(host,port,ssl);
+  LDAPConnection(String host, int port,
+      [bool ssl = false, this._bindDN, this._password]) {
+    _cmgr = new ConnectionManager(host, port, ssl);
   }
 
   /**
@@ -62,7 +62,7 @@ class LDAPConnection {
    */
   Future<LDAPConnection> connect() {
     var c = new Completer<LDAPConnection>();
-    _cmgr.connect().then( (cx) {
+    _cmgr.connect().then((cx) {
       c.complete(this);
     }).catchError((e, st) {
       loggerConnection.severe("Connect error", e, st);
@@ -75,13 +75,12 @@ class LDAPConnection {
    * Perform an LDAP BIND. If the optional [bindDN] and [password] are not passed
    * the connections stored values are used for the bind.
    */
-  Future<LDAPResult> bind([String bindDN =null, String password =null]) {
-    if( bindDN != null )
+  Future<LDAPResult> bind([String bindDN = null, String password = null]) {
+    if (bindDN != null)
       return _cmgr.process(new BindRequest(bindDN, password));
     else
       return _cmgr.process(new BindRequest(_bindDN, _password));
   }
-
 
   /**
    * Search for ldap entries, starting at the [baseDN],
@@ -93,10 +92,13 @@ class LDAPConnection {
    *
    */
 
-  SearchResult search(String baseDN, Filter filter,
-      List<String> attributes, {int scope: SearchScope.SUB_LEVEL,int sizeLimit:0,
-        List<Control> controls:null}) =>
-          _cmgr.processSearch(new SearchRequest(baseDN,filter, attributes,scope,sizeLimit),controls);
+  SearchResult search(String baseDN, Filter filter, List<String> attributes,
+          {int scope: SearchScope.SUB_LEVEL,
+          int sizeLimit: 0,
+          List<Control> controls: null}) =>
+      _cmgr.processSearch(
+          new SearchRequest(baseDN, filter, attributes, scope, sizeLimit),
+          controls);
 
   /**
    * Add a new LDAP entry.
@@ -106,29 +108,30 @@ class LDAPConnection {
    *   or alternatively can be of type [Attribute]
    */
 
-  Future<LDAPResult> add(String dn, Map<String,dynamic> attrs) =>
-      _cmgr.process(new AddRequest(dn,Attribute.newAttributeMap(attrs)));
+  Future<LDAPResult> add(String dn, Map<String, dynamic> attrs) =>
+      _cmgr.process(new AddRequest(dn, Attribute.newAttributeMap(attrs)));
 
   /// Delete the ldap entry identified by [dn]
   Future<LDAPResult> delete(String dn) => _cmgr.process(new DeleteRequest(dn));
 
   /// Modify the ldap entry [dn] with the list of modifications [mods]
   Future<LDAPResult> modify(String dn, Iterable<Modification> mods) =>
-      _cmgr.process( new ModifyRequest(dn,mods));
+      _cmgr.process(new ModifyRequest(dn, mods));
 
   /// Modify the Entries [dn] to a new relative [rdn]. If [deleteOldRDN] is true
   /// delete the old entry. If [newSuperior] is not null, reparent the entry
   /// todo: consider making optional args as named args
-  Future<LDAPResult> modifyDN(String dn, String rdn,[bool deleteOldRDN = true, String newSuperior]) =>
-      _cmgr.process(new ModDNRequest(dn,rdn,deleteOldRDN, newSuperior));
+  Future<LDAPResult> modifyDN(String dn, String rdn,
+          [bool deleteOldRDN = true, String newSuperior]) =>
+      _cmgr.process(new ModDNRequest(dn, rdn, deleteOldRDN, newSuperior));
 
   /// perform an LDAP Compare operation on the [dn].
   /// Compare the [attrName] and [attrValue] to see if they are the same
   ///
   /// The completed [LDAPResult] will have a value of [ResultCode.COMPARE_TRUE]
   /// or [ResultCode.COMPARE_FALSE].
-  Future<LDAPResult> compare(String dn,String attrName,String attrValue) =>
-      _cmgr.process( new CompareRequest(dn, attrName, attrValue));
+  Future<LDAPResult> compare(String dn, String attrName, String attrValue) =>
+      _cmgr.process(new CompareRequest(dn, attrName, attrValue));
 
   // close the ldap connection. If [immediate] is true, close the
   // connection immediately. This could result in queued operations

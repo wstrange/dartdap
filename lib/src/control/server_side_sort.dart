@@ -1,10 +1,8 @@
 part of control;
 
-
 class ServerSideSortRequestControl extends Control {
-  static const OID =  "1.2.840.113556.1.4.473";
+  static const OID = "1.2.840.113556.1.4.473";
   String get oid => OID;
-
 
   // The BER type to use when encoding the orderingRule element.
   static const TYPE_ORDERING_RULE_ID = 0x80;
@@ -21,15 +19,18 @@ class ServerSideSortRequestControl extends Control {
 
     var sortKeyseq = new ASN1Sequence();
 
-    sortKeys.forEach( (key) {
+    sortKeys.forEach((key) {
       //_clogger.finest("Adding sort key $key");
       var s = new ASN1Sequence();
-      s.add( new ASN1OctetString(key.attributeDescription));
-      if( key.orderMatchingRule != null) {
-        s.add( new ASN1OctetString(key.orderMatchingRule,tag:TYPE_ORDERING_RULE_ID));
+      s.add(new ASN1OctetString(key.attributeDescription));
+      if (key.orderMatchingRule != null) {
+        s.add(new ASN1OctetString(key.orderMatchingRule,
+            tag: TYPE_ORDERING_RULE_ID));
       }
-      if( key.isReverseOrder ) {
-        var b = new ASN1Boolean(true,tag:TYPE_REVERSE_ORDER); //todo: we should support tag override for asn1 bool
+      if (key.isReverseOrder) {
+        var b = new ASN1Boolean(true,
+            tag:
+                TYPE_REVERSE_ORDER); //todo: we should support tag override for asn1 bool
         s.add(b);
       }
       sortKeyseq.add(s);
@@ -46,10 +47,5 @@ class ServerSideSortResponseControl extends Control {
   static const OID = "1.2.840.113556.1.4.474";
   String get oid => OID;
 
-
-  ServerSideSortResponseControl.fromASN1(ASN1OctetString s) {
-
-  }
-
-
+  ServerSideSortResponseControl.fromASN1(ASN1OctetString s) {}
 }

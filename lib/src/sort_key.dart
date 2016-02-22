@@ -1,5 +1,3 @@
-
-
 /**
  *
  *
@@ -36,18 +34,18 @@
  *      Extension for Server Side Sorting of Search Results| "http:tools.ietf.org/html/rfc2891"]
  */
 
-
 class SortKey {
-  bool isReverseOrder ;
+  bool isReverseOrder;
 
   // The name  or the OID of the matching rule, if specified,
   // which should be used when comparing attributes using this sort key.
   // if null a default matching rule will be used by the server
-  String orderMatchingRule ;
+  String orderMatchingRule;
   // the name of the attributed to be sorted using this sort key
   String attributeDescription;
 
-  SortKey(this.attributeDescription,[this.orderMatchingRule,this.isReverseOrder = false]);
+  SortKey(this.attributeDescription,
+      [this.orderMatchingRule, this.isReverseOrder = false]);
 
   String toString() =>
       "SortKey($attributeDescription,isreverse=$isReverseOrder,matchingRule:$orderMatchingRule)";
