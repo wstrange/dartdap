@@ -253,7 +253,6 @@ void doTest(String configName) {
 /// config/fine/finer/finest are not.
 ///
 void setupLogging([Level commonLevel = Level.OFF]) {
-
   Logger.root.onRecord.listen((LogRecord rec) {
     print('${rec.time}: ${rec.loggerName}: ${rec.level.name}: ${rec.message}');
   });

@@ -42,7 +42,6 @@ final testPersonAttrs = {
 /// Purge entries from the test to clean up
 
 Future purgeEntries(LDAPConnection ldap) async {
-
   // Purge test person
 
   try {
@@ -216,9 +215,8 @@ void doTests(String configName) {
     };
 
     expect(ldap.add(testPersonDN.dn, attrsMissingMandatory),
-    throwsA(new isInstanceOf<LDAPResult>()));
+        throwsA(new isInstanceOf<LDAPResult>()));
   });
-
 }
 
 //================================================================

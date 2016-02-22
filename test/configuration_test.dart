@@ -113,12 +113,15 @@ void main() {
 
     test("missing file throws exception", () async {
       try {
-        var ldap_conf = new LDAPConfiguration.fromFile("missing.yaml", "default");
+        var ldap_conf =
+            new LDAPConfiguration.fromFile("missing.yaml", "default");
         await ldap_conf.getConnection();
         expect(false, isTrue, reason: "Unreachable");
       } catch (e) {
-        expect(e,
-            new isInstanceOf<String>()); // TODO: code should be improved to give a meaningful exception
+        expect(
+            e,
+            new isInstanceOf<
+                String>()); // TODO: code should be improved to give a meaningful exception
       }
     });
 

@@ -57,7 +57,6 @@ Future populateEntries(LDAPConnection ldap) async {
 /// Clean up before/after testing.
 
 Future purgeEntries(LDAPConnection ldap) async {
-
   // Purge test person
 
   try {
@@ -133,7 +132,6 @@ void doTest(String configName) {
   //----------------
 
   test("deleting an entry with children raises an exception", () async {
-
     // Note: the test person entry is a child of the branch entry, so
     // the branch entry cannot be deleted.
 
