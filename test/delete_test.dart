@@ -126,7 +126,8 @@ void doTest(String configName) {
   test("deleting a non-existant entry raises an exception", () async {
     var nosuchDN = branchDN.concat("cn=NoSuchPerson");
 
-    expect(ldap.delete(nosuchDN.dn), throwsA(new isInstanceOf<LDAPResult>()));
+    expect(ldap.delete(nosuchDN.dn),
+        throwsA(new isInstanceOf<LdapResultNoSuchObjectException>()));
   });
 
   //----------------
@@ -135,7 +136,8 @@ void doTest(String configName) {
     // Note: the test person entry is a child of the branch entry, so
     // the branch entry cannot be deleted.
 
-    expect(ldap.delete(branchDN.dn), throwsA(new isInstanceOf<LDAPResult>()));
+    expect(ldap.delete(branchDN.dn),
+        throwsA(new isInstanceOf<LdapResultNotAllowedOnNonleafException>()));
   });
 }
 

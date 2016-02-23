@@ -59,9 +59,8 @@ void doTests(String configName) {
     for (var dn in [engineeringDN, salesDN, businessDevelopmentDN, supportDN]) {
       try {
         await ldap.delete(dn);
-      } on LDAPResult catch (e) {
+      } on LdapResultNoSuchObjectException catch (_) {
         // Ignore any exceptions (i.e. thrown when the entry normally does not exist)
-        assert(e.resultCode == ResultCode.NO_SUCH_OBJECT);
       }
     }
 
@@ -181,12 +180,15 @@ void doTests(String configName) {
     //----
     // Deleting a non-existent entry will raise an exception
 
+    var deleteFailed = false;
     try {
       await ldap.delete(salesDN);
       fail("Delete should not have succeeded: $salesDN");
-    } catch (e) {
-      expect(e.resultCode, equals(ResultCode.NO_SUCH_OBJECT));
     }
+    on LdapResultNoSuchObjectException catch (_) {
+      deleteFailed = true;
+    }
+    expect(deleteFailed, isTrue);
 
     //----
     // Close the connection

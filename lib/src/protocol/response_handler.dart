@@ -1,9 +1,8 @@
 part of ldap_protocol;
 
-class ResponseHandler {
-  LDAPMessage _ldapMessage;
-
-  ResponseHandler(this._ldapMessage);
+abstract class ResponseHandler {
+  //LDAPMessage _ldapMessage;
+  //ResponseHandler(this._ldapMessage);
 
   static ResponseOp handleResponse(LDAPMessage m) {
     loggeRecvLdap

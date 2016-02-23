@@ -158,7 +158,7 @@ class Filter {
         throw "Not Done yet. Fix me!!";
 
       default:
-        throw new LDAPException(
+        throw new LdapUsageException(
             "Unexpected filter type = $filterType. This should never happen");
     }
   }
@@ -193,7 +193,7 @@ class SubstringFilter extends Filter {
     // todo: We probaby need to properly escape special chars = and *
     var l = pattern.split("=");
     if (l.length != 2 || l[0] == "" || l[1] == "") {
-      throw new LDAPException(
+      throw new LdapUsageException(
           "Invalid substring pattern: expecting attr=match: '$pattern'");
     }
 
@@ -205,12 +205,12 @@ class SubstringFilter extends Filter {
     var x = matchString.split("*");
 
     if (x.length == 1) {
-      throw new LDAPException(
+      throw new LdapUsageException(
           "Invalid substring pattern: missing '*': '$pattern'");
     }
 
     if (!x.any((s) => s.isNotEmpty)) {
-      throw new LDAPException(
+      throw new LdapUsageException(
           "Invalid substring pattern: use \"present\" filter instead: '$pattern'");
     }
 

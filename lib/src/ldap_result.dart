@@ -7,13 +7,14 @@ import 'attribute.dart';
  */
 
 /**
-* LDAPResult - Sequuence
+* LDAPResult - Sequence
  *   resultCode (ENUM), matchedDN, errorMessage, referral (optional)
  *
  *
  *   Result Code
  *
- *   success                      (0),
+ *
+ *                           success                      (0),
                              operationsError              (1),
                              protocolError                (2),
                              timeLimitExceeded            (3),
@@ -68,12 +69,12 @@ import 'attribute.dart';
  *
  */
 
+//===============================================================
 /**
  * Generic LDAP Result
  */
 
 class LDAPResult {
-  //ResultCode _resultCode;
   int _resultCode;
   String _diagnosticMessage;
   String _matchedDN;
@@ -84,13 +85,20 @@ class LDAPResult {
   String get matchedDN => _matchedDN;
   List<String> get referralURLs => _referralURLs;
 
+  /// Constructor
+
   LDAPResult(this._resultCode, this._matchedDN, this._diagnosticMessage,
-      this._referralURLs);
+      this._referralURLs) {}
 
   String toString() =>
-      "${formatResultCode(resultCode)} msg=$_diagnosticMessage dn=$matchedDN";
+      ResultCode.message(_resultCode) +
+      ((_diagnosticMessage != null && _diagnosticMessage.isNotEmpty)
+          ? ": $_diagnosticMessage"
+          : "") +
+      ((_matchedDN != null && _matchedDN.isNotEmpty) ? ": $_matchedDN" : "");
 }
 
+//===============================================================
 /**
  * Holds a single SearchEntry result for a DN
  */
@@ -106,8 +114,7 @@ class SearchEntry {
   String toString() => "Entry[$_dn,$_attributes]";
 }
 
-String formatResultCode(int code) => "${ResultCode.getMessage(code)} ($code)";
-
+//===============================================================
 /**
  * LDAP Result Codes
  */
@@ -153,54 +160,74 @@ class ResultCode {
   static const int AFFECTS_MULTIPLE_DSAS = 71;
   static const int OTHER = 80;
 
-  static String getMessage(int code) {
-    switch (code) {
-      case OK:
-        return "OK";
-      case OPERATIONS_ERROR:
-        return "Operations Error";
-      case PROTOCOL_ERROR:
-        return "Protocol Error";
-      case TIME_LIMIT_EXCEEDED:
-        return "Time Limit Exceeded";
-      case SIZE_LIMIT_EXCEEDED:
-        return "Size Limit Exceeded";
-      case COMPARE_TRUE:
-        return "Compare True";
-      case COMPARE_FALSE:
-        return "Compare False";
-      case AUTH_METHOD_NOT_SUPPORTED:
-        return "Auth Method Not supported";
-      case STRONG_AUTH_REQUIRED:
-        return "String Auth Required";
-      case REFERRAL:
-        return "Referral";
-      case ADMIN_LIMIT_EXCEEDED:
-        return "Admin Limit Exceeded";
-      case UNAVAILABLE_CRITICAL_EXTENSION:
-        return "UNAVAILABLE_CRITICAL_EXTENSION";
-      case CONFIDENTIALITY_REQUIRED:
-        return "CONFIDENTIALITY_REQUIRED";
-      case SASL_BIND_IN_PROGRESS:
-        return "SASL_BIND_IN_PROGRESS";
-      case NO_SUCH_ATTRIBUTE:
-        return "NO_SUCH_ATTRIBUTE";
-      case UNDEFINED_ATTRIBUTE_TYPE:
-        return "Undefined Attribute Type";
-      case NO_SUCH_OBJECT:
-        return "Object does not exist";
-      case INVALID_CREDENTIALS:
-        return "Invalid Credentials";
-      case INSUFFICIENT_ACCESS_RIGHTS:
-        return "Insufficient Access Rights";
-      case ENTRY_ALREADY_EXISTS:
-        return "Entry already exists";
+  // Important: do not add constants without also adding a message for it below,
+  // creating a unique exception for it, and throwing that exception in
+  // [_FuturePendingOp.processResult]
 
-      // todo: Finish Mapping these. Most of the common error codes
-      // are mapped above.
+  static final Map<int, String> _messages = {
+    OK: "OK",
+    OPERATIONS_ERROR: "Operations error",
+    PROTOCOL_ERROR: "Protocol error",
+    TIME_LIMIT_EXCEEDED: "Time limit exceeded",
+    SIZE_LIMIT_EXCEEDED: "Size limit exceeded",
+    COMPARE_FALSE: "Compare false",
+    COMPARE_TRUE: "Compare true",
+    AUTH_METHOD_NOT_SUPPORTED: "Auth method not supported",
+    STRONG_AUTH_REQUIRED: "Strong auth required",
+    REFERRAL: "Referral",
+    ADMIN_LIMIT_EXCEEDED: "Admin limit exceeded",
+    UNAVAILABLE_CRITICAL_EXTENSION: "Unavailable critical extension",
+    CONFIDENTIALITY_REQUIRED: "Confidentiality required",
+    SASL_BIND_IN_PROGRESS: "SASL bind in progress",
+    NO_SUCH_ATTRIBUTE: "No such attribute",
+    UNDEFINED_ATTRIBUTE_TYPE: "Undefined attribute type",
+    INAPPROPRIATE_MATCHING: "Inappropriate matching",
+    CONSTRAINT_VIOLATION: "Constraint violation",
+    ATTRIBUTE_OR_VALUE_EXISTS: "Attribute or value exists",
+    INVALID_ATTRIBUTE_SYNTAX: "Invalid attribute syntax",
+    NO_SUCH_OBJECT: "No such object",
+    ALIAS_PROBLEM: "Alias problem",
+    INVALID_DN_SYNTAX: "Invalid DN syntax",
+    IS_LEAF: "Is leaf",
+    ALIAS_DEREFERENCING_PROBLEM: "Alias dereferencing problem",
+    INAPPROPRIATE_AUTHENTICATION: "Inappropriate authentication",
+    INVALID_CREDENTIALS: "Invalid credentials",
+    INSUFFICIENT_ACCESS_RIGHTS: "Insufficient access rights",
+    BUSY: "Busy",
+    UNAVAILABLE: "Unavailable",
+    UNWILLING_TO_PERFORM: "Unwilling to perform",
+    LOOP_DETECT: "Loop detect",
+    NAMING_VIOLATION: "Naming violation",
+    OBJECT_CLASS_VIOLATION: "Object class violation",
+    NOT_ALLOWED_ON_NONLEAF: "Not allowed on nonleaf",
+    NOT_ALLOWED_ON_RDN: "Not allowed on RDN",
+    ENTRY_ALREADY_EXISTS: "Entry already exists",
+    OBJECT_CLASS_MODS_PROHIBITED: "Object class mods prohibited",
+    AFFECTS_MULTIPLE_DSAS: "Affects multiple DSAS",
+    OTHER: "Other"
+  };
 
-      default:
-        return "LDAP Error code ${code}";
-    }
-  }
+  /// Returns a human readable string describing the result [code].
+
+  static String message(int code) =>
+      _messages[code] ?? "LDAP result code $code";
+
+  //===============================================================
+
+  /// The integer value of the result code.
+
+  int _value;
+
+  /// Constructor from an integer value.
+
+  ResultCode(this._value) {}
+
+  /// The equality operator
+  ///
+  /// Returns true if and only if the [value] of the two are the same.
+
+  bool operator ==(ResultCode that) =>
+      (that is ResultCode && this._value == that._value);
+
+  String toString() => message(_value);
 }

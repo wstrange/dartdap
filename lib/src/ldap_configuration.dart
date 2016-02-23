@@ -160,10 +160,10 @@ class LDAPConfiguration {
       var m = configMap[_file_entry];
 
       if (m == null) {
-        throw new LDAPException("${_file_name}: missing \"${_file_entry}\"");
+        throw new LdapConfigException("${_file_name}: missing \"${_file_entry}\"");
       }
       if (!(m is Map)) {
-        throw new LDAPException(
+        throw new LdapConfigException(
             "${_file_name}: \"${_file_entry}\" is not a map");
       }
 
@@ -171,11 +171,11 @@ class LDAPConfiguration {
 
       var host_value = m["host"];
       if (host_value == null) {
-        throw new LDAPException(
+        throw new LdapConfigException(
             "${_file_name}: \"${_file_entry}\" missing \"host\"");
       }
       if (!(host_value is String)) {
-        throw new LDAPException(
+        throw new LdapConfigException(
             "${_file_name}: host in \"${_file_entry}\" is not a string");
       }
 
@@ -183,7 +183,7 @@ class LDAPConfiguration {
 
       var port_value = m["port"];
       if (port_value != null && !(port_value is int)) {
-        throw new LDAPException(
+        throw new LdapConfigException(
             "${_file_name}: port in \"${_file_entry}\" is not an int");
       }
 
@@ -191,7 +191,7 @@ class LDAPConfiguration {
 
       var ssl_value = m["ssl"];
       if (ssl_value != null && !(ssl_value is bool)) {
-        throw new LDAPException(
+        throw new LdapConfigException(
             "${_file_name}: ssl in \"${_file_entry}\" is not true/false");
       }
 
@@ -199,7 +199,7 @@ class LDAPConfiguration {
 
       var bindDN_value = m["bindDN"];
       if (bindDN_value != null && !(bindDN_value is String)) {
-        throw new LDAPException(
+        throw new LdapConfigException(
             "${_file_name}: bindDN in \"${_file_entry}\" is not a string");
       }
 
@@ -207,7 +207,7 @@ class LDAPConfiguration {
 
       var password_value = m["password"];
       if (password_value != null && !(password_value is String)) {
-        throw new LDAPException(
+        throw new LdapConfigException(
             "${_file_name}: password in \"${_file_entry}\" is not a string");
       }
 
@@ -231,6 +231,17 @@ class LDAPConfiguration {
   /// [LDAPConfiguration] or by invoking the [LDAPConnection.close] method on the
   /// connection object.  Either approach will cause subsequent calls to
   /// this [getConnection] method to open a new LDAP connection.
+  ///
+  /// If the host is not resolvable, a [SocketException] is thrown
+  /// with osError.errorCode of 8 (nodename nor servname provided, or not known).
+  ///
+  /// If the host is resolvable, but the port cannot be contacted, a
+  /// [SocketException] is thrown with osError.errorCode of 61 (Connection refused).
+  ///
+  /// If the protocol handshake is not recognised, a [HandshakeException] is
+  /// thrown. For example, this happens when trying to establish a LDAPS
+  /// connection to a LDAP service. Note: trying to establish a LDAP
+  /// connection to a LDAPS service hangs and timesout.
 
   Future<LDAPConnection> getConnection([bool doBind = true]) async {
     if (_connection != null && !_connection.isClosed()) {
@@ -251,7 +262,7 @@ class LDAPConfiguration {
 
     if (doBind) {
       var r = await _connection.bind();
-      if (r.resultCode != 0) throw new LDAPException("BIND Failed", r);
+      assert(r.resultCode == 0); // otherwise an exception was thrown
     }
 
     return _connection;

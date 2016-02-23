@@ -141,7 +141,7 @@ void doTests(String configName) {
     // Attempt to add an entry with the same DN
 
     expect(ldap.add(branchDN.dn, newAttrs),
-        throwsA(new isInstanceOf<LDAPResult>()));
+        throwsA(new isInstanceOf<LdapResultEntryAlreadyExistsException>()));
 
     // The original entry is present and unchanged
 
@@ -195,7 +195,7 @@ void doTests(String configName) {
     // Attempt to add the test person (without first adding the branch entry)
 
     expect(ldap.add(testPersonDN.dn, testPersonAttrs),
-        throwsA(new isInstanceOf<LDAPResult>()));
+        throwsA(new isInstanceOf<LdapResultNoSuchObjectException>()));
   });
 
   //----------------
@@ -215,7 +215,7 @@ void doTests(String configName) {
     };
 
     expect(ldap.add(testPersonDN.dn, attrsMissingMandatory),
-        throwsA(new isInstanceOf<LDAPResult>()));
+        throwsA(new isInstanceOf<LdapResultObjectClassViolationException>()));
   });
 }
 

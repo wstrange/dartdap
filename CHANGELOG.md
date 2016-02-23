@@ -3,6 +3,7 @@
 * 0.1.0 TBD
 
 - Reformatted using Dart dartfmt for code consistency.
+- Refactored exceptions and created LdapResultExceptions for all result codes.
 
 * 0.0.9 2016-01-15
 

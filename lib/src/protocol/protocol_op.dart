@@ -39,7 +39,7 @@ class ResponseOp {
   List<Control> _controls = [];
 
   List<Control> get controls => _controls;
-  int _opCode;
+  // int _opCode;
 
   // type for LDAP refereals urls in ldapresults
   static const int TYPE_REFERRAL_URLS = 0xA3;

@@ -53,22 +53,18 @@ class LDAPConnection {
     _cmgr = new ConnectionManager(host, port, ssl);
   }
 
-  /**
-   * Open a connection to the LDAP server. This does NOT
-   * perform a BIND operation. If the LDAP server
-   * supports anonymous bind, you can send ldap commands
-   * after the connect completes.
-   *
-   */
-  Future<LDAPConnection> connect() {
-    var c = new Completer<LDAPConnection>();
-    _cmgr.connect().then((cx) {
-      c.complete(this);
-    }).catchError((e, st) {
-      loggerConnection.severe("Connect error", e, st);
-      c.completeError(e);
-    });
-    return c.future;
+  /// Establishes a connection to the LDAP server without binding to it.
+  ///
+  /// This does **not** perform a BIND operation.
+  ///
+  /// See [ConnectionManager.connect] for exceptions thrown.
+  ///
+  /// If the LDAP server supports anonymous bind, LDAP commands can be sent
+  /// after the connect completes.
+
+  Future<LDAPConnection> connect() async {
+    await _cmgr.connect();
+    return this;
   }
 
   /**

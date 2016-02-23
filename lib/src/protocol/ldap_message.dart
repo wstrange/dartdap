@@ -76,9 +76,6 @@ class LDAPMessage {
         loggerSendLdap.finest("Adding control $control");
       });
     }
-
-    String toString() =>
-        "LDAPMessage(id=$_messageId $protocolOp controls=$_controls";
   }
 
   /// Constructs an LDAP message from list of raw bytes.
@@ -86,9 +83,13 @@ class LDAPMessage {
   LDAPMessage.fromBytes(Uint8List bytes) {
     _obj = new ASN1Sequence.fromBytes(bytes);
 
-    checkCondition(_obj != null, "Parsing error on ${bytes}");
-    checkCondition(elements.length == 2 || elements.length == 3,
-        "Expecting two or three elements.actual = ${elements.length} obj=$_obj");
+    if (_obj == null) {
+      throw new LdapParseException("Parsing error on ${bytes}");
+    }
+    if (elements.length != 2 && elements.length != 3) {
+      throw new LdapParseException("Expecting 2 or 3 elements: got ${elements
+              .length} obj=$_obj");
+    }
 
     var i = elements[0] as ASN1Integer;
     _messageId = i.intValue;

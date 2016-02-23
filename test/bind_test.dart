@@ -5,6 +5,7 @@
 import 'dart:io';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
+import 'package:matcher/mirror_matchers.dart';
 
 //----------------------------------------------------------------
 
@@ -62,13 +63,15 @@ main() {
 
       expect(config.getConnection(),
           throwsA(new isInstanceOf<HandshakeException>()));
+      // Connection terminated during handshake
     });
 
     //----------------
 
     /*
-    test("using LDAP on LDAPS", () async {
+    // Test does not work yet: can't capture the timeout exception
 
+    test("using LDAP on LDAPS", () async {
       var config = new LDAPConfiguration(secured.host,
           ssl: false, // LDAP
           port: secured.port,
@@ -76,17 +79,14 @@ main() {
           password: secured.password);
       var ldap = await config.getConnection();
 
-      expect(
-          config.getConnection(),
-          throwsA(new isInstanceOf<HandshakeException>())
-             );
+      expect(config.getConnection(),
+          throwsA(new isInstanceOf<TimeoutException>())); // TODO: fix
 
       ldap.close();
     },
-        timeout: new Timeout(new Duration(minutes: 10))
-        , skip: "this never fails and the test timesout"
-      );
-    */
+        timeout: new Timeout(new Duration(seconds: 10)),
+        skip: "this never fails and the test timesout");
+        */
   });
 
   //----------------------------------------------------------------
@@ -100,9 +100,9 @@ main() {
           password: plain.password);
 
       expect(
-          config.getConnection(), throwsA(new isInstanceOf<SocketException>()));
-
-      // errno=8; nodename nor servname provided
+          config.getConnection(),
+          throwsA(allOf(new isInstanceOf<LdapSocketServerNotFoundException>(),
+              hasProperty("remoteServer", badHost))));
     });
 
     test("using LDAPS on non-existant host", () async {
@@ -111,8 +111,11 @@ main() {
           port: secured.port,
           bindDN: secured.bindDN,
           password: secured.password);
+
       expect(
-          config.getConnection(), throwsA(new isInstanceOf<SocketException>()));
+          config.getConnection(),
+          throwsA(allOf(new isInstanceOf<LdapSocketServerNotFoundException>(),
+              hasProperty("remoteServer", badHost))));
     });
 
     test("using LDAP on non-existant port", () async {
@@ -123,8 +126,12 @@ main() {
           password: plain.password);
 
       expect(
-          config.getConnection(), throwsA(new isInstanceOf<SocketException>()));
-      // errno = 61 connection refused
+          config.getConnection(),
+          throwsA(allOf(
+              new isInstanceOf<LdapSocketRefusedException>(),
+              hasProperty("remoteServer", plain.host),
+              hasProperty("remotePort", badPort),
+              hasProperty("localPort"))));
     });
 
     test("using LDAPS on non-existant port", () async {
@@ -135,7 +142,12 @@ main() {
           password: secured.password);
 
       expect(
-          config.getConnection(), throwsA(new isInstanceOf<SocketException>()));
+          config.getConnection(),
+          throwsA(allOf(
+              new isInstanceOf<LdapSocketRefusedException>(),
+              hasProperty("remoteServer", secured.host),
+              hasProperty("remotePort", badPort),
+              hasProperty("localPort"))));
     });
   });
 
@@ -152,40 +164,24 @@ main() {
 
     test('with default credentials', () async {
       var result = await ldap.bind();
-      expect(result.resultCode, equals(0));
+      expect(result, new isInstanceOf<LDAPResult>());
+      expect(result.resultCode, equals(ResultCode.OK));
     });
 
     test('with explicit credentials', () async {
-      return ldap.bind(plain.bindDN, plain.password).then((c) {
-        // print("got result $c ${c.runtimeType}");
-      });
-    });
-
-    test('with explicit credentials using async', () async {
-      try {
-        var r = await ldap.bind(plain.bindDN, plain.password);
-        expect(r.resultCode, equals(0));
-      } catch (e) {
-        fail("unexpected exception $e");
-      }
+      var result = await ldap.bind(plain.bindDN, plain.password);
+      expect(result, new isInstanceOf<LDAPResult>());
+      expect(result.resultCode, equals(ResultCode.OK));
     });
 
     test('with bad DN fails', () async {
-      try {
-        await ldap.bind("cn=unknown,dc=example,dc=com", plain.password);
-        fail("Should not be able to bind to a bad DN");
-      } catch (e) {
-        expect(e.resultCode, equals(ResultCode.INVALID_CREDENTIALS));
-      }
+      expect(ldap.bind("cn=unknown,dc=example,dc=com", plain.password),
+          throwsA(allOf(new isInstanceOf<LdapResultInvalidCredentialsException>())));
     });
 
     test('with incorrect password fails', () async {
-      try {
-        await ldap.bind(plain.bindDN, "thisIsNotThePassword");
-        fail("Should not be able to bind with an incorrect password");
-      } catch (e) {
-        expect(e.resultCode, equals(ResultCode.INVALID_CREDENTIALS));
-      }
+      expect(ldap.bind(plain.bindDN, "thisIsNotThePassword"),
+          throwsA(allOf(new isInstanceOf<LdapResultInvalidCredentialsException>())));
     });
   }); // end group
 }

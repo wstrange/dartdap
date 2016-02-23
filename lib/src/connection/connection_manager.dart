@@ -82,28 +82,177 @@ class _FuturePendingOp extends _PendingOp {
 
   bool processResult(ResponseOp op) {
     var ldapResult = op.ldapResult;
-    if (_isError(ldapResult.resultCode)) {
-      completer.completeError(ldapResult);
-    } else {
-      completer.complete(ldapResult);
-    }
-    done();
-    return true;
-  }
 
-  // return true if the result code is an error
-  // any result code that you want to generate a [Future] error
-  // should return true here. If the caller is normally
-  // expecting to get a result code back this should return false.
-  // example: for LDAP compare the caller wants to know the result
-  // so we dont generate an error -but let the result code propagate back
-  bool _isError(int resultCode) {
-    switch (resultCode) {
-      case 0:
-      case ResultCode.COMPARE_TRUE:
-      case ResultCode.COMPARE_FALSE:
-        return false;
+    if (ldapResult.resultCode == ResultCode.OK ||
+        ldapResult.resultCode == ResultCode.COMPARE_FALSE ||
+        ldapResult.resultCode == ResultCode.COMPARE_TRUE) {
+      // These are not treated as errors. Let the result code propagate back.
+      completer.complete(ldapResult);
+    } else {
+      // Everything else is treated as an error
+
+      var e;
+
+      switch (ldapResult.resultCode) {
+        case ResultCode.OPERATIONS_ERROR:
+          e = new LdapResultOperationsErrorException(ldapResult);
+          break;
+
+        case ResultCode.PROTOCOL_ERROR:
+          e = new LdapResultProtocolErrorException(ldapResult);
+          break;
+
+        case ResultCode.TIME_LIMIT_EXCEEDED:
+          e = new LdapResultTimeLimitExceededException(ldapResult);
+          break;
+
+        case ResultCode.SIZE_LIMIT_EXCEEDED:
+          e = new LdapResultSizeLimitExceededException(ldapResult);
+          break;
+
+        case ResultCode.AUTH_METHOD_NOT_SUPPORTED:
+          e = new LdapResultAuthMethodNotSupportedException(ldapResult);
+          break;
+
+        case ResultCode.STRONG_AUTH_REQUIRED:
+          e = new LdapResultStrongAuthRequiredException(ldapResult);
+          break;
+
+        case ResultCode.REFERRAL:
+          e = new LdapResultReferralException(ldapResult);
+          break;
+
+        case ResultCode.ADMIN_LIMIT_EXCEEDED:
+          e = new LdapResultAdminLimitExceededException(ldapResult);
+          break;
+
+        case ResultCode.UNAVAILABLE_CRITICAL_EXTENSION:
+          e = new LdapResultUnavailableCriticalExtensionException(ldapResult);
+          break;
+
+        case ResultCode.CONFIDENTIALITY_REQUIRED:
+          e = new LdapResultConfidentialityRequiredException(ldapResult);
+          break;
+
+        case ResultCode.SASL_BIND_IN_PROGRESS:
+          e = new LdapResultSaslBindInProgressException(ldapResult);
+          break;
+
+        case ResultCode.NO_SUCH_ATTRIBUTE:
+          e = new LdapResultNoSuchAttributeException(ldapResult);
+          break;
+
+        case ResultCode.UNDEFINED_ATTRIBUTE_TYPE:
+          e = new LdapResultUndefinedAttributeTypeException(ldapResult);
+          break;
+
+        case ResultCode.INAPPROPRIATE_MATCHING:
+          e = new LdapResultInappropriateMatchingException(ldapResult);
+          break;
+
+        case ResultCode.CONSTRAINT_VIOLATION:
+          e = new LdapResultConstraintViolationException(ldapResult);
+          break;
+
+        case ResultCode.ATTRIBUTE_OR_VALUE_EXISTS:
+          e = new LdapResultAttributeOrValueExistsException(ldapResult);
+          break;
+
+        case ResultCode.INVALID_ATTRIBUTE_SYNTAX:
+          e = new LdapResultInvalidAttributeSyntaxException(ldapResult);
+          break;
+
+        case ResultCode.NO_SUCH_OBJECT:
+          e = new LdapResultNoSuchObjectException(ldapResult);
+          break;
+
+        case ResultCode.ALIAS_PROBLEM:
+          e = new LdapResultAliasProblemException(ldapResult);
+          break;
+
+        case ResultCode.INVALID_DN_SYNTAX:
+          e = new LdapResultInvalidDnSyntaxException(ldapResult);
+          break;
+
+        case ResultCode.IS_LEAF:
+          e = new LdapResultIsLeafException(ldapResult);
+          break;
+
+        case ResultCode.ALIAS_DEREFERENCING_PROBLEM:
+          e = new LdapResultAliasDereferencingProblemException(ldapResult);
+          break;
+
+        case ResultCode.INAPPROPRIATE_AUTHENTICATION:
+          e = new LdapResultInappropriateAuthenticationException(ldapResult);
+          break;
+
+        case ResultCode.INVALID_CREDENTIALS:
+          e = new LdapResultInvalidCredentialsException(ldapResult);
+          break;
+
+        case ResultCode.INSUFFICIENT_ACCESS_RIGHTS:
+          e = new LdapResultInsufficientAccessRightsException(ldapResult);
+          break;
+
+        case ResultCode.BUSY:
+          e = new LdapResultBusyException(ldapResult);
+          break;
+
+        case ResultCode.UNAVAILABLE:
+          e = new LdapResultUnavailableException(ldapResult);
+          break;
+
+        case ResultCode.UNWILLING_TO_PERFORM:
+          e = new LdapResultUnwillingToPerformException(ldapResult);
+          break;
+
+        case ResultCode.LOOP_DETECT:
+          e = new LdapResultLoopDetectException(ldapResult);
+          break;
+
+        case ResultCode.NAMING_VIOLATION:
+          e = new LdapResultNamingViolationException(ldapResult);
+          break;
+
+        case ResultCode.OBJECT_CLASS_VIOLATION:
+          e = new LdapResultObjectClassViolationException(ldapResult);
+          break;
+
+        case ResultCode.NOT_ALLOWED_ON_NONLEAF:
+          e = new LdapResultNotAllowedOnNonleafException(ldapResult);
+          break;
+
+        case ResultCode.NOT_ALLOWED_ON_RDN:
+          e = new LdapResultNotAllowedOnRdnException(ldapResult);
+          break;
+
+        case ResultCode.ENTRY_ALREADY_EXISTS:
+          e = new LdapResultEntryAlreadyExistsException(ldapResult);
+          break;
+
+        case ResultCode.OBJECT_CLASS_MODS_PROHIBITED:
+          e = new LdapResultObjectClassModsProhibitedException(ldapResult);
+          break;
+
+        case ResultCode.AFFECTS_MULTIPLE_DSAS:
+          e = new LdapResultAffectsMultipleDsasException(ldapResult);
+          break;
+
+        case ResultCode.OTHER:
+          e = new LdapResultOtherException(ldapResult);
+          break;
+
+        default:
+          assert(ldapResult.resultCode != ResultCode.OK);
+          assert(ldapResult.resultCode != ResultCode.COMPARE_FALSE);
+          assert(ldapResult.resultCode != ResultCode.COMPARE_TRUE);
+          e = new LdapResultUnknownCodeException(ldapResult);
+          break;
+      }
+      completer.completeError(e);
     }
+
+    done();
     return true;
   }
 }
@@ -139,20 +288,49 @@ class ConnectionManager {
 
   ConnectionManager(this._host, this._port, this._ssl);
 
+  /// Establishes a network connection to the LDAP server.
+  ///
+  /// Throws a [LdapSocketException] if a socket exception occurs.
+  /// Two particular socket exceptions are detected.
+  /// Throws a [LdapSocketServerNotFoundException] if the server cannot
+  /// be found.
+  /// Throws a [LdapSocketRefusedException] if the port on the server
+  /// cannot be connected to.
+
   Future<ConnectionManager> connect() async {
     loggerConnection
         .finer("Opening ${_ssl ? "secure " : ""}socket to ${_host}:${_port}");
-    var s = (_ssl
-        ? SecureSocket.connect(_host, _port, onBadCertificate: _badCertHandler)
-        : Socket.connect(_host, _port));
 
-    _socket = await s;
+    try {
+      var s = (_ssl
+          ? SecureSocket.connect(_host, _port,
+              onBadCertificate: _badCertHandler)
+          : Socket.connect(_host, _port));
 
-    _socket.transform(createTransformer()).listen((m) => _handleLDAPMessage(m),
-        onError: (error, stacktrace) {
-      loggerConnection.finer("Socket error", error, stacktrace);
-      throw new LDAPException("Socket error = $error stacktrace=${stacktrace}");
-    });
+      _socket = await s;
+
+      _socket
+          .transform(createTransformer())
+          .listen((m) => _handleLDAPMessage(m), onError: (error, stacktrace) {
+        loggerConnection.finer("Socket error", error, stacktrace);
+        if (error is SocketException) {
+          throw new LdapSocketException(error);
+        } else {
+          throw error;
+        }
+      });
+    } on SocketException catch (e) {
+      if (e.osError != null) {
+        if (e.osError.errorCode == 61) {
+          // errorCode 61 = "Connection refused"
+          throw new LdapSocketRefusedException(e, _host, _port);
+        } else if (e.osError.errorCode == 8) {
+          // errorCode 8 = "nodename nor servname provided, or not known"
+          throw new LdapSocketServerNotFoundException(e, _host);
+        }
+      }
+      rethrow;
+    }
 
     loggerConnection
         .fine("Opened ${_ssl ? "secure " : ""}socket to $_host:$_port");
@@ -291,7 +469,7 @@ class ConnectionManager {
     // we should throw an exception or try to ignore the error bytes
     // and carry on....
     if (pending_op == null)
-      throw new LDAPException(
+      throw new LdapParseException(
           "Server sent us an unknown message id = ${m.messageId} opCode=${m.protocolTag}");
 
     if (pending_op.processResult(rop)) {
