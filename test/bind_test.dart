@@ -4,8 +4,9 @@
 
 import 'dart:io';
 import 'package:test/test.dart';
-import 'package:dartdap/dartdap.dart';
 import 'package:matcher/mirror_matchers.dart';
+
+import 'package:dartdap/dartdap.dart';
 
 //----------------------------------------------------------------
 

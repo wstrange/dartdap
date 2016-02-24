@@ -3,8 +3,9 @@
 //----------------------------------------------------------------
 
 import 'package:test/test.dart';
-import 'package:dartdap/dartdap.dart';
 import 'package:logging/logging.dart';
+
+import 'package:dartdap/dartdap.dart';
 
 //----------------------------------------------------------------
 
@@ -60,7 +61,7 @@ void doTests(String configName) {
       try {
         await ldap.delete(dn);
       } on LdapResultNoSuchObjectException catch (_) {
-        // Ignore any exceptions (i.e. thrown when the entry normally does not exist)
+        // Ignore these exceptions, since the entry normally does not exist to be deleted
       }
     }
 
@@ -131,22 +132,21 @@ void doTests(String configName) {
     //----------------
     // Search
 
+    var baseDN = "dc=example,dc=com";
     var queryAttrs = ["ou", "objectClass"];
+    var filter = Filter.equals("ou", "Engineering");
 
     //TODO:  ldap.onError = expectAsync((e) => expect(false, 'Should not be reached'), count: 0);
 
     // ou=Engineering
 
-    var filter = Filter.equals("ou", "Engineering");
-
     int numFound = 0;
-    await for (var entry
-        in ldap.search("dc=example,dc=com", filter, queryAttrs).stream) {
+    await for (var entry in ldap.search(baseDN, filter, queryAttrs).stream) {
       expect(entry, new isInstanceOf<SearchEntry>());
       numFound++;
     }
     expect(numFound, equals(1),
-        reason: "Did not find expected number of entries in (ou=Engineering)");
+        reason: "Unexpected number of entries in (ou=Engineering)");
 
     /*
     // not(ou=Engineering)
@@ -184,8 +184,7 @@ void doTests(String configName) {
     try {
       await ldap.delete(salesDN);
       fail("Delete should not have succeeded: $salesDN");
-    }
-    on LdapResultNoSuchObjectException catch (_) {
+    } on LdapResultNoSuchObjectException catch (_) {
       deleteFailed = true;
     }
     expect(deleteFailed, isTrue);

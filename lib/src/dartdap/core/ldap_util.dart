@@ -1,4 +1,4 @@
-library ldap_util;
+part of dartdap;
 
 // todo: why a class? Make a top level functions?
 class LDAPUtil {

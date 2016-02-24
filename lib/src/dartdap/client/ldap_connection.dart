@@ -1,35 +1,50 @@
-library ldap_connection;
+part of dartdap;
 
-import 'connection/connection_manager.dart';
-import 'dart:async';
-import 'filter.dart';
-import 'attribute.dart';
-import 'modification.dart';
-import 'ldap_result.dart';
-import 'protocol/ldap_protocol.dart';
-import 'search_scope.dart';
-import 'control/control.dart';
-import 'search_result.dart';
+/// Operations that we can invoke on an LDAP server
+///
+/// ## Usage
+///
+/// Use the [connect] method to connect to the LDAP server, perform operations,
+/// and [close] the connection when finished with it.
+///
+/// If authentication is required, perform a [bind] operation. Otherwise, the
+/// operations will be performed anonymously.
+///
+/// ## LDAP operations
+///
+/// Available LDAP operations are:
+///
+/// - [add]
+/// - [bind] - to authenticate to the LDAP server
+/// - [compare]
+/// - [delete]
+/// - [modify]
+/// - [modifyDN]
+/// - [search]
+///
+/// All of these methods return an [LDAPResult] object in a [Future], but usually
+/// it can be ignored.
+///
+/// The result's resultCode value will always be either [ResultCode.OK],
+/// [ResultCode.COMPARE_FALSE] or [ResultCode.COMPARE_TRUE] - with the last two
+/// values only occuring when performing a _compare_ operation.  If the
+/// resultCode is any other value, instead of returning the result, a subclass
+/// of [LdapResultException] will be thrown. So the returned resultCode does not
+/// provide any useful information, except in the case of the _compare_ operation.
+/// 
+/// ## Asynchronicity
+///
+/// With the exception of a _bind_ operation, LDAP operations
+/// are asynchronous. A program does not need to wait for the current
+/// operation to complete before sending the next one.
+/// 
+/// LDAP return results are matched to requests using a message id. They
+/// are not guaranteed to be returned in the same order they were sent.
+/// 
+/// There is currently no flow control. Messages will be queued and sent
+/// to the LDAP server as fast as possible. Messages are sent in in the order in
+/// which they are queued.
 
-/**
- * Operations that we can invoke on an LDAP server
- *
- * Most users will want to obtain a [LDAPConnection] using the
- * [LDAPConfiguration] class.
- *
- * With the exception of a BIND operation, LDAP operations
- * are asynchronous. We do not need to wait for the current
- * operation completes before sending the next one.
- *
- * LDAP return results are matched to requests using a message id. They
- * are not guaranteed to be returned in the same order they
- * were sent.
- *
- * There is currently no flow control. Messages will be queued and sent
- * to the LDAP server as fast as possible. Messages are sent in in the order in
- * which they are queued.
- *
- */
 class LDAPConnection {
   ConnectionManager _cmgr;
 
@@ -59,7 +74,7 @@ class LDAPConnection {
   ///
   /// See [ConnectionManager.connect] for exceptions thrown.
   ///
-  /// If the LDAP server supports anonymous bind, LDAP commands can be sent
+  /// If the LDAP server supports anonymous _bind_, LDAP commands can be sent
   /// after the connect completes.
 
   Future<LDAPConnection> connect() async {
@@ -78,15 +93,29 @@ class LDAPConnection {
       return _cmgr.process(new BindRequest(_bindDN, _password));
   }
 
-  /**
-   * Search for ldap entries, starting at the [baseDN],
-   * specified by the search [filter].
-   * Return the listed [attributes].
-   *
-   * [scope] is optional, and defaults to SUB_LEVEL (i.e.
-   * search at base DN and all objects below it).
-   *
-   */
+  /// Performs an LDAP search operation.
+  ///
+  /// Searches for LDAP entries, starting at the [baseDN],
+  /// specified by the search [filter], and obtains the listed [attributes].
+  ///
+  /// The [scope] of the search defaults to SUB_LEVEL (i.e.
+  /// search at base DN and all objects below it) if it is not provided.
+  ///
+  /// The [sizeLimit] defaults to 0 (i.e. no limit).
+  ///
+  /// An optional list of [controls] can also be provided.
+  ///
+  /// Example:
+  ///
+  ///     var base = "dc=example,dc=com";
+  ///     var filter = Filter.present("objectClass");
+  ///     var attrs = ["dc", "objectClass"];
+  ///   
+  ///     await for (var entry in connection.search(base, filter, attrs).stream) {
+  ///       // process the entry (SearchEntry)
+  ///       // entry.dn = distinguished name (String)
+  ///       // entry.attributes = attributes returned (Map<String,Attribute>)
+  ///     }
 
   SearchResult search(String baseDN, Filter filter, List<String> attributes,
           {int scope: SearchScope.SUB_LEVEL,

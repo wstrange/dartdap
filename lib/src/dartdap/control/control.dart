@@ -1,13 +1,8 @@
-library control;
+part of dartdap;
 
-import 'package:asn1lib/asn1lib.dart';
-import 'package:logging/logging.dart';
-import '../sort_key.dart';
+/// Logger for the control section of dartdap.
 
-part 'virtual_list_view.dart';
-part 'server_side_sort.dart';
-
-var _clogger = new Logger("ldap.control");
+Logger _clogger = new Logger("ldap.control");
 
 /**
  * An LDAP Control

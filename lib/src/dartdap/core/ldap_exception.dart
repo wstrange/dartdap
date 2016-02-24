@@ -1,11 +1,47 @@
-library ldap_exception;
-
-import 'dart:io';
-import 'ldap_result.dart';
+part of dartdap;
 
 //===============================================================
 
-/// Base class for all LDAP exceptions.
+/// Abstract base class for all LDAP exceptions.
+///
+/// The _dartdap_ package throws instances of a subclass of the abstract
+/// [LdapException] class.
+/// 
+/// The [LdapUsageException] is thrown when the package has been
+/// incorrectly used (e.g. methods invoked with the wrong parameters).
+/// 
+/// The [LdapSocketException], and subclasses of it, are thrown when there
+/// is a problem with the network connection. Most commonly,
+/// [LdapSocketServerNotFoundException] when the server's host name is
+/// incorrect or [LdapSocketRefusedException] when it cannot connect to
+/// the LDAP server (e.g. wrong port number, is blocked, or the LDAP
+/// directory is not running).
+/// 
+/// The [LdapParseException] is thrown if there is a parsing error with
+/// the LDAP messages received.
+/// 
+/// Subclasses of the abstract [LdapResultException] are thrown when a
+/// LDAP result is received indicating an error has occured.  Any LDAP
+/// result code, except for "OK", "COMPARE_FALSE" or "COMPARE_TRUE", are
+/// treated as an error (constants for the result codes are defined in the
+/// [ResultCode] class). There are over 30 such classes, whose name all
+/// are of the form "LdapResult...Exception".  Commonly encountered ones
+/// are:
+/// 
+/// - [LdapResultInvalidCredentialsException] when the BIND distinguished
+///   name or password are incorrect.
+/// 
+/// - [LdapResultNoSuchObjectException] when a necessary entry is missing.
+/// 
+/// - [LdapResultEntryAlreadyExistsException] when creating an
+///   entry that already exists.
+/// 
+/// - [LdapResultObjectClassViolationException] when the LDAP schema rules
+///   would be violated.
+
+// Note: this documentation should go into the README.md file, but in there
+// the hyperlinks to the classes won't work. So it is better putting it
+// here to make the documentation more useful.
 
 abstract class LdapException implements Exception {
   String _message;

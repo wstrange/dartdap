@@ -1,16 +1,12 @@
+/// LDAP protocol messages.
+
 library ldap_protocol;
 
 import 'dart:typed_data';
 import 'package:asn1lib/asn1lib.dart';
 import 'package:logging/logging.dart';
 
-import '../filter.dart';
-import '../ldap_exception.dart';
-import '../ldap_result.dart';
-import '../attribute.dart';
-import '../search_scope.dart';
-import '../modification.dart';
-import '../control/control.dart';
+import 'package:dartdap/dartdap.dart';
 
 part 'protocol_op.dart';
 part 'bind_request.dart';

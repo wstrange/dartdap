@@ -1,4 +1,4 @@
-library modification;
+part of dartdap;
 
 /**
  * An LDAP modification operation type.

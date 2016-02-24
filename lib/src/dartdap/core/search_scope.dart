@@ -1,4 +1,4 @@
-library search_scope;
+part of dartdap;
 
 class SearchScope {
   static const int BASE_LEVEL = 0;

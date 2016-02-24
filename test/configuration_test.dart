@@ -7,6 +7,7 @@
 
 import 'dart:math';
 import 'package:test/test.dart';
+
 import 'package:dartdap/dartdap.dart';
 
 const String CONFIG_FILE = "test/configuration_test.yaml";

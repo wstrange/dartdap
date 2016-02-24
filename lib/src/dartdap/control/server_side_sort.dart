@@ -1,4 +1,4 @@
-part of control;
+part of dartdap;
 
 class ServerSideSortRequestControl extends Control {
   static const OID = "1.2.840.113556.1.4.473";

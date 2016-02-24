@@ -1,10 +1,6 @@
-library filter;
+part of dartdap;
 
-import 'ldap_exception.dart';
-import 'package:asn1lib/asn1lib.dart';
-import 'ldap_util.dart';
-
-/// Represents an LDAP search filter.
+/// An LDAP search filter.
 ///
 /// An LDAP search filter can be a single filter created using either of these
 /// factory methods:

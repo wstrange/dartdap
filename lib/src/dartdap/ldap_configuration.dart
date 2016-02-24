@@ -1,11 +1,13 @@
-library ldap_configuration;
+part of dartdap;
 
-import 'dart:async';
-import 'package:dart_config/default_server.dart' as server_config;
-
-import 'ldap_connection.dart';
-import 'ldap_exception.dart';
-
+/// LDAP configuration.
+///
+/// This library should be deprecated, since a library should not have
+/// dependencies on configuration files - it should be up to the application
+/// to choose where it obtains its configuration parameters from.
+///
+/// It is only used by the tests.
+///
 /// A LDAP configuration settings and a LDAP connection created from it.
 ///
 /// Use an instance of this class to represent the LDAP server
@@ -19,6 +21,7 @@ import 'ldap_exception.dart';
 /// * Providing the settings as parameters using the default constructor.
 /// * Loading the settings from a YAML file using the fromFile constructor.
 
+//@deprecated
 class LDAPConfiguration {
   // Constants
 

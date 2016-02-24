@@ -1,4 +1,4 @@
-part of control;
+part of dartdap;
 
 /// Virtual List View Controls
 /// See [http://www.ietf.org/archive/id/draft-ietf-ldapext-ldapv3-vlv-09.txt]

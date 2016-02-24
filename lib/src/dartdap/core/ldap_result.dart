@@ -1,6 +1,4 @@
-library ldap_result;
-
-import 'attribute.dart';
+part of dartdap;
 
 /**
  * Various ldap result objects
@@ -99,15 +97,31 @@ class LDAPResult {
 }
 
 //===============================================================
-/**
- * Holds a single SearchEntry result for a DN
- */
-class SearchEntry {
-  String _dn;
-  String get dn => _dn;
+/// Search entry result produced by the search operation.
+///
+/// The [LDAPConnection.search] method produces a [SearchResult] which
+/// contains a stream of these objects: each representing an entry that matched
+/// the search request.
+///
+/// Use the [dn] propperty to get the entry's distinguished name and the
+/// [attributes] properties to get the attributes which were returned.
 
-  Map<String, Attribute> _attributes = new Map<String, Attribute>();
+class SearchEntry {
+
+  /// The entry's distinguished name.
+
+  String get dn => _dn;
+  String _dn;
+
+  /// Attributes returned by the search operation.
+  ///
+  /// This is a [Map] from the [String] name of the attribute to an [Attribute]
+  /// object.
+
   Map<String, Attribute> get attributes => _attributes;
+  Map<String, Attribute> _attributes = new Map<String, Attribute>();
+
+  /// Constructor
 
   SearchEntry(this._dn);
 

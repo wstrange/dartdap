@@ -1,15 +1,4 @@
-library connection_manager;
-
-import 'dart:io';
-import 'dart:async';
-import 'dart:collection';
-import '../protocol/ldap_protocol.dart';
-
-import '../ldap_exception.dart';
-import '../ldap_result.dart';
-import '../control/control.dart';
-import '../search_result.dart';
-import 'ldap_transformer.dart';
+part of dartdap;
 
 /**
  * Holds a pending LDAP operation that we have issued to the server. We
@@ -310,7 +299,7 @@ class ConnectionManager {
       _socket = await s;
 
       _socket
-          .transform(createTransformer())
+          .transform(_createLdapTransformer())
           .listen((m) => _handleLDAPMessage(m), onError: (error, stacktrace) {
         loggerConnection.finer("Socket error", error, stacktrace);
         if (error is SocketException) {
@@ -437,7 +426,7 @@ class ConnectionManager {
 
   Future _doClose() {
     loggerConnection.fine("Closing socket");
-    var f = _socket.close();
+    var f = (_socket != null) ? _socket.close() : null;
     _socket = null;
     return f;
   }
