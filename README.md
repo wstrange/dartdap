@@ -1,20 +1,20 @@
-# An LDAP Client Library for Dart
-
-This library is used to implement LDAP v3 clients.
+# An LDAP v3 Client Library for Dart
 
 The Lightweight Directory Access Protocol (LDAP) is a protocol for
-accessing directories. These directories are organised as a hierarchy
-of _entries_, where one or more root entries are allowed. Each entry
-contains a set of attribute and values. Each entry can be identified
-by a _distinguished name_, which is a sequence of attribute/value
-pairs.  The LDAP protocol can be used to query, as well as modify,
-these directories.
+accessing directories.
+
+An LDAP directory is organised as a hierarchy of _entries_, where one
+or more root entries are allowed.  Each entry can be identified by a
+_distinguished name_, which is an ordered sequence of attribute/value
+pairs.  Each entry contains a set of _attributes_. Attributes have a
+name and are associated with a set of one or more values
+(i.e. attributes can be repeated and are unordered).
+
+This library can be used to query (search for and compare entries) and
+modify (add, delete and modify) LDAP directories.
 
 This library supports the LDAP v3 protocol, which is defined in
 IETF [RFC 4511](http://tools.ietf.org/html/rfc4511).
-
-The LDAP operations supported by this implementation include: bind, add,
-modify, delete, modify, search and compare.
 
 ## Using dartdap
 
@@ -30,8 +30,8 @@ To perform operations on an LDAP directory, the basic process is:
 
 Please reference dartdap in _pubspec.yaml_
 using `dartdap: "^0.1.0"` so
-[pub versioning](https://www.dartlang.org/tools/pub/versioning.html)
-will prevents breaking changes from being used. See the bottom of this page
+[Dart versioning](https://www.dartlang.org/tools/pub/versioning.html)
+will prevent breaking changes from being used. See the bottom of this page
 for some notes about recent breaking changes.
 
 ### Basic example
@@ -265,7 +265,7 @@ void main() {
 Methods in the package throws exceptions which are subclasses
 of the [LdapException] abstract class.
 
-See the documentation for [LdapException] class for more details.
+See the [LdapException] class for more details.
 
 ## Breaking changes
 
