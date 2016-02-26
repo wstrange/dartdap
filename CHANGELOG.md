@@ -5,6 +5,7 @@
 - Reformatted using Dart dartfmt for code consistency.
 - Refactored exceptions and created LdapResultExceptions for all result codes.
 - Restructured libraries and organisation of files under the lib directory.
+- Deprecated LDAPConfiguration.
 
 * 0.0.9 2016-01-15
 

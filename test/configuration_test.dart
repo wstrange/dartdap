@@ -5,14 +5,17 @@
 //
 // Requirements: the "test/configuration_test.yaml" file
 
+/*
 import 'dart:math';
 import 'package:test/test.dart';
 
 import 'package:dartdap/dartdap.dart';
+*/
 
 const String CONFIG_FILE = "test/configuration_test.yaml";
 
 void main() {
+  /*
   var random = new Random();
 
   var host_value = "host-${random.nextInt(65535)}.example.com";
@@ -306,4 +309,5 @@ void main() {
       }
     });
   });
+  */
 }

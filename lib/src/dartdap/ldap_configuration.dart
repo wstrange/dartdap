@@ -21,7 +21,6 @@ part of dartdap;
 /// * Providing the settings as parameters using the default constructor.
 /// * Loading the settings from a YAML file using the fromFile constructor.
 
-//@deprecated
 class LDAPConfiguration {
   // Constants
 
@@ -100,6 +99,7 @@ class LDAPConfiguration {
   ///      // Authenticated bind
   ///      LDAPConfiguration.settings("ldap.example.com", ssl: true, bindDN: "cn=admin,dc=example,dc=com", password: "p@ssw0rd");
 
+  @deprecated
   LDAPConfiguration(String hostname,
       {int port, bool ssl: false, String bindDN, String password}) {
     _setAll(hostname, port, ssl, bindDN, password);
@@ -131,6 +131,7 @@ class LDAPConfiguration {
   ///  The only mandatory attribute is "host". See the default constructor
   ///  for a description of the other attributes, and their values if they are not specified.
 
+  @deprecated
   LDAPConfiguration.fromFile(String fileName, String configName) {
     assert(fileName != null && fileName.isNotEmpty);
     assert(configName != null && configName.isNotEmpty);
@@ -233,7 +234,7 @@ class LDAPConfiguration {
   /// The LDAP connection can be closed by invoking the `close` method on the
   /// [LDAPConfiguration] or by invoking the [LDAPConnection.close] method on the
   /// connection object.  Either approach will cause subsequent calls to
-  /// this [getConnection] method to open a new LDAP connection.
+  /// this getConnection method to open a new LDAP connection.
   ///
   /// If the host is not resolvable, a [SocketException] is thrown
   /// with osError.errorCode of 8 (nodename nor servname provided, or not known).
@@ -246,6 +247,7 @@ class LDAPConfiguration {
   /// connection to a LDAP service. Note: trying to establish a LDAP
   /// connection to a LDAPS service hangs and timesout.
 
+  @deprecated
   Future<LDAPConnection> getConnection([bool doBind = true]) async {
     if (_connection != null && !_connection.isClosed()) {
       // Use cached connection
@@ -271,8 +273,9 @@ class LDAPConfiguration {
     return _connection;
   }
 
-  /// Closes the [LDAPconnection] that was opened with [getConnection].
+  /// Closes the [LDAPconnection] that was opened with getConnection.
 
+  @deprecated
   Future close([bool immediate = false]) {
     if (_connection != null) {
       var f = _connection.close(immediate);
@@ -286,6 +289,7 @@ class LDAPConfiguration {
 
   /// Returns a string representation of this object.
 
+  @deprecated
   String toString() {
     return "${ssl ? "ldaps://" : "ldap://"}${host}:${port}${(bindDN != null) ? "/${bindDN}" : ""}";
   }

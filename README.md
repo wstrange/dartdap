@@ -239,12 +239,11 @@ _await/async_ Dart syntax.
 import 'package:dartdap/dartdap.dart';
 
 void main() {
-  var ldapConfig = new LDAPConfiguration("ldap.example.com",
-                                         ssl: false, 
-                                         bindDN: "cn=admin,dc=example,dc=com",
-                                         password: "p@ssw0rd");
+  var ldap = new LDAPConnection("ldap.example.com", 389,
+                                false,
+                                "cn=admin,dc=example,dc=com", "p@ssw0rd");
 
-  ldapConfig.getConnection().then((LDAPConnection ldap) {
+  ldap.connect().then((LDAPConnection ldap) {
     var base = "dc=example,dc=com";
     var filter = Filter.present("objectClass");
     var attrs = ["dn", "cn", "objectClass"];
@@ -276,13 +275,6 @@ See the [LdapException] class for more details.
   For example, LDAPConnection and LDAPResult to become
   LdapConnection and LdapResult, respectively.
 
-- LDAPConnection to be deprecated. Programs should use whatever
-  configuration mechanism they normally use (e.g. databases or
-  configuration files) rather than having to use a special
-  configuration mechanism only for dartdap (and still having
-  to use the other configuration mechanism for the rest of the
-  program).
-
 - Considering deprecating the [DN] since it offers limited value
   (syntax is not any more readable than using normal String operations)
 
@@ -298,6 +290,14 @@ See the [LdapException] class for more details.
   cleaned up. This should not be noticable by existing code,
   unless it was directly referencing those internal libraries
   or files.
+
+- LDAPConnection deprecated. Programs should use whatever
+  configuration mechanism they normally use (e.g. databases or
+  configuration files) rather than having to use a special
+  configuration mechanism only for dartdap (and still having
+  to use the other configuration mechanism for the rest of the
+  program). It is also unsafe due to a race condition that could
+  occur.
 
 - LDAPException renamed to LdapException to follow the Dart
   [conventions](https://www.dartlang.org/effective-dart/style/).

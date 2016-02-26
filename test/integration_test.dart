@@ -4,6 +4,7 @@
 
 import 'package:test/test.dart';
 import 'package:logging/logging.dart';
+import 'package:dart_config/default_server.dart' as config_file;
 
 import 'package:dartdap/dartdap.dart';
 
@@ -28,24 +29,25 @@ void doTests(String configName) {
     //----------------
     // Create the connection (at the start of the test)
 
-    LDAPConfiguration ldapConfig;
     LDAPConnection ldap;
 
     if (configName != null) {
       // For testing purposes, load connection parameters from the
       // configName section of a config file.
-      ldapConfig = new LDAPConfiguration.fromFile(testConfigFile, configName);
+
+      var c = (await config_file.loadConfig(testConfigFile))[configName];
+      ldap = new LDAPConnection(
+          c["host"], c["port"], c["ssl"], c["bindDN"], c["password"]);
     } else {
       // Or the connection parameters can be explicitly specified in code.
-      ldapConfig = new LDAPConfiguration("localhost",
-          port: 10389,
-          ssl: false,
-          bindDN: "cn=Manager,dc=example,dc=com",
-          password: "p@ssw0rd");
+      ldap = new LDAPConnection("localhost", 10389, false,
+          "cn=Manager,dc=example,dc=com", "p@ssw0rd");
     }
 
-    // Establish a connection to the LDAP directory and bind to it
-    ldap = await ldapConfig.getConnection();
+    // Establish a connection to the LDAP directory
+    await ldap.connect();
+
+    await ldap.bind();
 
     //----------------
     // The distinguished name is a String value
@@ -192,7 +194,7 @@ void doTests(String configName) {
     //----
     // Close the connection
 
-    await ldapConfig.close();
+    await ldap.close();
   });
 }
 

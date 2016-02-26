@@ -65,6 +65,16 @@ class LDAPConnection {
    */
   LDAPConnection(String host, int port,
       [bool ssl = false, this._bindDN, this._password]) {
+    if (host == null || host.isEmpty || host is! String) {
+      host = "localhost";
+    }
+    if (ssl == null || ssl is! bool) {
+      ssl = false;
+    }
+    if (port == null || port is! int) {
+      port = (ssl) ? 636 : 369; // default LDAPS and LDAP ports
+    }
+
     _cmgr = new ConnectionManager(host, port, ssl);
   }
 
