@@ -10,7 +10,7 @@ This document describes the unit tests for the _dartdap_ package.
    directory to have an entry for "dc=example,dc=com" and can bind to
    "cn=Manager,dc=example,dc=com" with the password "p@ssw0rd".
 
-   This can be done by running the _SETUP-openldap-centOS7.sh_ script
+   This can be done by running the _SETUP-dartdap-testing-openldap-centOS7.sh_ script
    on CentOS 7.
 
 2. Establish port forwarding to the LDAP directory. The supplied test
@@ -60,10 +60,10 @@ This is one way to deploy a test LDAP directory server.
 
 These instructions have been tested with CentOS 7.
 
-1. Copy the _test/SETUP-openldap-centOS7.sh_ script to the CentOS 7 virtual
+1. Copy the _test/SETUP-dartdap-testing-openldap-centOS7.sh_ script to the CentOS 7 virtual
    machine.
 
-        local$ scp SETUP-openldap-centOS7.sh username@testVM:
+        local$ scp SETUP-dartdap-testing-openldap-centOS7.sh username@testVM:
 
 2. SSH to the virtual machine.
 
@@ -71,7 +71,7 @@ These instructions have been tested with CentOS 7.
 
 3. Run the script with root privileges:
 
-        testVM$ sudo ./SETUP-openldap-centOS7.sh
+        testVM$ sudo ./SETUP-dartdap-testing-openldap-centOS7.sh
 
 This will install and configure OpenLDAP with an automatically
 generated self-signed certificate with the domain of "localhost"

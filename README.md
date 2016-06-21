@@ -1,45 +1,254 @@
-# An LDAP Client Library for Dart
-
-This library is used to implement LDAP v3 clients.
+# An LDAP v3 Client Library for Dart
 
 The Lightweight Directory Access Protocol (LDAP) is a protocol for
-accessing directories. These directories are organised as a hierarchy
-of _entries_, where one or more root entries are allowed. Each entry
-contains a set of attribute and values. Each entry can be identified
-by a _distinguished name_, which is a sequence of attribute/value
-pairs.  The LDAP protocol can be used to query, as well as modify,
-these directories.
+accessing directories.
+
+An LDAP directory is organised as a hierarchy of _entries_, where one
+or more root entries are allowed.  Each entry can be identified by a
+_distinguished name_, which is an ordered sequence of attribute/value
+pairs.  Each entry contains a set of _attributes_. Attributes have a
+name and are associated with a set of one or more values
+(i.e. attributes can be repeated and are unordered).
+
+This library can be used to query (search for and compare entries) and
+modify (add, delete and modify) LDAP directories.
 
 This library supports the LDAP v3 protocol, which is defined in
 IETF [RFC 4511](http://tools.ietf.org/html/rfc4511).
 
-The LDAP operations supported by this implementation include: bind, add,
-modify, delete, modify, search and compare.
+## Using dartdap
 
-## Examples
+### Overview
 
-Create an LDAP connection and perform a simple search using it.
+To perform operations on an LDAP directory, the basic process is:
 
-This example first creates an LDAPConfiguration object with the
-settings for connecting to the LDAP server.  It then gets the
-LDAPConnection object using those settings (i.e. performs an LDAP bind
-operation). With the connection, it performs an LDAP search operation.
-The search operation produces a stream of SearchResult objects: in
-this example, the entries are each printed out along with a total
-count at the end.
+1. Create an [LDAPConnection] object.
+2. Connect to the LDAP directory (using the `connect` method).
+3. Authenticate to the LDAP directory, if needed (using the `bind` method).
+4. Perform LDAP operations (e.g. `search`, `add`, `delete` methods).
+5. Close the connection (using the `close` method).
 
-To perform an anonymous bind, leave out the bindDN and password.
+Please reference dartdap in _pubspec.yaml_
+using `dartdap: "^0.1.0"` so
+[Dart versioning](https://www.dartlang.org/tools/pub/versioning.html)
+will prevent breaking changes from being used. See the bottom of this page
+for some notes about recent breaking changes.
+
+### Basic example
+
+```dart
+import 'package:dartdap/dartdap.dart';
+
+...
+
+// Step 1: create an LDAP connection object
+
+var host = "localhost";
+var port = 10389; // null = use default LDAP/LDAPS port
+var ssl = false;
+var bindDN = "cn=Manager,dc=example,dc=com"; // null = unauthenticated bind
+var password = "p@ssw0rd";
+
+var connection = new LDAPConnection(host, ssl: ssl, port: port);
+
+try {
+  // Step 2: connect to the LDAP directory
+
+  await connection.connect();
+
+  // Step 3: authenticate to the LDAP directory
+
+  await connection.bind(bindDN, password);
+
+  // Step 4: perform search operation
+
+  var base = "dc=example,dc=com";
+  var filter = Filter.present("objectClass");
+  var attrs = ["dc", "objectClass"];
+
+  var count = 0;
+
+  await for (var entry in connection.search(base, filter, attrs).stream) {
+    // Processing stream of SearchEntry
+    count++;
+    print("dn: ${entry.dn}");
+
+    // Getting all attributes returned
+    for (var attr in entry.attributes.values) { // entry.attributes is a Map<String,Attribute>
+      for (var value in attr.values) { // attr.values is a Set
+        print("  ${attr.name}: $value");
+      }
+    }
+
+    // Getting a particular attribute
+    assert(entry.attributes["dc"].values.length == 1); // expecting one value
+    var dc = entry.attributes["dc"].values.first;
+    print("# dc=$dc");
+  }
+
+  print("# Number of entries: ${count}");
+
+} catch (e) {
+  print("Exception: $e");
+
+} finally {
+  // Step 5: close the connection
+  await connection.close();
+}
+```
+
+#### Step 1: create an LDAP connection object
+
+The first step is to instantiate an [LDAPConnection] object using its
+constructor. If the `port` is null, the default port is used based on
+whether `ssl` is true or not (port 389 when SSL is not used, port 636
+when SSL is used).
+
+The binding parameters (`bindDN` and `password`) are optional.
+
+#### Step 2: connect to the LDAP directory
+
+The `connect` method is called to establish a network connection to
+the LDAP directory. It uses the host, port and ssl properties of the
+object. It returns a future which completes when the connection has
+been established. If the connection cannot be established an exception
+will be thrown: either [LdapSocketServerNotFoundException] or
+[LdapSocketRefusedException].
+
+#### Step 3: authenticate to the LDAP directory (optional)
+
+Call the `bind` method to establish an authenticated bind.
+
+The credentials (bindDN and password) can be provided as parameters to
+the `bind` method. If they are not provided, the default credentials
+in the object (e.g. set via its constructor) will be used.
+
+If the bind fails, an exception will be thrown.
+
+#### Step 4: perform search operation
+
+This example performs a search operation.
+
+The `search` method returns a [SearchResult] object, from which a
+_stream_ of [SearchEntry] objects can be obtained. The results are
+obtained by listening to the stream (which in the example is done
+using the "await for" syntax).
+
+The [SearchEntry] contains the entry's distinguished name and the
+attributes returned.
+The `dn` is a String. The `attributes` is a [Map] from the name of 
+the attribute (a String) to an [Attribute].
+
+An [Attribute] has a `values` member, which returns a [Set] of the
+values of the attribute. It is a Set because LDAP allows attributes to
+have multiple values.  It also has a `name` member, which is the name
+of the attribute as a String.
+
+
+#### Step 5: close the connection
+
+When finished with the connection, call the `close` method.
+
+In the above example, the close is performed in the _finally_ section,
+to ensure it gets closed even if an exception is thrown.
+
+### Adding entries
+
+```dart
+try {
+  var attrs = {
+    "objectClass": ["organizationalUnit"],
+    "description": "Example organizationalUnit entry"
+  };
+
+  await ldap.add("ou=Engineering,dc=example,dc=com", attrs);
+
+} on LdapResultEntryAlreadyExistsException catch (_) {
+  // cannot add entry because it already exists
+
+} on LdapException catch (e) {
+  // some other problem
+  
+}
+```
+
+### Modifying entries
+
+```dart
+try {
+  var mod1 = new Modification.replace("description", ["Engineering department"]);
+  await ldap.modify("ou=Engineering,dc=example,dc=com", [mod1]);
+
+} on LdapResultObjectClassViolationException catch (_) {
+  // cannot modify entry because it would violate the schema rules
+
+} on LdapException catch (e) {
+
+}
+```
+
+### Moving entries
+
+```dart
+try {
+  await ldap.modifyDN(oldDN, newDN);
+
+} on LdapException catch (e) {
+
+}
+```
+
+### Comparing entries
+
+```dart
+try {
+  r = await ldap.compare("ou=Engineering,dc=example,dc=com", "description", "ENGINEERING DEPARTMENT");
+  if (r.resultCode == ResultCode.COMPARE_FALSE) {
+  
+  } else if (r.resultCode == ResultCode.COMPARE_TRUE) {
+  
+  } else {
+    assert(false);
+  }
+
+} on LdapException catch (e) {
+
+}
+```
+
+### Deleting entries
+
+```dart
+try {
+  await ldap.delete("ou=Business Development,dc=example,dc=com");
+
+} on LdapResultNoSuchObjectException catch (_) {
+  // entry did not exist to delete
+
+} on LdapException catch (e) {
+
+}
+```
+
+## Older example
+
+This is an example of using dartdap without using the new
+_await/async_ Dart syntax.
 
 ```dart
 import 'package:dartdap/dartdap.dart';
 
 void main() {
-  var ldapConfig = new LDAPConfiguration("ldap.example.com",
-                                         ssl: false, 
-                                         bindDN: "cn=admin,dc=example,dc=com",
-                                         password: "p@ssw0rd");
+  var ldap = new LDAPConnection("ldap.example.com"
+                                ssl: false, port: 389);
 
-  ldapConfig.getConnection().then((LDAPConnection ldap) {
+
+
+  ldap.connect()
+  .then((LDAPConnection ldap) {
+    ldap.bind("cn=admin,dc=example,dc=com", "p@ssw0rd")
+  .then(LDAPConnection ldap)
+
     var base = "dc=example,dc=com";
     var filter = Filter.present("objectClass");
     var attrs = ["dn", "cn", "objectClass"];
@@ -52,122 +261,59 @@ void main() {
         (SearchEntry entry) => print("${++count}: $entry"),
         onDone: () => print("Found ${count} entries"));
   });
+  });
 }
 ```
 
-See the integration test for more examples.
+## Exceptions
 
-## Logging
+Methods in the package throws exceptions which are subclasses
+of the [LdapException] abstract class.
 
-This package uses the Dart
-[logging](https://pub.dartlang.org/packages/logging) package for
-logging.
+See the [LdapException] class for more details.
 
-### Loggers used
+## Breaking changes
 
-#### Logger: `ldap.control`
+### Planned changes for future releases
 
-- finest = parsing of controls
+- Renaming of other classes and methods to follow the Dart
+  [conventions](https://www.dartlang.org/effective-dart/style/).
+  For example, LDAPConnection and LDAPResult to become
+  LdapConnection and LdapResult, respectively.
 
-#### Logger: `ldap.session`
+- Considering deprecating the [DN] since it offers limited value
+  (syntax is not any more readable than using normal String operations)
 
-- warnings = certificate issues
-- fine = connections successfully established, and closing them
-- finer = details about attempts to establish a connection
+### v0.0.9 to v0.1.0
 
-#### Logger: `ldap.send.ldap`
+- Library is now called "dartdap" instead of "ldap_client".  There was
+  a disconnect: package X was imported, but only library Y was
+  imported. That would have been ok if there were multiple libraries
+  in dartdap (or plans to produce a LDAP server library), but it
+  currently only contains one publically visible library.
 
-Logging the LDAP messages sent.
+- Internal organisation of libraries/imports/exports have been
+  cleaned up. This should not be noticable by existing code,
+  unless it was directly referencing those internal libraries
+  or files.
 
-- fine = LDAP messages sent.
-- finest = details of LDAP message construction
+- LDAPConnection deprecated. Programs should use whatever
+  configuration mechanism they normally use (e.g. databases or
+  configuration files) rather than having to use a special
+  configuration mechanism only for dartdap (and still having
+  to use the other configuration mechanism for the rest of the
+  program). It is also unsafe due to a race condition that could
+  occur.
 
-#### Logger: `ldap.recv.ldap`
+- LDAPException renamed to LdapException to follow the Dart
+  [conventions](https://www.dartlang.org/effective-dart/style/).
 
-Logging the LDAP messages received (i.e. received ASN.1 objects
-processed as LDAP messages).
+- New exceptions for all the LDAP result error conditions have been
+  created and LDAP operations now throw them. Instead of checking the
+  LDAPResult resultCode returned by the LDAP operations, catch the
+  new exceptions.
 
-- fine = LDAP messages received.
-- finer = LDAP messages processing.
-
-#### Logger: `ldap.recv.asn1`
-
-Logging the ASN.1 objects received (i.e. parsed from the raw bytes
-received). Probably only useful when debugging the dartdap package.
-
-- fine = ASN.1 messages successfully parsed from the raw bytes
-- finest = shows the actual bytes making up the value of the ASN.1 message
-
-#### Logger: `ldap.recv.bytes`
-
-Logging the raw bytes received from the socket.  Probably only useful
- when debugging the dartdap package.
-
-- fine = number of bytes raw read
-- finer = parsing activity of converting the bytes into ASN.1 objects
-- finest = shows the actual bytes received and the number in the buffer to parse
-
-### Examples
-
-To take advantage of the hierarchy of loggers, enable
-`hierarchicalLoggingEnabled` and set the logging level on individual
-loggers. If the logging level is not explicitly set on a logger,
-it is inherited from its parent. The root logger is the ultimate
-parent; and its logging level is initally Level.INFO.
-
-For example, to view high level connection and LDAP messages send/received:
-
-```dart
-import 'package:logging/logging.dart';
-
-...
-
-Logger.root.onRecord.listen((LogRecord rec) {
-  print('${rec.time}: ${rec.loggerName}: ${rec.level.name}: ${rec.message}');
-});
-
-hierarchicalLoggingEnabled = true;
-
-new Logger("ldap.session").level = Level.FINE;
-new Logger("ldap.send.ldap").level = Level.FINE;
-new Logger("ldap.recv.ldap").level = Level.FINE;
-```
-
-To debug messages received:
-
-```dart
-new Logger("ldap.recv.ldap").level = Level.ALL;
-new Logger("ldap.recv.asn1").level = Level.FINER;
-new Logger("ldap.recv.bytes").level = Level.FINE;
-```
-
-Note: in the above examples: SHOUT, SEVERE, WARNING and INFO will
-still be logged (except for those loggers and their children where the
-level has been set to Level.OFF). To disable those log messages
-change the root logger from its default of Level.INFO to Level.OFF.
-
-For example, to suppress all log messages (including suppressing
-SHOUT, SEVERE, WARNING and INFO):
-
-```dart
-Logger.root.level = Level.OFF;
-```
-
-Or leave the root level at the default and only disable logging
-from the package:
-
-```dart
-new Logger("ldap").level = Level.OFF;
-```
-
-
-## TODO
-
-* Documentation. For now please see integration_test.dart for sample usage
-* Improve conciseness / usability of API
-* Paged search
-* VLV Search. See [https://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv-09]
-* An LDIF parser would be nice for creating integration test data
-* Do we need to implement flow control so the client does not overwhelm
-  the server?
-
+- SocketException exceptions are now being internally caught and
+  thrown in LdapSocketException objects. This make it easier to detect
+  common failure conditions. Instead of catching SocketException,
+  catch the new LdapSocketException (or its subclasses).

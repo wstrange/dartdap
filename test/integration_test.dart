@@ -3,8 +3,10 @@
 //----------------------------------------------------------------
 
 import 'package:test/test.dart';
-import 'package:dartdap/dartdap.dart';
 import 'package:logging/logging.dart';
+import 'package:dart_config/default_server.dart' as config_file;
+
+import 'package:dartdap/dartdap.dart';
 
 //----------------------------------------------------------------
 
@@ -27,24 +29,22 @@ void doTests(String configName) {
     //----------------
     // Create the connection (at the start of the test)
 
-    LDAPConfiguration ldapConfig;
     LDAPConnection ldap;
 
     if (configName != null) {
       // For testing purposes, load connection parameters from the
       // configName section of a config file.
-      ldapConfig = new LDAPConfiguration.fromFile(testConfigFile, configName);
+
+      var c = (await config_file.loadConfig(testConfigFile))[configName];
+      ldap = new LDAPConnection(c["host"], ssl: c["ssl"], port: c["port"]);
+      await ldap.connect();
+      await ldap.bind(c["bindDN"], c["password"]);
     } else {
       // Or the connection parameters can be explicitly specified in code.
-      ldapConfig = new LDAPConfiguration("localhost",
-          port: 10389,
-          ssl: false,
-          bindDN: "cn=Manager,dc=example,dc=com",
-          password: "p@ssw0rd");
+      ldap = new LDAPConnection("localhost", ssl: false, port: 10389);
+      await ldap.connect();
+      await ldap.bind("cn=Manager,dc=example,dc=com", "p@ssw0rd");
     }
-
-    // Establish a connection to the LDAP directory and bind to it
-    ldap = await ldapConfig.getConnection();
 
     //----------------
     // The distinguished name is a String value
@@ -59,9 +59,8 @@ void doTests(String configName) {
     for (var dn in [engineeringDN, salesDN, businessDevelopmentDN, supportDN]) {
       try {
         await ldap.delete(dn);
-      } on LDAPResult catch (e) {
-        // Ignore any exceptions (i.e. thrown when the entry normally does not exist)
-        assert(e.resultCode == ResultCode.NO_SUCH_OBJECT);
+      } on LdapResultNoSuchObjectException catch (_) {
+        // Ignore these exceptions, since the entry normally does not exist to be deleted
       }
     }
 
@@ -132,22 +131,21 @@ void doTests(String configName) {
     //----------------
     // Search
 
+    var baseDN = "dc=example,dc=com";
     var queryAttrs = ["ou", "objectClass"];
+    var filter = Filter.equals("ou", "Engineering");
 
     //TODO:  ldap.onError = expectAsync((e) => expect(false, 'Should not be reached'), count: 0);
 
     // ou=Engineering
 
-    var filter = Filter.equals("ou", "Engineering");
-
     int numFound = 0;
-    await for (var entry
-        in ldap.search("dc=example,dc=com", filter, queryAttrs).stream) {
+    await for (var entry in ldap.search(baseDN, filter, queryAttrs).stream) {
       expect(entry, new isInstanceOf<SearchEntry>());
       numFound++;
     }
     expect(numFound, equals(1),
-        reason: "Did not find expected number of entries in (ou=Engineering)");
+        reason: "Unexpected number of entries in (ou=Engineering)");
 
     /*
     // not(ou=Engineering)
@@ -181,17 +179,19 @@ void doTests(String configName) {
     //----
     // Deleting a non-existent entry will raise an exception
 
+    var deleteFailed = false;
     try {
       await ldap.delete(salesDN);
       fail("Delete should not have succeeded: $salesDN");
-    } catch (e) {
-      expect(e.resultCode, equals(ResultCode.NO_SUCH_OBJECT));
+    } on LdapResultNoSuchObjectException catch (_) {
+      deleteFailed = true;
     }
+    expect(deleteFailed, isTrue);
 
     //----
     // Close the connection
 
-    await ldapConfig.close();
+    await ldap.close();
   });
 }
 
@@ -232,7 +232,7 @@ void setupLogging([Level commonLevel = Level.OFF]) {
 //----------------------------------------------------------------
 
 void main() {
-  setupLogging();
+  //setupLogging();
 
   group("LDAP", () => doTests("test-LDAP"));
   group("LDAPS", () => doTests("test-LDAPS"));

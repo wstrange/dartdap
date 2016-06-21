@@ -5,7 +5,10 @@
 //----------------------------------------------------------------
 
 import 'dart:async';
+
+import 'package:dart_config/default_server.dart' as config_file;
 import 'package:test/test.dart';
+
 import 'package:dartdap/dartdap.dart';
 
 //----------------------------------------------------------------
@@ -57,7 +60,6 @@ Future populateEntries(LDAPConnection ldap) async {
 /// Clean up before/after testing.
 
 Future purgeEntries(LDAPConnection ldap) async {
-
   // Purge test person
 
   try {
@@ -78,14 +80,17 @@ Future purgeEntries(LDAPConnection ldap) async {
 //----------------------------------------------------------------
 
 void doTest(String configName) {
-  var ldapConfig;
   var ldap;
 
   //----------------
 
   setUp(() async {
-    ldapConfig = new LDAPConfiguration.fromFile(testConfigFile, configName);
-    ldap = await ldapConfig.getConnection();
+    var c = (await config_file.loadConfig(testConfigFile))[configName];
+    ldap = new LDAPConnection(c["host"], ssl: c["ssl"], port: c["port"]);
+
+    await ldap.connect();
+    await ldap.bind(c["bindDN"], c["password"]);
+
     await purgeEntries(ldap);
     await populateEntries(ldap);
   });
@@ -94,7 +99,7 @@ void doTest(String configName) {
 
   tearDown(() async {
     await purgeEntries(ldap);
-    await ldapConfig.close();
+    await ldap.close();
   });
 
   //----------------
@@ -127,17 +132,18 @@ void doTest(String configName) {
   test("deleting a non-existant entry raises an exception", () async {
     var nosuchDN = branchDN.concat("cn=NoSuchPerson");
 
-    expect(ldap.delete(nosuchDN.dn), throwsA(new isInstanceOf<LDAPResult>()));
+    expect(ldap.delete(nosuchDN.dn),
+        throwsA(new isInstanceOf<LdapResultNoSuchObjectException>()));
   });
 
   //----------------
 
   test("deleting an entry with children raises an exception", () async {
-
     // Note: the test person entry is a child of the branch entry, so
     // the branch entry cannot be deleted.
 
-    expect(ldap.delete(branchDN.dn), throwsA(new isInstanceOf<LDAPResult>()));
+    expect(ldap.delete(branchDN.dn),
+        throwsA(new isInstanceOf<LdapResultNotAllowedOnNonleafException>()));
   });
 }
 

@@ -6,6 +6,8 @@
 
 import 'dart:async';
 import 'package:test/test.dart';
+import 'package:dart_config/default_server.dart' as config_file;
+
 import 'package:dartdap/dartdap.dart';
 
 //----------------------------------------------------------------
@@ -42,7 +44,6 @@ final testPersonAttrs = {
 /// Purge entries from the test to clean up
 
 Future purgeEntries(LDAPConnection ldap) async {
-
   // Purge test person
 
   try {
@@ -63,14 +64,17 @@ Future purgeEntries(LDAPConnection ldap) async {
 //----------------------------------------------------------------
 
 void doTests(String configName) {
-  var ldapConfig;
   var ldap;
 
   //----------------
 
   setUp(() async {
-    ldapConfig = new LDAPConfiguration.fromFile(testConfigFile, configName);
-    ldap = await ldapConfig.getConnection();
+    var c = (await config_file.loadConfig(testConfigFile))[configName];
+    ldap = new LDAPConnection(c["host"], ssl: c["ssl"], port: c["port"]);
+
+    ldap = await ldap.connect();
+    await ldap.bind(c["bindDN"], c["password"]);
+
     await purgeEntries(ldap);
     // Nothing to populate, since these tests exercise the "add" operation
   });
@@ -79,7 +83,7 @@ void doTests(String configName) {
 
   tearDown(() async {
     await purgeEntries(ldap);
-    await ldapConfig.close();
+    await ldap.close();
   });
 
   //----------------
@@ -142,7 +146,7 @@ void doTests(String configName) {
     // Attempt to add an entry with the same DN
 
     expect(ldap.add(branchDN.dn, newAttrs),
-        throwsA(new isInstanceOf<LDAPResult>()));
+        throwsA(new isInstanceOf<LdapResultEntryAlreadyExistsException>()));
 
     // The original entry is present and unchanged
 
@@ -196,7 +200,7 @@ void doTests(String configName) {
     // Attempt to add the test person (without first adding the branch entry)
 
     expect(ldap.add(testPersonDN.dn, testPersonAttrs),
-        throwsA(new isInstanceOf<LDAPResult>()));
+        throwsA(new isInstanceOf<LdapResultNoSuchObjectException>()));
   });
 
   //----------------
@@ -216,9 +220,8 @@ void doTests(String configName) {
     };
 
     expect(ldap.add(testPersonDN.dn, attrsMissingMandatory),
-    throwsA(new isInstanceOf<LDAPResult>()));
+        throwsA(new isInstanceOf<LdapResultObjectClassViolationException>()));
   });
-
 }
 
 //================================================================

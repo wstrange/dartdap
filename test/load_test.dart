@@ -3,7 +3,10 @@
 //----------------------------------------------------------------
 
 import 'dart:async';
+
+import 'package:dart_config/default_server.dart' as config_file;
 import 'package:test/test.dart';
+
 import 'package:dartdap/dartdap.dart';
 
 //----------------------------------------------------------------
@@ -63,14 +66,17 @@ Future purgeEntries(LDAPConnection ldap) async {
 //----------------------------------------------------------------
 
 void doTests(String configName) {
-  var ldapConfig;
   var ldap;
 
   //----------------
 
   setUp(() async {
-    ldapConfig = new LDAPConfiguration.fromFile(testConfigFile, configName);
-    ldap = await ldapConfig.getConnection();
+    var c = (await config_file.loadConfig(testConfigFile))[configName];
+    ldap = new LDAPConnection(c["host"], ssl: c["ssl"], port: c["port"]);
+
+    await ldap.connect();
+    await ldap.bind(c["bindDN"], c["password"]);
+
     await purgeEntries(ldap);
     await populateEntries(ldap);
   });
@@ -79,7 +85,7 @@ void doTests(String configName) {
 
   tearDown(() async {
     await purgeEntries(ldap);
-    await ldapConfig.close();
+    await ldap.close();
   });
 
   //----------------
