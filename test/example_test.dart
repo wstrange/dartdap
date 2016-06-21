@@ -14,7 +14,7 @@ Future example() async {
   var bindDN = "cn=Manager,dc=example,dc=com"; // null = unauthenticated bind
   var password = "p@ssw0rd";
 
-  var connection = new LDAPConnection(host, port, ssl, bindDN, password);
+  var connection = new LDAPConnection(host, ssl: ssl, port: port);
 
   try {
     // Step 2: connect to the LDAP directory
@@ -23,7 +23,7 @@ Future example() async {
 
     // Step 3: authenticate to the LDAP directory
 
-    await connection.bind();
+    await connection.bind(bindDN, password);
 
     // Step 4: perform search operation
 
@@ -63,6 +63,12 @@ Future example() async {
 }
 
 main() {
+  bool runTest = false;
+
+  if (! runTest) {
+    return;
+  }
+
   test("example from README file", () async {
     await example();
   }, skip: "Skipping to prevent cluttering up output when running other tests");

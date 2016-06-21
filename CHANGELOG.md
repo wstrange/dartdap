@@ -6,6 +6,7 @@
 - Refactored exceptions and created LdapResultExceptions for all result codes.
 - Restructured libraries and organisation of files under the lib directory.
 - Deprecated LDAPConfiguration.
+- Moved parameters to bind method for re-binding with different credentials.
 
 * 0.0.9 2016-01-15
 

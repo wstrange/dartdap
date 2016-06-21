@@ -260,13 +260,13 @@ class LDAPConfiguration {
 
     // Connect
 
-    _connection = new LDAPConnection(host, port, ssl, bindDN, password);
+    _connection = new LDAPConnection(host, ssl: ssl, port: port);
     await _connection.connect();
 
     // Bind
 
     if (doBind) {
-      var r = await _connection.bind();
+      var r = await _connection.bind(bindDN, password);
       assert(r.resultCode == 0); // otherwise an exception was thrown
     }
 

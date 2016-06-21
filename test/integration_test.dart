@@ -36,18 +36,15 @@ void doTests(String configName) {
       // configName section of a config file.
 
       var c = (await config_file.loadConfig(testConfigFile))[configName];
-      ldap = new LDAPConnection(
-          c["host"], c["port"], c["ssl"], c["bindDN"], c["password"]);
+      ldap = new LDAPConnection(c["host"], ssl: c["ssl"], port: c["port"]);
+      await ldap.connect();
+      await ldap.bind(c["bindDN"], c["password"]);
     } else {
       // Or the connection parameters can be explicitly specified in code.
-      ldap = new LDAPConnection("localhost", 10389, false,
-          "cn=Manager,dc=example,dc=com", "p@ssw0rd");
+      ldap = new LDAPConnection("localhost", ssl: false, port: 10389);
+      await ldap.connect();
+      await ldap.bind("cn=Manager,dc=example,dc=com", "p@ssw0rd");
     }
-
-    // Establish a connection to the LDAP directory
-    await ldap.connect();
-
-    await ldap.bind();
 
     //----------------
     // The distinguished name is a String value
@@ -235,7 +232,7 @@ void setupLogging([Level commonLevel = Level.OFF]) {
 //----------------------------------------------------------------
 
 void main() {
-  setupLogging();
+  //setupLogging();
 
   group("LDAP", () => doTests("test-LDAP"));
   group("LDAPS", () => doTests("test-LDAPS"));

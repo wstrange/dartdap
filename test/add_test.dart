@@ -70,11 +70,10 @@ void doTests(String configName) {
 
   setUp(() async {
     var c = (await config_file.loadConfig(testConfigFile))[configName];
-    ldap = new LDAPConnection(
-        c["host"], c["port"], c["ssl"], c["bindDN"], c["password"]);
+    ldap = new LDAPConnection(c["host"], ssl: c["ssl"], port: c["port"]);
 
     ldap = await ldap.connect();
-    await ldap.bind();
+    await ldap.bind(c["bindDN"], c["password"]);
 
     await purgeEntries(ldap);
     // Nothing to populate, since these tests exercise the "add" operation

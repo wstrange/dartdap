@@ -49,7 +49,7 @@ var ssl = false;
 var bindDN = "cn=Manager,dc=example,dc=com"; // null = unauthenticated bind
 var password = "p@ssw0rd";
 
-var connection = new LDAPConnection(host, port, ssl, bindDN, password);
+var connection = new LDAPConnection(host, ssl: ssl, port: port);
 
 try {
   // Step 2: connect to the LDAP directory
@@ -58,7 +58,7 @@ try {
 
   // Step 3: authenticate to the LDAP directory
 
-  await connection.bind();
+  await connection.bind(bindDN, password);
 
   // Step 4: perform search operation
 
@@ -239,11 +239,16 @@ _await/async_ Dart syntax.
 import 'package:dartdap/dartdap.dart';
 
 void main() {
-  var ldap = new LDAPConnection("ldap.example.com", 389,
-                                false,
-                                "cn=admin,dc=example,dc=com", "p@ssw0rd");
+  var ldap = new LDAPConnection("ldap.example.com"
+                                ssl: false, port: 389);
 
-  ldap.connect().then((LDAPConnection ldap) {
+
+
+  ldap.connect()
+  .then((LDAPConnection ldap) {
+    ldap.bind("cn=admin,dc=example,dc=com", "p@ssw0rd")
+  .then(LDAPConnection ldap)
+
     var base = "dc=example,dc=com";
     var filter = Filter.present("objectClass");
     var attrs = ["dn", "cn", "objectClass"];
@@ -255,6 +260,7 @@ void main() {
     ldap.search(base, filter, attrs).stream.listen(
         (SearchEntry entry) => print("${++count}: $entry"),
         onDone: () => print("Found ${count} entries"));
+  });
   });
 }
 ```

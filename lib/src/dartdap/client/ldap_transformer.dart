@@ -117,9 +117,23 @@ StreamTransformer<Uint8List, LDAPMessage> _createLdapTransformer() {
     // Otherwise, it contains the remaining bytes to be processed when more
     // bytes are received.
   }, handleError: (Object error, StackTrace st, EventSink<LDAPMessage> sink) {
-    loggerRecvBytes
-        .severe("LDAP stream transformer: error=${error}, stacktrace=${st}");
-    assert(false);
+    if (error is TlsException) {
+      TlsException e = error;
+      if (e.osError == null &&
+          e.message == "OSStatus = -9805: connection closed gracefully error -9805") {
+        // Connection closed gracefully: ignore this, usually due to application
+        // deliberately closing the connection
+        if (leftover == null) {
+          // Clean close
+          loggerRecvBytes.info("Connection closed gracefully: no leftover bytes to parse");
+          return;
+        }
+
+        loggerRecvBytes.info("Connection closed gracefully: has leftover bytes to parse");
+
+      }
+    }
+    loggerRecvBytes.severe("LDAP stream transformer: error=${error}");
     throw error;
   });
 }

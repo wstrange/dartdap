@@ -31,21 +31,25 @@ part of dartdap;
 /// resultCode is any other value, instead of returning the result, a subclass
 /// of [LdapResultException] will be thrown. So the returned resultCode does not
 /// provide any useful information, except in the case of the _compare_ operation.
-/// 
+///
 /// ## Asynchronicity
 ///
 /// With the exception of a _bind_ operation, LDAP operations
 /// are asynchronous. A program does not need to wait for the current
 /// operation to complete before sending the next one.
-/// 
+///
 /// LDAP return results are matched to requests using a message id. They
 /// are not guaranteed to be returned in the same order they were sent.
-/// 
+///
 /// There is currently no flow control. Messages will be queued and sent
 /// to the LDAP server as fast as possible. Messages are sent in in the order in
 /// which they are queued.
 
 class LDAPConnection {
+  static const String _defaultHost = "localhost";
+  static const int defaultPortLdap = 389;
+  static const int defaultPortLdaps = 636;
+
   ConnectionManager _cmgr;
 
   String _bindDN;
@@ -60,19 +64,16 @@ class LDAPConnection {
    *
    * If [ssl] is true the connection will use SSL.
    *
-   * Optionally store a bind [_bindDN] and [_password] which can be used to
-   * rebind to the connection
    */
-  LDAPConnection(String host, int port,
-      [bool ssl = false, this._bindDN, this._password]) {
-    if (host == null || host.isEmpty || host is! String) {
-      host = "localhost";
+  LDAPConnection(String host, {bool ssl: false, int port: null}) {
+    if (host == null || host is! String || host.isEmpty) {
+      host = _defaultHost;
     }
     if (ssl == null || ssl is! bool) {
       ssl = false;
     }
     if (port == null || port is! int) {
-      port = (ssl) ? 636 : 369; // default LDAPS and LDAP ports
+      port = (ssl) ? defaultPortLdaps : defaultPortLdap; // use default port
     }
 
     _cmgr = new ConnectionManager(host, port, ssl);
@@ -92,15 +93,32 @@ class LDAPConnection {
     return this;
   }
 
-  /**
-   * Perform an LDAP BIND. If the optional [bindDN] and [password] are not passed
-   * the connections stored values are used for the bind.
-   */
+  /// Perform an LDAP BIND using the supplied [bindDN] and [password].
+  ///
+  /// If the [bindDN] is null an anonymous bind is performed.
+  ///
+  /// The bind DN and password are saved in the [LDAPConnection] object
+  /// for subsequent re-connections.
+
   Future<LDAPResult> bind([String bindDN = null, String password = null]) {
-    if (bindDN != null)
-      return _cmgr.process(new BindRequest(bindDN, password));
-    else
-      return _cmgr.process(new BindRequest(_bindDN, _password));
+    if (bindDN == null || bindDN is! String || bindDN.isEmpty) {
+      // No bind DN: perform anonymous bind
+
+      this._bindDN = "";
+      this._password = "";
+    } else {
+      // Explicit bind
+
+      this._bindDN = bindDN;
+
+      if (password == null || password is! String) {
+        this._password = "";
+      } else {
+        this._password = password;
+      }
+    }
+
+    return _cmgr.process(new BindRequest(this._bindDN, this._password));
   }
 
   /// Performs an LDAP search operation.
@@ -120,7 +138,7 @@ class LDAPConnection {
   ///     var base = "dc=example,dc=com";
   ///     var filter = Filter.present("objectClass");
   ///     var attrs = ["dc", "objectClass"];
-  ///   
+  ///
   ///     await for (var entry in connection.search(base, filter, attrs).stream) {
   ///       // process the entry (SearchEntry)
   ///       // entry.dn = distinguished name (String)
