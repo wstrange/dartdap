@@ -58,18 +58,10 @@ Future example() async {
     print("Exception: $e");
   } finally {
     // Step 5: close the connection
-    connection.close();
+    await connection.close();
   }
 }
 
-main() {
-  bool runTest = false;
-
-  if (! runTest) {
-    return;
-  }
-
-  test("example from README file", () async {
-    await example();
-  }, skip: "Skipping to prevent cluttering up output when running other tests");
+main() async {
+  await example();
 }

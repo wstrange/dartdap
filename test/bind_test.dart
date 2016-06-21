@@ -188,8 +188,8 @@ main() async {
       expect(ldap.isClosed(), isFalse);
     });
 
-    tearDown(() {
-      return ldap.close();
+    tearDown(() async {
+      await ldap.close();
     });
 
     test('with default credentials', () async {

@@ -93,7 +93,7 @@ try {
 
 } finally {
   // Step 5: close the connection
-  connection.close();
+  await connection.close();
 }
 ```
 

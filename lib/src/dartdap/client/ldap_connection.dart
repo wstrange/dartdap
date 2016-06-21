@@ -148,10 +148,20 @@ class LDAPConnection {
   SearchResult search(String baseDN, Filter filter, List<String> attributes,
           {int scope: SearchScope.SUB_LEVEL,
           int sizeLimit: 0,
-          List<Control> controls: null}) =>
-      _cmgr.processSearch(
-          new SearchRequest(baseDN, filter, attributes, scope, sizeLimit),
+          List<Control> controls: null}) {
+    var request = new SearchRequest(baseDN, filter, attributes, scope, sizeLimit);
+    var result;
+
+    try {
+      result = _cmgr.processSearch(
+          request,
           controls);
+    } catch (e) {
+      print("got an $e\n");
+    }
+
+    return result;
+  }
 
   /**
    * Add a new LDAP entry.
