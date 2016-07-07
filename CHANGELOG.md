@@ -7,6 +7,7 @@
 - Restructured libraries and organisation of files under the lib directory.
 - Deprecated LDAPConfiguration.
 - Moved parameters to bind method for re-binding with different credentials.
+- Fixed bug with processing received data with leftover data.
 
 * 0.0.9 2016-01-15
 
