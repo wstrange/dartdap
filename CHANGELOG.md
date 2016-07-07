@@ -1,6 +1,6 @@
 # Dartdap Change Log
 
-* 0.1.0 TBD
+* 0.0.10 2016-07-07
 
 - Reformatted using Dart dartfmt for code consistency.
 - Refactored exceptions and created LdapResultExceptions for all result codes.
