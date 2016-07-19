@@ -279,7 +279,7 @@ void setupLogging([Level commonLevel = Level.OFF]) {
   //new Logger("ldap.send").level = Level.OFF;
   //new Logger("ldap.recv.ldap").level = Level.OFF;
   //new Logger("ldap.recv.asn1").level = Level.OFF;
-  //new Logger("ldap.recv.bytes").level = Level.OFF;
+  new Logger("ldap.recv.bytes").level = Level.ALL;
 }
 
 //----------------------------------------------------------------

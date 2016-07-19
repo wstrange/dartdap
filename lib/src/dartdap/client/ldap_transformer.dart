@@ -8,6 +8,11 @@ StreamTransformer<Uint8List, LDAPMessage> _createLdapTransformer() {
 
   return new StreamTransformer.fromHandlers(
       handleData: (Uint8List data, EventSink<LDAPMessage> sink) {
+    if (data == null) {
+      loggerRecvBytes.fine("Bytes received: zero");
+      return;
+    }
+
     // Set buf to the bytes to attempt to process: leftover bytes from an
     // earlier data event (if any) plus the new bytes in data.
 
@@ -18,15 +23,15 @@ StreamTransformer<Uint8List, LDAPMessage> _createLdapTransformer() {
       loggerRecvBytes.fine("Bytes received: ${data.length}");
     } else {
       // There were left over bytes: leftover bytes + new data
+      loggerRecvBytes.fine(
+          "Bytes received: ${data.length} (leftover: ${leftover.length})");
       buf = new Uint8List(leftover.length + data.length);
       buf.setRange(0, leftover.length, leftover);
       buf.setRange(leftover.length, buf.length, data);
       leftover = null;
-      loggerRecvBytes.fine(
-          "Bytes received: ${data.length} (+${leftover.length} leftover)");
     }
 
-    if (Level.FINEST <= loggerRecvBytes.level) {
+    if (Level.FINEST >= loggerRecvBytes.level) {
       // If statement prevents this potentially computationally expensive
       // code to be executed if it is not needed.
       loggerRecvBytes.finest("Bytes received: ${data}");
@@ -40,6 +45,8 @@ StreamTransformer<Uint8List, LDAPMessage> _createLdapTransformer() {
 
     do {
       // Try to determine the length of the next ASN1 object
+
+      assert(buf != null);
 
       var value_size = null; // null if insufficient bytes to determine length
       var length_size; // number of bytes used by length field
@@ -98,16 +105,21 @@ StreamTransformer<Uint8List, LDAPMessage> _createLdapTransformer() {
         if (buf.length == message_size) {
           // All bytes have been processed
           buf = null; // force do-while loop to exit
+          loggerRecvBytes.finest("all bytes parsed");
         } else {
           // Still some bytes unprocessed: leave for next iteration of do-while loop
           buf =
               new Uint8List.view(buf.buffer, buf.offsetInBytes + message_size);
+          loggerRecvBytes.finest("remaining to parse: ${buf.length}");
         }
       } else {
         // Insufficient data for a complete ASN1 object.
 
         leftover = buf; // save bytes until more data arrives
         buf = null; // force do-while loop to exit
+
+        loggerRecvBytes
+            .finest("wait for more, leftover: ${leftover.length} bytes");
       }
     } while (buf != null);
 
@@ -120,17 +132,19 @@ StreamTransformer<Uint8List, LDAPMessage> _createLdapTransformer() {
     if (error is TlsException) {
       TlsException e = error;
       if (e.osError == null &&
-          e.message == "OSStatus = -9805: connection closed gracefully error -9805") {
+          e.message ==
+              "OSStatus = -9805: connection closed gracefully error -9805") {
         // Connection closed gracefully: ignore this, usually due to application
         // deliberately closing the connection
         if (leftover == null) {
           // Clean close
-          loggerRecvBytes.info("Connection closed gracefully: no leftover bytes to parse");
+          loggerRecvBytes
+              .info("Connection closed gracefully: no leftover bytes to parse");
           return;
         }
 
-        loggerRecvBytes.info("Connection closed gracefully: has leftover bytes to parse");
-
+        loggerRecvBytes
+            .info("Connection closed gracefully: has leftover bytes to parse");
       }
     }
     loggerRecvBytes.severe("LDAP stream transformer: error=${error}");
