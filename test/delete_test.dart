@@ -86,7 +86,7 @@ void doTest(String configName) {
 
   setUp(() async {
     var c = (await config_file.loadConfig(testConfigFile))[configName];
-    ldap = new LDAPConnection(c["host"], ssl: c["ssl"], port: c["port"]);
+    ldap = new LDAPConnection(c["host"], c["port"], c["ssl"]);
 
     await ldap.connect();
     await ldap.bind(c["bindDN"], c["password"]);

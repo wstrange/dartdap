@@ -1,5 +1,9 @@
 # Dartdap Change Log
 
+* 0.0.11 2016-07-19
+
+- Restored compatibility with version 0.0.9.
+
 * 0.0.10 2016-07-07
 
 - Reformatted using Dart dartfmt for code consistency.

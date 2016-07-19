@@ -260,7 +260,7 @@ class LDAPConfiguration {
 
     // Connect
 
-    _connection = new LDAPConnection(host, ssl: ssl, port: port);
+    _connection = new LDAPConnection(host, port, ssl);
     await _connection.connect();
 
     // Bind

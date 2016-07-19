@@ -3,7 +3,6 @@
 //----------------------------------------------------------------
 
 import 'dart:async';
-import 'package:test/test.dart';
 
 import 'package:dartdap/dartdap.dart';
 
@@ -14,7 +13,7 @@ Future example() async {
   var bindDN = "cn=Manager,dc=example,dc=com"; // null = unauthenticated bind
   var password = "p@ssw0rd";
 
-  var connection = new LDAPConnection(host, ssl: ssl, port: port);
+  var connection = new LDAPConnection(host, port, ssl);
 
   try {
     // Step 2: connect to the LDAP directory

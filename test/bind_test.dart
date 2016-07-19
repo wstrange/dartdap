@@ -62,7 +62,7 @@ main() async {
 
   group("Connect succeeds", () {
     test("using LDAP", () async {
-      var plain = new LDAPConnection(p["host"], ssl: p["ssl"], port: p["port"]);
+      var plain = new LDAPConnection(p["host"], p["port"], p["ssl"]);
 
       expect(plain.isClosed(), isTrue);
       await plain.connect();
@@ -74,7 +74,7 @@ main() async {
 
     test("using LDAPS", () async {
       var secured =
-          new LDAPConnection(s["host"], ssl: s["ssl"], port: s["port"]);
+          new LDAPConnection(s["host"], s["port"], s["ssl"]);
 
       expect(secured.isClosed(), isTrue);
       await secured.connect();
@@ -97,7 +97,7 @@ main() async {
     //----------------
 
     test("using LDAPS on LDAP", () async {
-      var bad = new LDAPConnection(p["host"], ssl: true, port: p["port"]);
+      var bad = new LDAPConnection(p["host"], p["port"], true);
 
       expect(bad.connect(), throwsA(new isInstanceOf<HandshakeException>()));
       // Connection terminated during handshake
@@ -133,7 +133,7 @@ main() async {
 
   group("Connect TCP fails", () {
     test("using LDAP on non-existant host", () async {
-      var bad = new LDAPConnection(badHost, ssl: p["ssl"], port: p["port"]);
+      var bad = new LDAPConnection(badHost,  p["port"], p["ssl"]);
 
       expect(
           bad.connect(),
@@ -142,7 +142,7 @@ main() async {
     });
 
     test("using LDAPS on non-existant host", () async {
-      var bad = new LDAPConnection(badHost, ssl: s["ssl"], port: s["port"]);
+      var bad = new LDAPConnection(badHost, s["port"], s["ssl"]);
 
       expect(
           bad.connect(),
@@ -151,7 +151,7 @@ main() async {
     });
 
     test("using LDAP on non-existant port", () async {
-      var bad = new LDAPConnection(p["host"], ssl: p["ssl"], port: badPort);
+      var bad = new LDAPConnection(p["host"], badPort, p["ssl"]);
 
       expect(
           bad.connect(),
@@ -163,7 +163,7 @@ main() async {
     });
 
     test("using LDAPS on non-existant port", () async {
-      var bad = new LDAPConnection(s["host"], ssl: s["ssl"], port: badPort);
+      var bad = new LDAPConnection(s["host"], badPort, s["ssl"]);
 
       expect(
           bad.connect(),
@@ -181,7 +181,7 @@ main() async {
     var ldap;
 
     setUp(() async {
-      ldap = new LDAPConnection(p["host"], ssl: p["ssl"], port: p["port"]);
+      ldap = new LDAPConnection(p["host"], p["port"], p["ssl"]);
 
       expect(ldap.isClosed(), isTrue);
       await ldap.connect();

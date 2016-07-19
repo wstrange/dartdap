@@ -52,8 +52,8 @@ class LDAPConnection {
 
   ConnectionManager _cmgr;
 
-  String _bindDN;
-  String _password;
+  String _bindDN = "";
+  String _password = "";
 
   Function onError; // global error handler
 
@@ -64,8 +64,9 @@ class LDAPConnection {
    *
    * If [ssl] is true the connection will use SSL.
    *
+   * Optionally store a bind [_bindDN] and [_password] which can be used to rebind to the connection
    */
-  LDAPConnection(String host, {bool ssl: false, int port: null}) {
+  LDAPConnection(String host, int port, [bool ssl = false, String _bindDN, String _password]) {
     if (host == null || host is! String || host.isEmpty) {
       host = _defaultHost;
     }
@@ -93,32 +94,15 @@ class LDAPConnection {
     return this;
   }
 
-  /// Perform an LDAP BIND using the supplied [bindDN] and [password].
-  ///
-  /// If the [bindDN] is null an anonymous bind is performed.
-  ///
-  /// The bind DN and password are saved in the [LDAPConnection] object
-  /// for subsequent re-connections.
+  /// Perform an LDAP BIND. If the optional [bindDN] and [password] are not
+  /// passed the connections stored values are used for the bind.
 
   Future<LDAPResult> bind([String bindDN = null, String password = null]) {
-    if (bindDN == null || bindDN is! String || bindDN.isEmpty) {
-      // No bind DN: perform anonymous bind
+    if( bindDN != null )
+      return _cmgr.process(new BindRequest(bindDN, password));
+    else
+      return _cmgr.process(new BindRequest(_bindDN, _password));
 
-      this._bindDN = "";
-      this._password = "";
-    } else {
-      // Explicit bind
-
-      this._bindDN = bindDN;
-
-      if (password == null || password is! String) {
-        this._password = "";
-      } else {
-        this._password = password;
-      }
-    }
-
-    return _cmgr.process(new BindRequest(this._bindDN, this._password));
   }
 
   /// Performs an LDAP search operation.
