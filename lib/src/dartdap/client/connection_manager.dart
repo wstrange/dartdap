@@ -27,6 +27,8 @@ abstract class _PendingOp {
   }
 }
 
+//================================================================
+
 // A pending operation that has multiple values returned via a
 // Stream. Used for SearchResults.
 class _StreamPendingOp extends _PendingOp {
@@ -61,6 +63,8 @@ class _StreamPendingOp extends _PendingOp {
     return true; // op complete
   }
 }
+
+//================================================================
 
 // A pending opertion that expects a single return response message
 // returned via a future. For all LDAP ops except search results
@@ -246,6 +250,8 @@ class _FuturePendingOp extends _PendingOp {
   }
 }
 
+//================================================================
+
 /**
  * Manages the state of the LDAP connection.
  *
@@ -265,7 +271,11 @@ class ConnectionManager {
   bool _bindPending = false; // true if a BIND is pending
   Socket _socket;
 
-  // true if this connection is closed
+  //----------------------------------------------------------------
+  /// Indicates if the connection is closed.
+  ///
+  /// Returns true if the connection is closed, false otherwise.
+
   // (if the socket is null, we consider it closed)
   bool isClosed() => _socket == null;
 
@@ -275,8 +285,25 @@ class ConnectionManager {
   String _host;
   bool _ssl;
 
+  /// Completes when the stream transformer is done.
+  /// Indicates the connection is completely closed.
+  ///
+  Completer _whenDone;
+
+  //----------------------------------------------------------------
+  /// Constructor
+  ///
+  /// Creates and initializes a connection object.
+  ///
+  /// The actual TCP/IP connection is not established.
+  ///
+
   ConnectionManager(this._host, this._port, this._ssl);
 
+  //================================================================
+  // Connecting
+
+  //----------------------------------------------------------------
   /// Establishes a network connection to the LDAP server.
   ///
   /// Throws a [LdapSocketException] if a socket exception occurs.
@@ -287,28 +314,27 @@ class ConnectionManager {
   /// cannot be connected to.
 
   Future<ConnectionManager> connect() async {
-    loggerConnection
-        .finer("Opening ${_ssl ? "secure " : ""}socket to ${_host}:${_port}");
-
     try {
-      var s = (_ssl
-          ? SecureSocket.connect(_host, _port,
-              onBadCertificate: _badCertHandler)
-          : Socket.connect(_host, _port));
+      if (isClosed()) {
+        var s = (_ssl)
+            ? SecureSocket.connect(_host, _port, onBadCertificate: _badCert)
+            : Socket.connect(_host, _port);
 
-      _socket = await s;
+        _socket = await s;
 
-      _socket
-          .transform(_createLdapTransformer())
-          .listen((m) => _handleLDAPMessage(m), onError: (error, stacktrace) {
-        loggerConnection.finer("Socket error", error, stacktrace);
-        if (error is SocketException) {
-          throw new LdapSocketException(error);
-        } else {
-          throw error;
-        }
-      });
+        _whenDone = new Completer();
+
+        _socket.transform(_createLdapTransformer()).listen(
+            (m) => _handleLDAPMessage(m),
+            onError: _ldapListenerOnError,
+            onDone: _ldapListenerOnDone);
+      }
+
+      return this;
     } on SocketException catch (e) {
+      // For known error conditions (e.g. when the socket cannot be created)
+      // throw a more meaningful exception. Otherwise, just rethrow it.
+
       if (e.osError != null) {
         if (e.osError.errorCode == 61) {
           // errorCode 61 = "Connection refused"
@@ -320,16 +346,13 @@ class ConnectionManager {
       }
       rethrow;
     }
-
-    loggerConnection
-        .fine("Opened ${_ssl ? "secure " : ""}socket to $_host:$_port");
-
-    return this;
   }
+
+  //----------------------------------------------------------------
 
   // Called when the SSL cert is not valid
   // Return true to carry on anyways. TODO: Make it configurable
-  bool _badCertHandler(X509Certificate cert) {
+  bool _badCert(X509Certificate cert) {
     loggerConnection.warning(
         "Invalid Certificate: issuer=${cert.issuer} subject=${cert.subject}");
     loggerConnection
@@ -337,101 +360,8 @@ class ConnectionManager {
     return true; // carry on
   }
 
-  // process an LDAP Search Request
-  SearchResult processSearch(SearchRequest rop, List<Control> controls) {
-    var m = new LDAPMessage(++_nextMessageId, rop, controls);
-    var op = new _StreamPendingOp(m);
-    _queueOp(op);
-    return op.searchResult;
-  }
-
-  // Process a generic LDAP operation.
-  Future<LDAPResult> process(RequestOp rop) {
-    var m = new LDAPMessage(++_nextMessageId, rop);
-    var op = new _FuturePendingOp(m);
-    _queueOp(op);
-    return op.completer.future;
-  }
-
-  _queueOp(_PendingOp op) {
-    _outgoingMessageQueue.add(op);
-    _sendPendingMessage();
-  }
-
-  _sendPendingMessage() {
-    //logger.finest("Send pending message()");
-    while (_messagesToSend()) {
-      var op = _outgoingMessageQueue.removeFirst();
-      _sendMessage(op);
-    }
-  }
-
-  /**
-   * Return TRUE if there are messages waiting to be sent.
-   *
-   * Note that BIND is synchronous (as per LDAP spec) - so if there is a pending BIND
-   * we must wait to send more messages until the BIND response comes back from the
-   * server
-   */
-  bool _messagesToSend() =>
-      (!_outgoingMessageQueue.isEmpty) && (_bindPending == false);
-
-  // Send a single message to the server
-  _sendMessage(_PendingOp op) {
-    loggerSendLdap.fine("Send LDAP message: ${op.message}");
-    var l = op.message.toBytes();
-    _socket.add(l);
-    _pendingResponseMessages[op.message.messageId] = op;
-    if (op.message.protocolTag == BIND_REQUEST) _bindPending = true;
-  }
-
-  /**
-   *
-   *
-   * Close the LDAP connection.
-   *
-   * Pending operations will be allowed to finish, unless immediate = true
-   *
-   * Returns a Future that is called when the connection is closed
-   */
-
-  Future close(bool immediate) {
-    if (immediate || _canClose()) {
-      return _doClose();
-    } else {
-      var c = new Completer();
-      // todo: dont wait if there are no pending ops....
-      new Timer.periodic(PENDING_OP_TIMEOUT, (Timer t) {
-        if (_canClose()) {
-          t.cancel();
-          _doClose().then((_) => c.complete());
-        }
-      });
-      return c.future;
-    }
-  }
-
-  /**
-   * Return true if there are no more pending messages.
-   */
-  bool _canClose() {
-    if (_pendingResponseMessages.isEmpty && _outgoingMessageQueue.isEmpty) {
-      return true;
-    }
-    loggerConnection.finer(
-        "close() waiting for queue to drain pendingResponse=$_pendingResponseMessages");
-    _sendPendingMessage();
-    return false;
-  }
-
-  Future _doClose() {
-    loggerConnection.fine("Closing socket");
-    var f = (_socket != null) ? _socket.close() : null;
-    _socket = null;
-    return f;
-  }
-
-  /// Processes received LDAP messages.
+  //----------------------------------------------------------------
+  /// The handler for the listener for LDAP messages.
   ///
   /// This method handles the LDAP messages which have been parsed from the
   /// bytes read from the socket. It is invoked from the bytes-to-LDAPMessage
@@ -467,5 +397,191 @@ class ConnectionManager {
     }
 
     if (m.protocolTag == BIND_RESPONSE) _bindPending = false;
+  }
+
+  //----------------------------------------------------------------
+  /// The onError callback for the listener for LDAP messages.
+
+  void _ldapListenerOnError(error, StackTrace stacktrace) {
+    loggerConnection.finer("listen: onError", error, stacktrace);
+
+    if (error is SocketException) {
+      throw new LdapSocketException(error);
+    } else {
+      throw error;
+    }
+  }
+
+  //----------------------------------------------------------------
+  /// The onDone callback for the listener for LDAP messages.
+  ///
+  /// This method will be invoked when the listener's stream is done.
+  ///
+  /// This can happen if the TCP/IP connect is broken.
+
+  void _ldapListenerOnDone() {
+    loggerConnection.finest("message stream done");
+
+    assert(_whenDone != null);
+    _whenDone.complete();
+
+    _doClose();
+  }
+
+  //================================================================
+  // Process LDAP operations
+
+  //----------------------------------------------------------------
+  /// Process an LDAP Search Request.
+  ///
+  /// Throws a [LdapUsageException] if the connection is closed.
+
+  SearchResult processSearch(SearchRequest rop, List<Control> controls) {
+    if (isClosed()) {
+      throw new LdapUsageException("not connected");
+    }
+
+    var m = new LDAPMessage(++_nextMessageId, rop, controls);
+    var op = new _StreamPendingOp(m);
+    _queueOp(op);
+    return op.searchResult;
+  }
+
+  //----------------------------------------------------------------
+  /// Process a generic LDAP operation.
+  ///
+  /// This is used for processing all LDAP requests, except for
+  /// LDAP search requests (which should use [processSearch]).
+  ///
+  /// Throws a [LdapUsageException] if the connection is closed.
+
+  Future<LDAPResult> process(RequestOp rop) {
+    if (isClosed()) {
+      throw new LdapUsageException("not connected");
+    }
+
+    var m = new LDAPMessage(++_nextMessageId, rop);
+    var op = new _FuturePendingOp(m);
+    _queueOp(op);
+    return op.completer.future;
+  }
+
+  _queueOp(_PendingOp op) {
+    _outgoingMessageQueue.add(op);
+    _sendPendingMessage();
+  }
+
+  _sendPendingMessage() {
+    //logger.finest("Send pending message()");
+    while (_messagesToSend()) {
+      var op = _outgoingMessageQueue.removeFirst();
+      _sendMessage(op);
+    }
+  }
+
+  //----------------------------------------------------------------
+
+  /**
+   * Return TRUE if there are messages waiting to be sent.
+   *
+   * Note that BIND is synchronous (as per LDAP spec) - so if there is a pending BIND
+   * we must wait to send more messages until the BIND response comes back from the
+   * server
+   */
+  bool _messagesToSend() =>
+      (!_outgoingMessageQueue.isEmpty) && (_bindPending == false);
+
+  //----------------------------------------------------------------
+  // Send a single message to the server
+
+  _sendMessage(_PendingOp op) {
+    loggerSendLdap
+        .fine("[${op.message.messageId}] Sending LDAP message: ${op.message}");
+
+    var l = op.message.toBytes();
+
+    loggerSendBytes.finest("[${op.message.messageId}] Bytes sending: $l");
+
+    _socket.add(l);
+    _pendingResponseMessages[op.message.messageId] = op;
+    if (op.message.protocolTag == BIND_REQUEST) {
+      _bindPending = true;
+    }
+
+    // Call the [flush] method so we can use [catchError] to detect errors
+    // Note: this is experimental. So far no errors/exceptions have been seen.
+
+    try {
+      _socket.flush().then((v) {
+        loggerSendBytes
+            .finer("[${op.message.messageId}] Sent ${l.length} bytes");
+      }).catchError((e) {
+        loggerSendBytes.severe("[${op.message.messageId}] $e");
+        throw e;
+      });
+    } catch (e) {
+      loggerSendBytes.severe("[${op.message.messageId}] caught: $e");
+      throw e;
+    }
+  }
+
+  //================================================================
+  // Disconnecting
+
+  //----------------------------------------------------------------
+  /**
+   *
+   *
+   * Close the LDAP connection.
+   *
+   * Pending operations will be allowed to finish, unless immediate = true
+   *
+   * Returns a Future that is called when the connection is closed
+   */
+
+  Future close(bool immediate) async {
+    if (immediate || _canClose()) {
+      await _doClose();
+    } else {
+      loggerConnection.finer(
+          "wait for queue to drain pendingResponse=$_pendingResponseMessages");
+
+      var c = new Completer();
+      // todo: dont wait if there are no pending ops....
+      new Timer.periodic(PENDING_OP_TIMEOUT, (Timer t) {
+        if (_canClose()) {
+          t.cancel();
+          _doClose().then((_) => c.complete());
+        }
+      });
+      await c.future;
+    }
+
+    if (_whenDone != null) {
+      loggerConnection.finest("wait for message stream to be done");
+      await _whenDone.future; // wait for stream to be done
+    }
+  }
+
+  //----------------------------------------------------------------
+  /**
+   * Return true if there are no more pending messages.
+   */
+  bool _canClose() {
+    if (_pendingResponseMessages.isEmpty && _outgoingMessageQueue.isEmpty) {
+      return true;
+    }
+    _sendPendingMessage();
+    return false;
+  }
+
+  //----------------------------------------------------------------
+  /// Closes the connection.
+
+  Future _doClose() async {
+    if (!isClosed()) {
+      await _socket.close();
+      _socket = null; // this marks the connection as being closed
+    }
   }
 }

@@ -99,7 +99,7 @@ class LDAPResult {
 //===============================================================
 /// Search entry result produced by the search operation.
 ///
-/// The [LDAPConnection.search] method produces a [SearchResult] which
+/// The [LdapConnection.search] method produces a [SearchResult] which
 /// contains a stream of these objects: each representing an entry that matched
 /// the search request.
 ///

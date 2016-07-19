@@ -2,6 +2,7 @@
 
 * 0.1.0 TBD
 
+- Implemented automatic mode for LdapConnection.
 - Reformatted using Dart dartfmt for code consistency.
 - Refactored exceptions and created LdapResultExceptions for all result codes.
 - Restructured libraries and organisation of files under the lib directory.

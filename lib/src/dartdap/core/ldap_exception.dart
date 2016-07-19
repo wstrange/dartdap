@@ -70,6 +70,27 @@ class LdapConfigException extends LdapException {
 }
 
 //===============================================================
+
+/// Exception thrown when an open connection has been disconnected.
+///
+/// This exception is thrown when an LDAP operation is attempted, but
+/// the connection is no longer open because it had been disconnected.
+/// Disconnections are outside the application's control: they can occur
+/// because the LDAP directory server has timed-out or dropped the connection,
+/// or because of network errors.
+///
+/// If this exception is thrown, the application has explicitly chosen to
+/// run in manual mode and has not taken into account that connections can
+/// get disconnected. If possible, use the automatic mode (which will
+/// automatically reopen disconnected connections). Otherwise, if manual mode
+/// is necessary, check that the connection is open before performing any
+/// LDAP operation.
+///
+class LdapConnectionDisconnected extends LdapException {
+  LdapConnectionDisconnected() : super("connection disconnected");
+}
+
+//===============================================================
 // Exceptions for socket connection
 
 /// Exception when there is a connection problem.

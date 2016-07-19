@@ -48,6 +48,12 @@ Logger: `ldap.send.ldap` for the LDAP messages sent.
 - fine = LDAP messages sent.
 - finest = details of LDAP message construction
 
+Logger: `ldap.send.bytes` for the raw bytes sent to the socket.
+Probably only useful when debugging the dartdap package.
+
+- severe = errors/exceptions when sending
+- fine = number of raw bytes sent
+
 Logger: `ldap.recv.ldap` for the LDAP messages receive
 (i.e. received ASN.1 objects processed as LDAP messages).
 
@@ -64,7 +70,7 @@ dartdap package.
 Logger: `ldap.recv.bytes` for the raw bytes received from the
   socket.  Probably only useful when debugging the dartdap package.
 
-- fine = number of bytes raw read
+- fine = number of raw bytes read
 - finer = parsing activity of converting the bytes into ASN.1 objects
 - finest = shows the actual bytes received and the number in the buffer to parse
 

@@ -27,7 +27,7 @@ const int NUM_ENTRIES = 3;
 //----------------------------------------------------------------
 // Create entries needed for testing.
 
-Future populateEntries(LDAPConnection ldap) async {
+Future populateEntries(LdapConnection ldap) async {
   // Create entry
 
   var addResult = await ldap.add(testDN.dn, {
@@ -53,7 +53,7 @@ Future populateEntries(LDAPConnection ldap) async {
 //----------------------------------------------------------------
 /// Clean up before/after testing.
 
-Future purgeEntries(LDAPConnection ldap) async {
+Future purgeEntries(LdapConnection ldap) async {
   // Delete subentries
 
   for (int j = 0; j < NUM_ENTRIES; ++j) {
@@ -83,10 +83,12 @@ void doTest(String configName) {
 
   setUp(() async {
     var c = (await config_file.loadConfig(testConfigFile))[configName];
-    ldap = new LDAPConnection(c["host"], ssl: c["ssl"], port: c["port"]);
-
-    await ldap.connect();
-    await ldap.bind(c["bindDN"], c["password"]);
+    ldap = new LdapConnection(
+        host: c["host"],
+        ssl: c["ssl"],
+        port: c["port"],
+        bindDN: c["bindDN"],
+        password: c["password"]);
 
     await purgeEntries(ldap);
     await populateEntries(ldap);
@@ -108,8 +110,8 @@ void doTest(String configName) {
 
     var count = 0;
 
-    await for (SearchEntry entry
-        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+    var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
+    await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 
       var cnSet = entry.attributes["cn"];
@@ -139,8 +141,8 @@ void doTest(String configName) {
 
     var count = 0;
 
-    await for (SearchEntry entry
-        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+    var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
+    await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 
       var cnSet = entry.attributes["cn"];
@@ -170,8 +172,8 @@ void doTest(String configName) {
 
     var count = 0;
 
-    await for (SearchEntry entry
-        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+    var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
+    await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
       expect(entry, new isInstanceOf<SearchEntry>());
 
@@ -201,8 +203,8 @@ void doTest(String configName) {
 
     var count = 0;
 
-    await for (SearchEntry entry
-        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+    var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
+    await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
       expect(entry, new isInstanceOf<SearchEntry>());
 
@@ -229,9 +231,9 @@ void doTest(String configName) {
     var gotException = false;
 
     try {
-      await for (SearchEntry entry in ldap
-          .search("ou=NoSuchEntry,dc=example,dc=com", filter, searchAttrs)
-          .stream) {
+      var searchResults = await ldap.search(
+          "ou=NoSuchEntry,dc=example,dc=com", filter, searchAttrs);
+      await for (SearchEntry entry in searchResults.stream) {
         fail("Unexpected result from search under non-existant entry");
         expect(entry, isNotNull);
         count++;
@@ -272,7 +274,7 @@ void setupLogging([Level commonLevel = Level.OFF]) {
   // "FINEST" or "ALL".
 
   //Logger.root.level = Level.OFF;
-  //new Logger("ldap").level = Level.OFF;
+  //new Logger("ldap").level = Level.ALL;
   //new Logger("ldap.connection").level = Level.OFF;
   //new Logger("ldap.recv").level = Level.OFF;
   //new Logger("ldap.recv.ldap").level = Level.OFF;

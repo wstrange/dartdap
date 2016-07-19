@@ -2,7 +2,7 @@ part of dartdap;
 
 /// Results from a search request.
 ///
-/// This object is produced by the [LDAPConnection.search] method.
+/// This object is produced by the [LdapConnection.search] method.
 ///
 /// Use the [stream] property to get a stream of [SearchEntry] objects, which
 /// representes the results from the search operation.

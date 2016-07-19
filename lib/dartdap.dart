@@ -4,7 +4,7 @@
 /// 
 /// ## Usage
 /// 
-/// 1. Instantiate an [LDAPConnection] object.
+/// 1. Instantiate an [LdapConnection] object.
 /// 2. Call its `connect` method to connect to the LDAP directory.
 /// 3. Call its `bind` method to authenticate to the LDAP directory, if needed.
 /// 4. Perform LDAP operations using methods on it (e.g. `search`, `add`, `delete`).

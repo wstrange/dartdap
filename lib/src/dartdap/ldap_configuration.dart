@@ -14,7 +14,7 @@ part of dartdap;
 /// settings (host, port, bind distinguished name, password, and
 /// whether the connection uses TLS/SSL).
 ///
-/// It is also used to obtain an [LDAPConnection] using those settings.
+/// It is also used to obtain an [LdapConnection] using those settings.
 ///
 /// There are two ways to create an LDAP configuration:
 ///
@@ -53,7 +53,7 @@ class LDAPConfiguration {
 
   // Cached connection
 
-  LDAPConnection _connection; // null if not created
+  LdapConnection _connection; // null if not created
 
   // Set values
   //
@@ -164,7 +164,8 @@ class LDAPConfiguration {
       var m = configMap[_file_entry];
 
       if (m == null) {
-        throw new LdapConfigException("${_file_name}: missing \"${_file_entry}\"");
+        throw new LdapConfigException(
+            "${_file_name}: missing \"${_file_entry}\"");
       }
       if (!(m is Map)) {
         throw new LdapConfigException(
@@ -222,7 +223,7 @@ class LDAPConfiguration {
     }
   }
 
-  /// Return a Future<[LDAPConnection]> using this configuration.
+  /// Return a Future<[LdapConnection]> using this configuration.
   ///
   /// The connection is cached so that subsequent calls will return
   /// the same connection (unless it has been closed, in which case
@@ -232,7 +233,7 @@ class LDAPConfiguration {
   /// the returned connection will also be bound using the configured DN and password.
   ///
   /// The LDAP connection can be closed by invoking the `close` method on the
-  /// [LDAPConfiguration] or by invoking the [LDAPConnection.close] method on the
+  /// [LDAPConfiguration] or by invoking the [LdapConnection.close] method on the
   /// connection object.  Either approach will cause subsequent calls to
   /// this getConnection method to open a new LDAP connection.
   ///
@@ -248,8 +249,14 @@ class LDAPConfiguration {
   /// connection to a LDAPS service hangs and timesout.
 
   @deprecated
-  Future<LDAPConnection> getConnection([bool doBind = true]) async {
-    if (_connection != null && !_connection.isClosed()) {
+  Future<LdapConnection> getConnection([bool doBind = true]) async {
+
+    // TODO: delete this class. Its purpose is no longer useful
+    // for caching connections, since LDAPConnection now supports automatic
+    // opening of closed connections and automatic re-opening of disconnected
+    // connections.
+
+    if (_connection != null && _connection.state != LdapConnectionState.connected) {
       // Use cached connection
       return _connection;
     }
@@ -260,13 +267,20 @@ class LDAPConfiguration {
 
     // Connect
 
-    _connection = new LDAPConnection(host, ssl: ssl, port: port);
-    await _connection.connect();
+    _connection = new LdapConnection(
+        host: host,
+        ssl: ssl,
+        port: port,
+        bindDN: bindDN,
+        password: password,
+        autoConnect: false);
+
+    await _connection.open();
 
     // Bind
 
     if (doBind) {
-      var r = await _connection.bind(bindDN, password);
+      var r = await _connection.bind();
       assert(r.resultCode == 0); // otherwise an exception was thrown
     }
 

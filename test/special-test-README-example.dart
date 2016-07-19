@@ -3,7 +3,6 @@
 //----------------------------------------------------------------
 
 import 'dart:async';
-import 'package:test/test.dart';
 
 import 'package:dartdap/dartdap.dart';
 
@@ -14,18 +13,14 @@ Future example() async {
   var bindDN = "cn=Manager,dc=example,dc=com"; // null = unauthenticated bind
   var password = "p@ssw0rd";
 
-  var connection = new LDAPConnection(host, ssl: ssl, port: port);
+  // Create and configure the connection
+
+  var connection = new LdapConnection(host: host);
+  connection.setProtocol(ssl, port); // LDAP vs LDAPS (i.e. LDAP over SSL/TLS)
+  connection.setAuthentication(bindDN, password); // bind credentials
 
   try {
-    // Step 2: connect to the LDAP directory
-
-    await connection.connect();
-
-    // Step 3: authenticate to the LDAP directory
-
-    await connection.bind(bindDN, password);
-
-    // Step 4: perform search operation
+    // Perform search operation
 
     var base = "dc=example,dc=com";
     var filter = Filter.present("objectClass");
@@ -33,7 +28,8 @@ Future example() async {
 
     var count = 0;
 
-    await for (var entry in connection.search(base, filter, attrs).stream) {
+    var searchResult = await connection.search(base, filter, attrs);
+    await for (var entry in searchResult.stream) {
       // Processing stream of SearchEntry
       count++;
       print("dn: ${entry.dn}");
@@ -57,7 +53,7 @@ Future example() async {
   } catch (e) {
     print("Exception: $e");
   } finally {
-    // Step 5: close the connection
+    // Close the connection when finished with it
     await connection.close();
   }
 }
