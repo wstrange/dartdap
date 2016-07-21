@@ -1,11 +1,8 @@
 # Dartdap Change Log
 
-* 0.0.11 2016-07-19
+* 0.1.0 2016-07-21
 
-- Restored compatibility with version 0.0.9.
-
-* 0.0.10 2016-07-07
-
+- New release whose exceptions are incompatible with version 0.0.9.
 - Reformatted using Dart dartfmt for code consistency.
 - Refactored exceptions and created LdapResultExceptions for all result codes.
 - Restructured libraries and organisation of files under the lib directory.
