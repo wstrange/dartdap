@@ -355,6 +355,19 @@ class LdapConnection {
     return (_bindDN.isNotEmpty);
   }
 
+  //----------------------------------------------------------------
+  // Pending completers
+  //
+  // These track open, automatic binding, and close operations which are
+  // currently in progress.
+
+  static List<Completer> _openCompleters = new List<Completer>();
+
+  static List<Completer<LDAPResult>> _autoBindCompleters =
+      new List<Completer<LDAPResult>>();
+
+  static List<Completer> _closeCompleters = new List<Completer>();
+
   //================================================================
   // State
 
@@ -473,12 +486,12 @@ class LdapConnection {
   /// queued operations are discarded.
   ///
   Future close([bool immediate = false]) async {
-    loggerConnection.fine("close");
+    loggerConnection.fine("close${immediate ? ": immediate" : ""}");
 
     switch (state) {
       case LdapConnectionState.connected:
       case LdapConnectionState.bindRequired:
-        await _cmgr.close(immediate);
+        await _doClose(immediate);
         loggerConnection.finer("close: done");
         break;
       case LdapConnectionState.closed:
@@ -490,6 +503,35 @@ class LdapConnection {
         break;
     }
     _cmgr = null;
+  }
+
+  Future _doClose(bool immediate) async {
+    assert(_openCompleters.isEmpty);
+
+    var c = new Completer();
+    _closeCompleters.add(c);
+
+    if (1 < _closeCompleters.length) {
+      // Close in progress
+      loggerConnection.finest("close in progress");
+      await c.future; // wait for it to finish
+      return;
+    }
+
+    try {
+      loggerConnection.finest("close: started");
+
+      await _cmgr.close(immediate);
+
+      loggerConnection.finest("close: done");
+    } catch (e) {
+      rethrow;
+    } finally {
+      for (var cc in _closeCompleters) {
+        cc.complete();
+      }
+      _closeCompleters.removeRange(0, _closeCompleters.length);
+    }
   }
 
   //----------------------------------------------------------------
@@ -541,13 +583,7 @@ class LdapConnection {
             loggerConnection.finer("automatic open: ${this.url}");
           }
 
-          var tmp = new ConnectionManager(_host, _port, _isSSL);
-
-          await tmp.connect(); // might throw exception
-
-          _cmgr = tmp;
-          _sentBindDN = ""; // connection is initially anonymous
-          _sentPassword = "";
+          await _doOpen();
         } else {
           throw new StateError("connection is not open: ${this.url}");
         }
@@ -563,6 +599,48 @@ class LdapConnection {
     }
 
     // TODO: detect errors
+  }
+
+  //----------------------------------------------------------------
+  /// Internal method to open connection.
+  ///
+  Future _doOpen() async {
+    assert(_closeCompleters.isEmpty);
+    assert(_autoBindCompleters.isEmpty);
+
+    var c = new Completer();
+    _openCompleters.add(c);
+
+    if (1 < _openCompleters.length) {
+      // Open already in progress
+      loggerConnection.finest("open in progress");
+      await c.future;
+      return;
+    }
+
+    // Open not in progress
+    try {
+      loggerConnection.finest("opening connection: started");
+
+      var tmp = new ConnectionManager(_host, _port, _isSSL);
+
+      await tmp.connect(); // might throw exception
+
+      assert(_cmgr == null || _cmgr.isClosed());
+
+      _cmgr = tmp;
+      _sentBindDN = ""; // connection is initially anonymous
+      _sentPassword = "";
+
+      loggerConnection.finest("opening connection: done");
+    } catch (e) {
+      rethrow;
+    } finally {
+      for (var cc in _openCompleters) {
+        cc.complete();
+      }
+      _openCompleters.removeRange(0, _openCompleters.length);
+    }
   }
 
   //----------------------------------------------------------------
@@ -655,13 +733,46 @@ class LdapConnection {
     assert(_cmgr != null && !_cmgr.isClosed()); // connection must be open
 
     if (onlyIfNecessary) {
-      loggerConnection.finer(
-          "automatic bind: ${(_bindDN.isNotEmpty) ? _bindDN : "anonymous"}");
+      return await _doAutomaticBind();
     } else {
-      loggerConnection
-          .finer("bind: ${(_bindDN.isNotEmpty) ? _bindDN : "anonymous"}");
+      return await _doBind();
+    }
+  }
+
+  Future<LDAPResult> _doAutomaticBind() async {
+    loggerConnection.finer(
+        "automatic bind: ${(_bindDN.isNotEmpty) ? _bindDN : "anonymous"}");
+
+    assert(_openCompleters.isEmpty);
+    assert(_closeCompleters.isEmpty);
+
+    var c = new Completer<LDAPResult>();
+    _autoBindCompleters.add(c);
+
+    if (1 < _autoBindCompleters.length) {
+      // Implicit bind in progress
+      return await c.future;
     }
 
+    // Implicit bind not in progress
+
+    var result;
+    try {
+      loggerConnection.finer(
+          "explicit bind: ${(_bindDN.isNotEmpty) ? _bindDN : "anonymous"}");
+      result = await _doBind();
+      return result;
+    } catch (e) {
+      rethrow;
+    } finally {
+      for (var cc in _autoBindCompleters) {
+        cc.complete(result);
+      }
+      _autoBindCompleters.removeRange(0, _autoBindCompleters.length);
+    }
+  }
+
+  Future<LDAPResult> _doBind() async {
     var r = await _cmgr.process(new BindRequest(this._bindDN, this._password));
     if (r.resultCode == ResultCode.OK) {
       loggerConnection.finer("bind: success");
@@ -669,6 +780,7 @@ class LdapConnection {
       _sentPassword = _password;
     } else {
       assert(false); // exception should have been thrown if BIND failed
+      return null;
     }
     return r;
   }
@@ -695,9 +807,9 @@ class LdapConnection {
   /// Returns a Future containing the result of the BIND operation.
   ///
   Future<LDAPResult> bind() async {
-    loggerConnection.fine("bind");
+    loggerConnection.fine("bind: ${_bindDN.isEmpty ? "anonymous" : _bindDN}");
 
-    await _requireOpen(false);  // exception if not open and in manual mode
+    await _requireOpen(false); // exception if not open and in manual mode
 
     return await _sendBind(onlyIfNecessary: false); // always send bind
   }

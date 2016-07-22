@@ -1,5 +1,9 @@
 # Dartdap Change Log
 
+* 0.2.0 TBD
+
+- Fixed race condition with multiple open/bind/close operations in parallel.
+
 * 0.1.0 TBD
 
 - Implemented automatic mode for LdapConnection.

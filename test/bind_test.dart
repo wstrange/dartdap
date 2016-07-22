@@ -18,10 +18,6 @@ const String testConfigFile = "test/TEST-config.yaml";
 var badHost = "doesNotExist.example.com";
 var badPort = 10999; // there must not be anything listing on this port
 
-// Enable logging by setting to true.
-
-const bool doLogging = false;
-
 //----------------------------------------------------------------
 
 var testDN = new DN("dc=example,dc=com");
@@ -54,6 +50,8 @@ main() async {
 
   var s = (await config_file.loadConfig(testConfigFile))["test-LDAPS"];
   assert(s["ssl"] == true);
+
+  const bool doLogging = false;
 
   if (doLogging) {
     //  startQuickLogging();
