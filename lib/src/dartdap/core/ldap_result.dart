@@ -72,7 +72,7 @@ part of dartdap;
  * Generic LDAP Result
  */
 
-class LDAPResult {
+class LdapResult {
   int _resultCode;
   String _diagnosticMessage;
   String _matchedDN;
@@ -85,7 +85,7 @@ class LDAPResult {
 
   /// Constructor
 
-  LDAPResult(this._resultCode, this._matchedDN, this._diagnosticMessage,
+  LdapResult(this._resultCode, this._matchedDN, this._diagnosticMessage,
       this._referralURLs) {}
 
   String toString() =>

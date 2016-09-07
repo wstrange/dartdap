@@ -48,11 +48,11 @@ final testPersonAttrs = {
 
 Future populateEntries(LdapConnection ldap) async {
   var addResult = await ldap.add(branchDN.dn, branchAttrs);
-  assert(addResult is LDAPResult);
+  assert(addResult is LdapResult);
   assert(addResult.resultCode == 0);
 
   addResult = await ldap.add(testPersonDN.dn, testPersonAttrs);
-  assert(addResult is LDAPResult);
+  assert(addResult is LdapResult);
   assert(addResult.resultCode == 0);
 }
 
@@ -110,7 +110,7 @@ void doTest(String configName) {
     // Delete the entry
 
     var delResult = await ldap.delete(testPersonDN.dn);
-    expect(delResult, new isInstanceOf<LDAPResult>());
+    expect(delResult, new isInstanceOf<LdapResult>());
     expect(delResult.resultCode, equals(0));
 
     // Search to check the entry is gone

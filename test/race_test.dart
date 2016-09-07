@@ -5,7 +5,6 @@
 import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
-import 'package:matcher/mirror_matchers.dart';
 import 'package:dart_config/default_server.dart' as config_file;
 
 import 'package:dartdap/dartdap.dart';
@@ -82,14 +81,14 @@ main() async {
               port: p["port"],
               autoConnect: true);
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAuthenticated, isFalse);
 
           ldap.open();
 
           await ldap.open();
 
-          expect(ldap.state, equals(LdapConnectionState.connected));
+          expect(ldap.state, equals(ConnectionState.ready));
           expect(ldap.isAuthenticated, isFalse);
 
           // LDAP operations can be performed on an open connection
@@ -100,7 +99,7 @@ main() async {
 
           await ldap.close();
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAuthenticated, isFalse);
 
         });
@@ -114,12 +113,12 @@ main() async {
               port: p["port"],
               autoConnect: true);
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAuthenticated, isFalse);
 
           await ldap.open();
 
-          expect(ldap.state, equals(LdapConnectionState.connected));
+          expect(ldap.state, equals(ConnectionState.ready));
           expect(ldap.isAuthenticated, isFalse);
 
           // LDAP operations can be performed on an open connection
@@ -131,7 +130,7 @@ main() async {
           ldap.close();
           await ldap.close();
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAuthenticated, isFalse);
         });
 

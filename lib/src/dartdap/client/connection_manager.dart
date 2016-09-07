@@ -258,7 +258,7 @@ class _FuturePendingOp extends _PendingOp {
  * Queues LDAP operations and sends them to the LDAP server.
  */
 
-class ConnectionManager {
+class _ConnectionManager {
   // Queue for all outbound messages.
   Queue<_PendingOp> _outgoingMessageQueue = new Queue<_PendingOp>();
 
@@ -298,7 +298,7 @@ class ConnectionManager {
   /// The actual TCP/IP connection is not established.
   ///
 
-  ConnectionManager(this._host, this._port, this._ssl);
+  _ConnectionManager(this._host, this._port, this._ssl);
 
   //================================================================
   // Connecting
@@ -313,7 +313,7 @@ class ConnectionManager {
   /// Throws a [LdapSocketRefusedException] if the port on the server
   /// cannot be connected to.
 
-  Future<ConnectionManager> connect() async {
+  Future<_ConnectionManager> connect() async {
     try {
       if (isClosed()) {
         var s = (_ssl)
@@ -455,7 +455,7 @@ class ConnectionManager {
   ///
   /// Throws a [LdapUsageException] if the connection is closed.
 
-  Future<LDAPResult> process(RequestOp rop) {
+  Future<LdapResult> process(RequestOp rop) {
     if (isClosed()) {
       throw new LdapUsageException("not connected");
     }

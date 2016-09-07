@@ -34,7 +34,7 @@ Future populateEntries(LdapConnection ldap) async {
     "objectclass": ["organizationalUnit"],
     "description": descriptionStr
   });
-  assert(addResult is LDAPResult);
+  assert(addResult is LdapResult);
   assert(addResult.resultCode == 0);
 
   // Create subentries
@@ -45,7 +45,7 @@ Future populateEntries(LdapConnection ldap) async {
       "sn": "User $j"
     };
     var addResult = await ldap.add(testDN.concat("cn=user$j").dn, attrs);
-    assert(addResult is LDAPResult);
+    assert(addResult is LdapResult);
     assert(addResult.resultCode == 0);
   }
 }
@@ -239,7 +239,7 @@ void doTest(String configName) {
         count++;
       }
     } catch (e) {
-      expect(e, new isInstanceOf<LDAPResult>());
+      expect(e, new isInstanceOf<LdapResult>());
       expect(e.resultCode, equals(ResultCode.NO_SUCH_OBJECT));
       gotException = true;
     }

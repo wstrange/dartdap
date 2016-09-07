@@ -129,7 +129,7 @@ class Filter {
       case Filter.TYPE_APPROXIMATE_MATCH:
         var seq = new ASN1Sequence(tag: filterType);
         seq.add(new ASN1OctetString(attributeName));
-        seq.add(new ASN1OctetString(LDAPUtil.escapeString(assertionValue)));
+        seq.add(new ASN1OctetString(_LdapUtil.escapeString(assertionValue)));
         return seq;
 
       case Filter.TYPE_AND:

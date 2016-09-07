@@ -35,7 +35,7 @@ abstract class RequestOp extends ProtocolOp {
 }
 
 class ResponseOp {
-  LDAPResult _ldapResult;
+  LdapResult _ldapResult;
   List<Control> _controls = [];
 
   List<Control> get controls => _controls;
@@ -44,7 +44,7 @@ class ResponseOp {
   // type for LDAP refereals urls in ldapresults
   static const int TYPE_REFERRAL_URLS = 0xA3;
 
-  LDAPResult get ldapResult => _ldapResult;
+  LdapResult get ldapResult => _ldapResult;
 
   ResponseOp.searchEntry(); // needed for SearchResultEntry - that does not have an LDAPMessage
 
@@ -56,7 +56,7 @@ class ResponseOp {
   }
 
   // parse the embedded LDAP Response
-  LDAPResult _parseLDAPResult(ASN1Sequence s) {
+  LdapResult _parseLDAPResult(ASN1Sequence s) {
     loggeRecvLdap.finer("Parse LDAP result: $s");
     ASN1Integer rc = s.elements[0];
     var resultCode = rc.intValue;
@@ -96,6 +96,6 @@ class ResponseOp {
        *
        */
     }
-    return new LDAPResult(resultCode, matchedDN, diagnosticMessage, refURLs);
+    return new LdapResult(resultCode, matchedDN, diagnosticMessage, refURLs);
   }
 }

@@ -1,42 +1,91 @@
 part of dartdap;
 
-/// Operations that we can invoke on an LDAP server
+/// Connection to perform LDAP operations on an LDAP server.
 ///
-/// ## Usage
+/// There are two modes: automatic and manual.  Most programs will use the
+/// default automatic mode. The mode is set by the constructor or changed using
+/// the [setAutomaticMode] method.
 ///
-/// Use the [connect] method to connect to the LDAP server, perform operations,
-/// and [close] the connection when finished with it.
+/// ## Properties
 ///
-/// If authentication is required, perform a [bind] operation. Otherwise, the
-/// operations will be performed anonymously.
+/// An LdapConnection is defined by the network connection and the LDAP binding.
+///
+/// The network connection is determined by the hostname, whether SSL/TLS is
+/// used or not, and the port number.  These are set by the constructor or
+/// changed using the [setHost] and [setProtocol] methods.
+///
+/// The LDAP binding is either anonymous or authenticated.  It is set by the
+/// constructor or changed using the [setAuthentication] and [setAnonymous]
+/// methods.
+///
+/// ## Connection management
+///
+/// ### State
+///
+/// The state of the LdapConnection can be determined by examining its [state].
+///
+/// ### Automatic mode vs manual mode
+///
+/// In automatic mode, the management of opening the network connection and
+/// establishing the LDAP binding is handled automatically. The application
+/// simply has to create the LdapConnection, perform LDAP operations on it, and
+/// close it when finished. The application does not have to explicitly open the
+/// network connection or send LDAP BIND requests, unless it wants to.
+///
+/// In manual mode, the application must explicitly [open] the network
+/// connection and use [bind] to send LDAP BIND requests, to make the
+/// LdapConnection ready to perform LDAP operations.
+///
+/// ### Disconnections
+///
+/// An open network connection can be disconnected by external causes, which are
+/// outside the control of the application.  For example, disconnections occur
+/// when: the LDAP server times out the connection, the LDAP server is
+/// re-started, or network errors causes the connection to be dropped.
+///
+/// In automatic mode, the application does not have to worry about
+/// disconnections. In automatic mode, the LdapConnection will be automatically
+/// re-opened (and re-established any LDAP bindings) if it becomes disconnected.
+/// Automatic mode was designed to support long-lived connection pooling.
+///
+/// In manual mode LDAP operations will fail if the LdapConnection becomes
+/// disconnected.
 ///
 /// ## LDAP operations
 ///
-/// Available LDAP operations are:
+/// The available LDAP operations are:
 ///
-/// - [add]
-/// - [bind] - to authenticate to the LDAP server
-/// - [compare]
-/// - [delete]
-/// - [modify]
-/// - [modifyDN]
-/// - [search]
+/// - [search] - queries the LDAP directory for entries
+/// - [compare] - compares values in LDAP entries
+/// - [add] - creates a new LDAP entry
+/// - [delete] - removes an existing LDAP entry
+/// - [modify] - changes attributes in an LDAP entry
+/// - [modifyDN] - moves an LDAP entry
 ///
-/// All of these methods return an [LDAPResult] object in a [Future], but usually
-/// it can be ignored.
+/// ### Results and exceptions
 ///
-/// The result's resultCode value will always be either [ResultCode.OK],
-/// [ResultCode.COMPARE_FALSE] or [ResultCode.COMPARE_TRUE] - with the last two
-/// values only occuring when performing a _compare_ operation.  If the
-/// resultCode is any other value, instead of returning the result, a subclass
-/// of [LdapResultException] will be thrown. So the returned resultCode does not
-/// provide any useful information, except in the case of the _compare_ operation.
+/// All of these methods return a [Future] to an [LdapResult].
 ///
-/// ## Asynchronicity
+/// The [LdapResult] contains a _resultCode_ value that will always be either
+/// [ResultCode.OK], [ResultCode.COMPARE_FALSE] or [ResultCode.COMPARE_TRUE].
+/// The last two values only occur when performing a _compare_ operation.  For
+/// all other operations, the _resultCode_ does not carry useful information,
+/// because errors will cause an exception to be thrown.
 ///
-/// With the exception of a _bind_ operation, LDAP operations
+/// Exceptions thrown are all subclasses of [LdapResultException].
+///
+/// ### Asynchronicity
+///
+/// All these LDAP operations
 /// are asynchronous. A program does not need to wait for the current
 /// operation to complete before sending the next one.
+///
+/// Special care must be taken with the [bind] operation in manual mode.  If
+/// subsequent operations are to be performed with those LDAP bindings, the
+/// application should wait for the Future returned by _bind_ to complete before
+/// performing the next operation. In automatic mode, this ordering is always
+/// enforced (when _bind_ is explicitly called, and when the LDAP BIND request
+/// is automatically sent).
 ///
 /// LDAP return results are matched to requests using a message id. They
 /// are not guaranteed to be returned in the same order they were sent.
@@ -45,39 +94,15 @@ part of dartdap;
 /// to the LDAP server as fast as possible. Messages are sent in in the order in
 /// which they are queued.
 ///
-/// ## Connection
+/// ## Closing
 ///
-/// An **active authorised connection** to the LDAP server is automatically
-/// established when it is needed and left open for subsequent
-/// operations. This automatic mode is enabled by default, but can be disabled
-/// by setting [automatic] to false.
-///
-/// The application can manually establish an active authorised connection.
-/// If the automatic mode has been disabled, the application _must_ do this,
-/// or none of the operations will work. If the automatic mode is enabled,
-/// the application can still manually establish it, but it doesn't have to.
-///
-/// A connection has a number of states. Firstly, a connection exists or
-/// does not exist. An existing connection can be:
-/// - Active or deactivated (both only applies to existing connections).
-/// - Anonymous or authenticated (both only applies to existing connections).
-///
-/// The application can perform the following:
-///
-/// - The constructor creates a new object where the connection does not exist.
-/// - The [connect] method makes the connection exist, active and anonymous.
-/// - The [bind] method makes the connection _authenticated_.
-/// - The [disconnect] method makes the connection not exist.
-///
-///
-///
-///
+/// When finished with the LdapConnection, [close] it.
 
 class LdapConnection {
   //================================================================
   // Static constants
 
-  /// Standard port for LDAP connections (LDAP without TLS/SSL).
+  /// Standard port for LDAP connections (i.e. without TLS/SSL).
   ///
   static const int portLdap = 389;
 
@@ -90,7 +115,7 @@ class LdapConnection {
 
   /// The underlying connection manager.
   ///
-  ConnectionManager _cmgr;
+  _ConnectionManager _cmgr;
 
   //----------------------------------------------------------------
   /// Mode (automatic or manual)
@@ -115,10 +140,12 @@ class LdapConnection {
   /// for automatic mode and false for manual mode.
   ///
   /// The mode can be set when the connection is in any state. The [state] of
-  /// the connection is not changed -- except when it is in manual mode,
-  /// the state is [LdapConnectionState.bindRequired] and is being changed
-  /// to automatic mode. In that situation, the state is automatically changed
-  /// to [LdapConnectionState.connected] by sending the required BIND request.
+  /// the connection is not changed when the mode is changed -- except in one
+  /// situation: when it is in manual mode, being changed to automatic mode, and
+  /// the state is [ConnectionState.bindRequired]. In that situation, the
+  /// state is automatically changed to [ConnectionState.ready] by sending
+  /// the required LDAP BIND request. This ensures the _bindRequired_ state
+  /// never occurs in automatic mode.
   ///
   /// If the connection was already in the new mode, no change is made.
   ///
@@ -126,7 +153,7 @@ class LdapConnection {
   /// need to be sent and value is null; or completes when the BIND request is
   /// finished and the value is the LDAP result from the BIND request.
   ///
-  Future<LDAPResult> setAutomaticMode(bool newValue) async {
+  Future<LdapResult> setAutomaticMode(bool newValue) async {
     if (newValue == null) {
       throw new ArgumentError.notNull("autoConnect");
     }
@@ -137,7 +164,7 @@ class LdapConnection {
     var result = null;
 
     if (newValue != _autoConnect) {
-      if (state == LdapConnectionState.bindRequired) {
+      if (state == ConnectionState.bindRequired) {
         assert(!_autoConnect); // must have been in manual mode
         result = await _sendBind(onlyIfNecessary: true);
       }
@@ -182,8 +209,8 @@ class LdapConnection {
     var n = (hostname != null && hostname.isNotEmpty) ? hostname : _defaultHost;
 
     if (n != _host) {
-      if (state == LdapConnectionState.connected ||
-          state == LdapConnectionState.bindRequired) {
+      if (state == ConnectionState.ready ||
+          state == ConnectionState.bindRequired) {
         throw new StateError("cannot change host while connection is open");
       }
     }
@@ -244,8 +271,8 @@ class LdapConnection {
     if (newSSL != _isSSL || newPort != _port) {
       // Values are being changed
 
-      if (state == LdapConnectionState.connected ||
-          state == LdapConnectionState.bindRequired) {
+      if (state == ConnectionState.ready ||
+          state == ConnectionState.bindRequired) {
         throw new StateError("cannot change protocol while connection is open");
       }
 
@@ -282,6 +309,7 @@ class LdapConnection {
 
   String get bindDN => _bindDN;
 
+  /*
   //----------------
   /// The password used when a BIND request is sent.
   ///
@@ -290,7 +318,8 @@ class LdapConnection {
   /// This value is initially set by the constructor and can be changed using
   /// the [setAuthentication] method.
 
-  // String get password => _password;
+  String get password => _password;
+  */
 
   //----------------
   /// Sets the authentication credentials.
@@ -299,21 +328,24 @@ class LdapConnection {
   /// and [password]. The distinguished name cannot be an empty string.
   ///
   /// For an anonymous connection, [bindDN] must be null or the empty string.
-  /// The password is ignored for anonymous connections.
+  /// The password is ignored for anonymous connections. Or use the
+  /// [setAnonymous] method.
   ///
   /// If the connection is in automatic mode and is currently open, this method
-  /// may send a BIND request. It is sent if one is needed, but not sent if it
-  /// is not needed.
+  /// may send a LDAP BIND request. It is sent if one is needed, but not sent if
+  /// it is not needed.
   ///
-  /// If the connection is in manual mode and is currently open, a BIND request
-  /// is never sent. But the state maybe changed to
-  /// [LdapConnectionState.bindRequired] and the application
-  /// must call [bind] before performing any LDAP operations.
+  /// If the connection is in manual mode and is currently open, a LDAP BIND
+  /// request is never sent. But the state may be changed to
+  /// [ConnectionState.bindRequired] and the application must then call
+  /// [bind] before performing any LDAP operations. The state is not changed if
+  /// it does not need to (e.g. if called with the same bindDN and password that
+  /// was previously set).
   ///
   /// If the connection is not open (in either modes), the values are simply
-  /// recorded for use when it is opened and/or a BIND request is sent.
+  /// recorded for use when it is opened and/or [bind] is invoked.
   ///
-  Future<LDAPResult> setAuthentication(String bindDN, String password) async {
+  Future<LdapResult> setAuthentication(String bindDN, String password) async {
     _setAuthenticationValues(bindDN, password);
 
     // Send BIND request, if necessary
@@ -341,7 +373,7 @@ class LdapConnection {
   /// This is the same as calling [setAuthentication] with the distinguished
   /// name set to null.
   ///
-  Future<LDAPResult> setAnonymous() {
+  Future<LdapResult> setAnonymous() {
     return setAuthentication(null, null);
   }
 
@@ -351,6 +383,9 @@ class LdapConnection {
   /// Value is true if it is authenticated. Otherwise, it is false,
   /// indicating it is anonymous.
   ///
+  /// This value is initially set by the constructor and can be changed using
+  /// the [setAuthentication] or [setAnonymous] methods.
+
   bool get isAuthenticated {
     return (_bindDN.isNotEmpty);
   }
@@ -363,29 +398,27 @@ class LdapConnection {
 
   static List<Completer> _openCompleters = new List<Completer>();
 
-  static List<Completer<LDAPResult>> _autoBindCompleters =
-      new List<Completer<LDAPResult>>();
+  static List<Completer<LdapResult>> _autoBindCompleters =
+      new List<Completer<LdapResult>>();
 
   static List<Completer> _closeCompleters = new List<Completer>();
 
   //================================================================
   // State
 
-  /// Indicates the state of the connection.
+  /// Indicates the state of the LdapConnection.
   ///
-  /// Returns a value from [LdapConnectionState].
-  ///
-  LdapConnectionState get state {
+  ConnectionState get state {
     if (_cmgr == null) {
-      return LdapConnectionState.closed;
+      return ConnectionState.closed;
     } else {
       if (_cmgr.isClosed()) {
-        return LdapConnectionState.disconnected;
+        return ConnectionState.disconnected;
       } else {
         if (_bindDN != _sentBindDN || _password != _sentPassword) {
-          return LdapConnectionState.bindRequired;
+          return ConnectionState.bindRequired;
         } else {
-          return LdapConnectionState.connected;
+          return ConnectionState.ready;
         }
       }
     }
@@ -425,42 +458,42 @@ class LdapConnection {
   // Opening and authenticating
 
   //----------------------------------------------------------------
-  /// Opens the connection to the LDAP directory server.
+  /// Opens the network connection to the LDAP directory server.
   ///
   /// In automatic mode, this method will open the connection, if the connection
   /// is not already opened; and send a BIND request if one is necessary.
   /// If it is already opened, nothing is done: it is not an error to
   /// call this method on an already opened connection in automatic mode. When
   /// the Future has completed, the connection will be in the
-  /// [LdapConnectionState.connected] state. In automatic mode, calling this
+  /// [ConnectionState.ready] state. In automatic mode, calling this
   /// method is unnecessary (since the connection will be automatically opened
   /// and authenticated when needed), but can be called.
   ///
   /// In manual mode, this method will open a closed or disconnected connection,
   /// In manual mode, a [StateError]
   /// is thrown if this method is called on an already opened connection
-  /// (i.e. it is in the [LdapConnectionState.connected] or
-  /// [LdapConnectionState.bindRequired] state). In manual
+  /// (i.e. it is in the [ConnectionState.ready] or
+  /// [ConnectionState.bindRequired] state). In manual
   /// mode, a bind request is never sent.
   /// If anonymous, after the Future completes the connection will be
-  /// in the [LdapConnectionState.connected] state. If authenticated, after the
+  /// in the [ConnectionState.ready] state. If authenticated, after the
   /// Future completes the connection will be in the
-  /// [LdapConnectionState.bindRequired] state and [bind] needs to be called
+  /// [ConnectionState.bindRequired] state and [bind] needs to be called
   /// before it can be used.
   ///
   /// In automatic mode, this method will open the connection. It will also
   /// automatically send a bind request if the connection is authenticated.
   /// The resulting connection will always be in the
-  /// [LdapConnectionState.connected] state (for both anonymous and
+  /// [ConnectionState.ready] state (for both anonymous and
   /// authenticated connections).
   ///
-  /// See [ConnectionManager.connect] for other exceptions thrown.
-  ///
   /// Returns a Future which completes when the connection is ready for use.
-  /// Its value is null if no BIND request was sent, or the result from the
-  /// BIND request.
+  /// Its value is null if no LDAP BIND request was sent, or the result from the
+  /// LDAP BIND request.
   ///
-  Future<LDAPResult> open() async {
+  /// Throws subclasses of [LdapException].
+  ///
+  Future<LdapResult> open() async {
     loggerConnection.fine("open: ${this.url}");
 
     await _requireOpen(true);
@@ -489,15 +522,15 @@ class LdapConnection {
     loggerConnection.fine("close${immediate ? ": immediate" : ""}");
 
     switch (state) {
-      case LdapConnectionState.connected:
-      case LdapConnectionState.bindRequired:
+      case ConnectionState.ready:
+      case ConnectionState.bindRequired:
         await _doClose(immediate);
         loggerConnection.finer("close: done");
         break;
-      case LdapConnectionState.closed:
+      case ConnectionState.closed:
         loggerConnection.finer("close: was closed");
         break;
-      case LdapConnectionState.disconnected:
+      case ConnectionState.disconnected:
         await _cmgr.close(immediate);
         loggerConnection.finer("close: was disconnected");
         break;
@@ -574,8 +607,8 @@ class LdapConnection {
   ///
   Future _requireOpen(bool explicitOpen) async {
     switch (state) {
-      case LdapConnectionState.closed:
-      case LdapConnectionState.disconnected:
+      case ConnectionState.closed:
+      case ConnectionState.disconnected:
         if (_autoConnect || explicitOpen) {
           if (explicitOpen) {
             loggerConnection.finer("explicit open");
@@ -588,8 +621,8 @@ class LdapConnection {
           throw new StateError("connection is not open: ${this.url}");
         }
         break;
-      case LdapConnectionState.bindRequired:
-      case LdapConnectionState.connected:
+      case ConnectionState.bindRequired:
+      case ConnectionState.ready:
         // already open
         if (!_autoConnect && explicitOpen) {
           throw new StateError("cannot open: already open: ${this.url}");
@@ -622,7 +655,7 @@ class LdapConnection {
     try {
       loggerConnection.finest("opening connection: started");
 
-      var tmp = new ConnectionManager(_host, _port, _isSSL);
+      var tmp = new _ConnectionManager(_host, _port, _isSSL);
 
       await tmp.connect(); // might throw exception
 
@@ -656,7 +689,7 @@ class LdapConnection {
   ///
   Future _requireConnected() async {
     switch (state) {
-      case LdapConnectionState.closed:
+      case ConnectionState.closed:
         if (_autoConnect) {
           await open();
         } else {
@@ -666,7 +699,7 @@ class LdapConnection {
         }
         break;
 
-      case LdapConnectionState.disconnected:
+      case ConnectionState.disconnected:
         if (_autoConnect) {
           await open();
         } else {
@@ -677,7 +710,7 @@ class LdapConnection {
         }
         break;
 
-      case LdapConnectionState.bindRequired:
+      case ConnectionState.bindRequired:
         if (_autoConnect) {
           await _sendBind(onlyIfNecessary: true);
         } else {
@@ -686,12 +719,12 @@ class LdapConnection {
         }
         break;
 
-      case LdapConnectionState.connected:
+      case ConnectionState.ready:
         // already connected: nothing needs to be done
         break;
     }
 
-    assert(state == LdapConnectionState.connected); // the guarantee
+    assert(state == ConnectionState.ready); // the guarantee
   }
 
   //----------------------------------------------------------------
@@ -709,11 +742,11 @@ class LdapConnection {
   /// send a BIND request. If it does not need to send a BIND request, it
   /// does not require the connection to be open.
 
-  Future<LDAPResult> _sendBind({bool onlyIfNecessary: false}) async {
+  Future<LdapResult> _sendBind({bool onlyIfNecessary: false}) async {
     assert(onlyIfNecessary != null);
 
-    if (state == LdapConnectionState.closed ||
-        state == LdapConnectionState.disconnected && onlyIfNecessary) {
+    if (state == ConnectionState.closed ||
+        state == ConnectionState.disconnected && onlyIfNecessary) {
       loggerConnection.finer("bind not required: connection not open");
       return null; // not needed, since connection is not open
     }
@@ -739,14 +772,14 @@ class LdapConnection {
     }
   }
 
-  Future<LDAPResult> _doAutomaticBind() async {
+  Future<LdapResult> _doAutomaticBind() async {
     loggerConnection.finer(
         "automatic bind: ${(_bindDN.isNotEmpty) ? _bindDN : "anonymous"}");
 
     assert(_openCompleters.isEmpty);
     assert(_closeCompleters.isEmpty);
 
-    var c = new Completer<LDAPResult>();
+    var c = new Completer<LdapResult>();
     _autoBindCompleters.add(c);
 
     if (1 < _autoBindCompleters.length) {
@@ -772,7 +805,7 @@ class LdapConnection {
     }
   }
 
-  Future<LDAPResult> _doBind() async {
+  Future<LdapResult> _doBind() async {
     var r = await _cmgr.process(new BindRequest(this._bindDN, this._password));
     if (r.resultCode == ResultCode.OK) {
       loggerConnection.finer("bind: success");
@@ -806,7 +839,7 @@ class LdapConnection {
   ///
   /// Returns a Future containing the result of the BIND operation.
   ///
-  Future<LDAPResult> bind() async {
+  Future<LdapResult> bind() async {
     loggerConnection.fine("bind: ${_bindDN.isEmpty ? "anonymous" : _bindDN}");
 
     await _requireOpen(false); // exception if not open and in manual mode
@@ -861,7 +894,7 @@ class LdapConnection {
   ///  attribute values can be simple Strings, lists of strings,
   ///or alternatively can be of type [Attribute]
   ///
-  Future<LDAPResult> add(String dn, Map<String, dynamic> attrs) async {
+  Future<LdapResult> add(String dn, Map<String, dynamic> attrs) async {
     loggerConnection.fine("add: $dn");
     await _requireConnected();
     return await _cmgr
@@ -873,7 +906,7 @@ class LdapConnection {
   ///
   /// Delete the LDAP entry identified by the distinguished name in [dn].
   ///
-  Future<LDAPResult> delete(String dn) async {
+  Future<LdapResult> delete(String dn) async {
     loggerConnection.fine("delete: $dn");
     await _requireConnected();
     return await _cmgr.process(new DeleteRequest(dn));
@@ -884,7 +917,7 @@ class LdapConnection {
   ///
   /// Modifies the LDAP entry [dn] with the list of modifications [mods].
   ///
-  Future<LDAPResult> modify(String dn, Iterable<Modification> mods) async {
+  Future<LdapResult> modify(String dn, Iterable<Modification> mods) async {
     loggerConnection.fine("modify");
     await _requireConnected();
     return await _cmgr.process(new ModifyRequest(dn, mods));
@@ -898,7 +931,7 @@ class LdapConnection {
   /// If [newSuperior] is not null, re-parent the entry.
   ///
   // todo: consider making optional args as named args
-  Future<LDAPResult> modifyDN(String dn, String rdn,
+  Future<LdapResult> modifyDN(String dn, String rdn,
       [bool deleteOldRDN = true, String newSuperior]) async {
     loggerConnection.fine("modifyDN");
     await _requireConnected();
@@ -912,10 +945,10 @@ class LdapConnection {
   /// On the LDAP entry identifyed by the distinguished name [dn],
   /// compare the [attrName] and [attrValue] to see if they are the same.
   ///
-  /// The completed [LDAPResult] will have a value of [ResultCode.COMPARE_TRUE]
+  /// The completed [LdapResult] will have a value of [ResultCode.COMPARE_TRUE]
   /// or [ResultCode.COMPARE_FALSE].
   ///
-  Future<LDAPResult> compare(
+  Future<LdapResult> compare(
       String dn, String attrName, String attrValue) async {
     loggerConnection.fine("compare");
     await _requireConnected();
@@ -939,46 +972,71 @@ class LdapConnection {
 
 //================================================================
 
-/// State of an [LdapConnection].
+/// States for an [LdapConnection].
 ///
-/// This enumeration is returned by the [LdapConnection.state] method.
+/// The [LdapConnection.state] method returns one of these values:
 ///
-enum LdapConnectionState {
-  /// Connection is closed.
-  ///
-  /// Indicates the connection has never been (explicitly or automatically)
-  /// opened, or was (explicitly or automatically) opened but
-  /// has since been explicitly closed by calling [close].
+/// - closed
+/// - ready
+/// - bindRequired
+/// - disconnected
+///
+/// ## closed
+///
+/// The connection has never been opened (explicitly or automatically), or was
+/// previously opened but has since been explicitly closed by calling
+/// [LdapConnection.close].  This is the initial state of a newly created LDAP
+/// connection.
+///
+/// ## ready
+///
+/// The connection is open (explicitly or automatically) and any necessary LDAP
+/// binding has also been established.
+///
+/// ## bindRequired
+///
+/// This state may only occurs in manual mode. It indicates the connection has
+/// been opened, but the necessary LDAP binding has not been established.
+///
+/// In manual mode, the application is responsible for explicitly sending any
+/// LDAP BIND requests. If the connection is anonymous, calling
+/// [LdapConnection.open] will make a _closed_ connection _ready_. If the
+/// connection is authenticated, calling [LdapConnection.open] will make a
+/// _closed_ connection _bindRequired_. A _ready_ connection will drop back to
+/// the _bindRequired_ state if the LDAP binding is changed (e.g. changing the
+/// bindDN, making an authenticated connection anonymous or vice versa).  In
+/// either case, calling [LdapConnection.bind] will then make a _bindRequired_
+/// connection to _ready_.
+///
+/// In automatic mode, calling [LdapConnection.open] (or simply performing an
+/// LDAP operation) will automatically bind the authenticated connections. So
+/// this state is skipped and the connection becomes _connected_.
+///
+/// ## disconnected
+///
+/// The connection is disconnected. It was previously (explicitly or
+/// automatically) opened, but has since been disconnected and not explicitly
+/// closed or (explicitly or automatically) re-opened.
+///
+/// Disconnections are outside the control of the application, and could occur
+/// at anytime (except, of course, if the connection is already closed). For
+/// example, they can occur if the LDAP server timesout the connection, the LDAP
+/// server is shut down, or the network is disconnected.
+
+enum ConnectionState {
+  /// Connection is not open.
   ///
   closed,
 
-  /// Connection is opened, but not authenticated.
-  ///
-  /// This state cannot occur in automatic mode. It only occurs in manual mode
-  /// when the connection is open, but the necessary BIND request has not been
-  /// sent. In manual mode, the application is responsible for explictly calling
-  /// both [open] and [bind], as needed.
-  ///
-  /// This state indicates either:
-  /// - The connection is authenticated, but a bind request has not been sent.
-  /// - The connection was connected and has been changed to not authentcated, but a bind request
-  ///   has not been sent.
+  /// Connection is open, but any necessary LDAP binding has not been established.
   ///
   bindRequired,
 
-  /// Connection is open.
+  /// Connection is open and any necessary LDAP binding established.
   ///
-  /// Indicates the connection is (explicitly or automatically) open.
-  ///
-  /// Since becoming open, it has not been disconnected or explicitly closed.
-  ///
-  connected,
+  ready,
 
-  /// Connection is disconnected.
-  ///
-  /// Indicates the connection is disconnected. It was previously
-  /// (explicitly or automatically) opened, but has since been disconnected and
-  /// not explicitly closed or (explicitly or automatically) re-opened.
+  /// Connection should be open, but is not.
   ///
   disconnected
 }

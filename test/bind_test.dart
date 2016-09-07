@@ -87,13 +87,13 @@ main() async {
               port: p["port"],
               autoConnect: false);
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAuthenticated, isFalse);
           expect(ldap.isAutomatic, isFalse);
 
           await ldap.open();
 
-          expect(ldap.state, equals(LdapConnectionState.connected));
+          expect(ldap.state, equals(ConnectionState.ready));
           expect(ldap.isAuthenticated, isFalse);
 
           // LDAP operations can be performed on an open connection
@@ -104,14 +104,14 @@ main() async {
 
           await ldap.close();
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAuthenticated, isFalse);
 
           // Open it again
 
           await ldap.open();
 
-          expect(ldap.state, equals(LdapConnectionState.connected));
+          expect(ldap.state, equals(ConnectionState.ready));
           expect(ldap.isAuthenticated, isFalse);
 
           // Redundant open. In manual mode (unlike in automatic mode) opening
@@ -125,14 +125,14 @@ main() async {
             expect(e, new isInstanceOf<StateError>());
           }
 
-          expect(ldap.state, equals(LdapConnectionState.connected));
+          expect(ldap.state, equals(ConnectionState.ready));
           expect(ldap.isAuthenticated, isFalse);
 
           // Close it
 
           await ldap.close();
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAuthenticated, isFalse);
 
           // Closing an already closed connection is permitted, even though
@@ -140,7 +140,7 @@ main() async {
 
           await ldap.close();
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAuthenticated, isFalse);
 
           // Trying to send a bind request on a closed connection fails.
@@ -152,7 +152,7 @@ main() async {
             expect(e, new isInstanceOf<StateError>());
           }
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAuthenticated, isFalse);
 
           // Trying to perform an LDAP operation on a closed connection fails.
@@ -164,7 +164,7 @@ main() async {
             expect(e, new isInstanceOf<StateError>());
           }
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAuthenticated, isFalse);
         });
 
@@ -177,13 +177,13 @@ main() async {
               port: p["port"],
               autoConnect: false);
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAuthenticated, isFalse);
           expect(ldap.isAutomatic, isFalse);
 
           await ldap.open();
 
-          expect(ldap.state, equals(LdapConnectionState.connected));
+          expect(ldap.state, equals(ConnectionState.ready));
           expect(ldap.isAuthenticated, isFalse);
 
           // LDAP operations can be performed on an open connection
@@ -194,7 +194,7 @@ main() async {
 
           await ldap.close();
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAuthenticated, isFalse);
         });
 
@@ -207,7 +207,7 @@ main() async {
               port: s["port"],
               autoConnect: false);
 
-          expect(ldaps.state, equals(LdapConnectionState.closed));
+          expect(ldaps.state, equals(ConnectionState.closed));
           expect(ldaps.isAuthenticated, isFalse);
           expect(ldaps.isAutomatic, isFalse);
 
@@ -215,7 +215,7 @@ main() async {
 
           await ldaps.open();
 
-          expect(ldaps.state, equals(LdapConnectionState.connected));
+          expect(ldaps.state, equals(ConnectionState.ready));
           expect(ldaps.isAuthenticated, isFalse);
 
           // LDAP operations can be performed on an open connection
@@ -226,7 +226,7 @@ main() async {
 
           await ldaps.close();
 
-          expect(ldaps.state, equals(LdapConnectionState.closed));
+          expect(ldaps.state, equals(ConnectionState.closed));
           expect(ldaps.isAuthenticated, isFalse);
         });
       });
@@ -242,24 +242,24 @@ main() async {
               autoConnect: false);
 
           expect(ldap.isAuthenticated, isTrue);
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAutomatic, isFalse);
 
           // Normal expected sequence
 
           await ldap.open();
 
-          expect(ldap.state, equals(LdapConnectionState.bindRequired));
+          expect(ldap.state, equals(ConnectionState.bindRequired));
 
           await ldap.bind();
 
-          expect(ldap.state, equals(LdapConnectionState.connected));
+          expect(ldap.state, equals(ConnectionState.ready));
 
           await doLdapOperation(ldap);
 
           await ldap.close();
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
 
           // Trying to perform an LDAP operation on a closed connection in
           // manual mode fails.
@@ -271,7 +271,7 @@ main() async {
             expect(e, new isInstanceOf<StateError>());
           }
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
 
           // Trying to perform an LDAP operation on a connection that is
           // "opened but BIND not yet sent" for an authenticated connection
@@ -279,7 +279,7 @@ main() async {
 
           await ldap.open();
 
-          expect(ldap.state, equals(LdapConnectionState.bindRequired));
+          expect(ldap.state, equals(ConnectionState.bindRequired));
 
           try {
             await doLdapOperation(ldap);
@@ -288,19 +288,19 @@ main() async {
             expect(e, new isInstanceOf<StateError>());
           }
 
-          expect(ldap.state, equals(LdapConnectionState.bindRequired));
+          expect(ldap.state, equals(ConnectionState.bindRequired));
 
           // But after sending the necessary bind request, it works
 
           await ldap.bind();
 
-          expect(ldap.state, equals(LdapConnectionState.connected));
+          expect(ldap.state, equals(ConnectionState.ready));
 
           await doLdapOperation(ldap);
 
           await ldap.close();
 
-          expect(ldap.state, equals(LdapConnectionState.closed));
+          expect(ldap.state, equals(ConnectionState.closed));
 
           expect(ldap.isAuthenticated, isTrue);
         });
@@ -317,35 +317,35 @@ main() async {
               autoConnect: false);
 
           expect(ldaps.isAuthenticated, isTrue);
-          expect(ldaps.state, equals(LdapConnectionState.closed));
+          expect(ldaps.state, equals(ConnectionState.closed));
           expect(ldaps.isAutomatic, isFalse);
 
           await ldaps.open();
 
           expect(ldaps.isAuthenticated, isTrue);
-          expect(ldaps.state, equals(LdapConnectionState.bindRequired));
+          expect(ldaps.state, equals(ConnectionState.bindRequired));
 
           await ldaps.bind();
 
           expect(ldaps.isAuthenticated, isTrue);
-          expect(ldaps.state, equals(LdapConnectionState.connected));
+          expect(ldaps.state, equals(ConnectionState.ready));
 
           await ldaps.close();
 
           expect(ldaps.isAuthenticated, isTrue);
-          expect(ldaps.state, equals(LdapConnectionState.closed));
+          expect(ldaps.state, equals(ConnectionState.closed));
 
           // Test reopening a closed connection and closing in bindRequired state
 
           await ldaps.open();
 
           expect(ldaps.isAuthenticated, isTrue);
-          expect(ldaps.state, equals(LdapConnectionState.bindRequired));
+          expect(ldaps.state, equals(ConnectionState.bindRequired));
 
           await ldaps.close();
 
           expect(ldaps.isAuthenticated, isTrue);
-          expect(ldaps.state, equals(LdapConnectionState.closed));
+          expect(ldaps.state, equals(ConnectionState.closed));
         });
       });
     });
@@ -360,7 +360,7 @@ main() async {
         var bad = new LdapConnection(
             host: p["host"], ssl: true, port: p["port"], autoConnect: false);
 
-        expect(bad.state, equals(LdapConnectionState.closed));
+        expect(bad.state, equals(ConnectionState.closed));
 
         try {
           await bad.open();
@@ -371,7 +371,7 @@ main() async {
 
         // Connection cannot be established because handshake fails
 
-        expect(bad.state, equals(LdapConnectionState.closed));
+        expect(bad.state, equals(ConnectionState.closed));
       });
 
       //----------------
@@ -481,62 +481,62 @@ main() async {
             autoConnect: false);
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
 
         // Open connection
 
         await ldap.open();
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.bindRequired));
+        expect(ldap.state, equals(ConnectionState.bindRequired));
 
         // Bind
 
         var result = await ldap.bind();
-        expect(result, new isInstanceOf<LDAPResult>());
+        expect(result, new isInstanceOf<LdapResult>());
         expect(result.resultCode, equals(ResultCode.OK));
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Change from authenticated to anonymous
 
         await ldap.setAnonymous();
 
         expect(ldap.isAuthenticated, isFalse);
-        expect(ldap.state, equals(LdapConnectionState.bindRequired));
+        expect(ldap.state, equals(ConnectionState.bindRequired));
 
         // Bind to apply change
 
         result = await ldap.bind();
-        expect(result, new isInstanceOf<LDAPResult>());
+        expect(result, new isInstanceOf<LdapResult>());
         expect(result.resultCode, equals(ResultCode.OK));
 
         expect(ldap.isAuthenticated, isFalse);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Change from anonymous to authenticated
 
         await ldap.setAuthentication(p["bindDN"], p["password"]);
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.bindRequired));
+        expect(ldap.state, equals(ConnectionState.bindRequired));
 
         // Bind to apply change
 
         result = await ldap.bind();
-        expect(result, new isInstanceOf<LDAPResult>());
+        expect(result, new isInstanceOf<LdapResult>());
         expect(result.resultCode, equals(ResultCode.OK));
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Close
 
         await ldap.close();
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
       });
 
       //----------------
@@ -549,30 +549,30 @@ main() async {
             autoConnect: false);
 
         expect(ldap.isAuthenticated, isFalse);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
 
         // Set authentication
 
         await ldap.setAuthentication(p["bindDN"], p["password"]);
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
 
         // Open
 
         await ldap.open();
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.bindRequired));
+        expect(ldap.state, equals(ConnectionState.bindRequired));
 
         // Bind
 
         var result = await ldap.bind();
-        expect(result, new isInstanceOf<LDAPResult>());
+        expect(result, new isInstanceOf<LdapResult>());
         expect(result.resultCode, equals(ResultCode.OK));
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
       });
 
       //----------------
@@ -585,12 +585,12 @@ main() async {
             autoConnect: false);
 
         expect(ldap.isAuthenticated, isFalse);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
 
         await ldap.open();
 
         expect(ldap.isAuthenticated, isFalse);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Set invalid credentials
 
@@ -598,7 +598,7 @@ main() async {
             "cn=unknown,dc=example,dc=com", p["password"]);
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.bindRequired));
+        expect(ldap.state, equals(ConnectionState.bindRequired));
 
         // Bind
 
@@ -620,19 +620,19 @@ main() async {
             autoConnect: false);
 
         expect(ldap.isAuthenticated, isFalse);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
 
         await ldap.open();
 
         expect(ldap.isAuthenticated, isFalse);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Set invalid credentials
 
         await ldap.setAuthentication(p["bindDN"], "INCORRECT_PASSWORD");
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.bindRequired));
+        expect(ldap.state, equals(ConnectionState.bindRequired));
 
         // Bind
 
@@ -657,7 +657,7 @@ main() async {
         var ldap =
             new LdapConnection(host: p["host"], ssl: p["ssl"], port: p["port"]);
 
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
         expect(ldap.isAuthenticated, isFalse);
         expect(ldap.isAutomatic, isTrue);
 
@@ -666,14 +666,14 @@ main() async {
 
         await doLdapOperation(ldap);
 
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
         expect(ldap.isAuthenticated, isFalse);
 
         // Connections can be closed, even in automatic mode.
 
         await ldap.close();
 
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
         expect(ldap.isAuthenticated, isFalse);
 
         // Explicitly open the connection. This operation is unnecessary in
@@ -682,14 +682,14 @@ main() async {
 
         await ldap.open();
 
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
         expect(ldap.isAuthenticated, isFalse);
 
         // Close
 
         await ldap.close();
 
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
         expect(ldap.isAuthenticated, isFalse);
 
         // Explicitly send a bind request. Since this is an anonymous
@@ -698,7 +698,7 @@ main() async {
 
         await ldap.bind();
 
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
         expect(ldap.isAuthenticated, isFalse);
 
         // Redundant open. In automatic mode (unlike in manual mode),
@@ -706,7 +706,7 @@ main() async {
 
         await ldap.open();
 
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
         expect(ldap.isAuthenticated, isFalse);
       });
 
@@ -719,7 +719,7 @@ main() async {
             password: p["password"]);
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
         expect(ldap.isAutomatic, isTrue);
 
         // Perform an LDAP operation: should automaticall open and bind
@@ -728,14 +728,14 @@ main() async {
         await doLdapOperation(ldap);
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Automatic connections can be closed
 
         await ldap.close();
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
 
         // Automatic connections can be explicitly opened, but it will also
         // automatically bind authenticated connections.
@@ -743,14 +743,14 @@ main() async {
         await ldap.open();
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Close it again
 
         await ldap.close();
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
 
         // On a closed connection, asking for a bind request will
         // automatically open the connection and then send the bind request.
@@ -758,7 +758,7 @@ main() async {
         await ldap.bind();
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
       });
     });
 
@@ -777,35 +777,35 @@ main() async {
             autoConnect: true);
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
 
         // Open connection
 
         await ldap.open();
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Change from authenticated to anonymous
 
         await ldap.setAnonymous();
 
         expect(ldap.isAuthenticated, isFalse);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Change from anonymous to authenticated
 
         await ldap.setAuthentication(p["bindDN"], p["password"]);
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Close
 
         await ldap.close();
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
       });
 
       //----------------
@@ -820,7 +820,7 @@ main() async {
 
         expect(ldap.isAutomatic, isTrue);
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
 
         try {
           await doLdapOperation(ldap);
@@ -844,7 +844,7 @@ main() async {
 
         expect(ldap.isAutomatic, isTrue);
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
 
         try {
           await ldap.open();
@@ -864,11 +864,11 @@ main() async {
 
         expect(ldap.isAutomatic, isTrue);
         expect(ldap.isAuthenticated, isFalse);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
 
         await ldap.open();
 
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         try {
           // Setting the credentials on an opened connection will automatically
@@ -898,28 +898,28 @@ main() async {
 
         expect(ldap.isAutomatic, isTrue);
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
 
         // Redundant open
 
         await ldap.open();
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Another redundant open
 
         await ldap.open();
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Close
 
         await ldap.close();
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
       });
 
       //----------------
@@ -934,55 +934,55 @@ main() async {
 
         expect(ldap.isAutomatic, isTrue);
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
 
         // Bind
 
         var result = await ldap.bind();
-        expect(result, new isInstanceOf<LDAPResult>());
+        expect(result, new isInstanceOf<LdapResult>());
         expect(result.resultCode, equals(ResultCode.OK));
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Change from authenticated to anonymous
 
         await ldap.setAnonymous();
 
         expect(ldap.isAuthenticated, isFalse);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Redundant bind
 
         result = await ldap.bind();
-        expect(result, new isInstanceOf<LDAPResult>());
+        expect(result, new isInstanceOf<LdapResult>());
         expect(result.resultCode, equals(ResultCode.OK));
 
         expect(ldap.isAuthenticated, isFalse);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Change from anonymous to authenticated
 
         await ldap.setAuthentication(p["bindDN"], p["password"]);
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Redundant bind
 
         result = await ldap.bind();
-        expect(result, new isInstanceOf<LDAPResult>());
+        expect(result, new isInstanceOf<LdapResult>());
         expect(result.resultCode, equals(ResultCode.OK));
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.connected));
+        expect(ldap.state, equals(ConnectionState.ready));
 
         // Close
 
         await ldap.close();
 
         expect(ldap.isAuthenticated, isTrue);
-        expect(ldap.state, equals(LdapConnectionState.closed));
+        expect(ldap.state, equals(ConnectionState.closed));
       }); // end "for bind" group
     }); // end "explicit invocation still allowed" group
   }); // end "automatic mode" group

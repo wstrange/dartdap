@@ -13,7 +13,7 @@ part of dartdap;
 // TODO: Is this the right design?
 
 class SearchResult {
-  LDAPResult ldapResult;
+  LdapResult ldapResult;
 
   SearchResult(this._stream);
 

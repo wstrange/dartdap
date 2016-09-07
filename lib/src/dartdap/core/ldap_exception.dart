@@ -6,20 +6,20 @@ part of dartdap;
 ///
 /// The _dartdap_ package throws instances of a subclass of the abstract
 /// [LdapException] class.
-/// 
+///
 /// The [LdapUsageException] is thrown when the package has been
 /// incorrectly used (e.g. methods invoked with the wrong parameters).
-/// 
+///
 /// The [LdapSocketException], and subclasses of it, are thrown when there
 /// is a problem with the network connection. Most commonly,
 /// [LdapSocketServerNotFoundException] when the server's host name is
 /// incorrect or [LdapSocketRefusedException] when it cannot connect to
 /// the LDAP server (e.g. wrong port number, is blocked, or the LDAP
 /// directory is not running).
-/// 
+///
 /// The [LdapParseException] is thrown if there is a parsing error with
 /// the LDAP messages received.
-/// 
+///
 /// Subclasses of the abstract [LdapResultException] are thrown when a
 /// LDAP result is received indicating an error has occured.  Any LDAP
 /// result code, except for "OK", "COMPARE_FALSE" or "COMPARE_TRUE", are
@@ -27,15 +27,15 @@ part of dartdap;
 /// [ResultCode] class). There are over 30 such classes, whose name all
 /// are of the form "LdapResult...Exception".  Commonly encountered ones
 /// are:
-/// 
+///
 /// - [LdapResultInvalidCredentialsException] when the BIND distinguished
 ///   name or password are incorrect.
-/// 
+///
 /// - [LdapResultNoSuchObjectException] when a necessary entry is missing.
-/// 
+///
 /// - [LdapResultEntryAlreadyExistsException] when creating an
 ///   entry that already exists.
-/// 
+///
 /// - [LdapResultObjectClassViolationException] when the LDAP schema rules
 ///   would be violated.
 
@@ -153,8 +153,8 @@ class LdapParseException extends LdapException {
 /// a corresponding exception class that is a subclass of this class.
 
 abstract class LdapResultException extends LdapException {
-  LDAPResult _result;
-  LDAPResult get result => _result;
+  LdapResult _result;
+  LdapResult get result => _result;
 
   LdapResultException(this._result) : super("LDAP Result") {
     assert(result != null);
@@ -164,157 +164,157 @@ abstract class LdapResultException extends LdapException {
 }
 
 class LdapResultOperationsErrorException extends LdapResultException {
-  LdapResultOperationsErrorException(LDAPResult r) : super(r);
+  LdapResultOperationsErrorException(LdapResult r) : super(r);
 }
 
 class LdapResultProtocolErrorException extends LdapResultException {
-  LdapResultProtocolErrorException(LDAPResult r) : super(r);
+  LdapResultProtocolErrorException(LdapResult r) : super(r);
 }
 
 class LdapResultTimeLimitExceededException extends LdapResultException {
-  LdapResultTimeLimitExceededException(LDAPResult r) : super(r);
+  LdapResultTimeLimitExceededException(LdapResult r) : super(r);
 }
 
 class LdapResultSizeLimitExceededException extends LdapResultException {
-  LdapResultSizeLimitExceededException(LDAPResult r) : super(r);
+  LdapResultSizeLimitExceededException(LdapResult r) : super(r);
 }
 
 class LdapResultAuthMethodNotSupportedException extends LdapResultException {
-  LdapResultAuthMethodNotSupportedException(LDAPResult r) : super(r);
+  LdapResultAuthMethodNotSupportedException(LdapResult r) : super(r);
 }
 
 class LdapResultStrongAuthRequiredException extends LdapResultException {
-  LdapResultStrongAuthRequiredException(LDAPResult r) : super(r);
+  LdapResultStrongAuthRequiredException(LdapResult r) : super(r);
 }
 
 class LdapResultReferralException extends LdapResultException {
-  LdapResultReferralException(LDAPResult r) : super(r);
+  LdapResultReferralException(LdapResult r) : super(r);
 }
 
 class LdapResultAdminLimitExceededException extends LdapResultException {
-  LdapResultAdminLimitExceededException(LDAPResult r) : super(r);
+  LdapResultAdminLimitExceededException(LdapResult r) : super(r);
 }
 
 class LdapResultUnavailableCriticalExtensionException
     extends LdapResultException {
-  LdapResultUnavailableCriticalExtensionException(LDAPResult r) : super(r);
+  LdapResultUnavailableCriticalExtensionException(LdapResult r) : super(r);
 }
 
 class LdapResultConfidentialityRequiredException extends LdapResultException {
-  LdapResultConfidentialityRequiredException(LDAPResult r) : super(r);
+  LdapResultConfidentialityRequiredException(LdapResult r) : super(r);
 }
 
 class LdapResultSaslBindInProgressException extends LdapResultException {
-  LdapResultSaslBindInProgressException(LDAPResult r) : super(r);
+  LdapResultSaslBindInProgressException(LdapResult r) : super(r);
 }
 
 class LdapResultNoSuchAttributeException extends LdapResultException {
-  LdapResultNoSuchAttributeException(LDAPResult r) : super(r);
+  LdapResultNoSuchAttributeException(LdapResult r) : super(r);
 }
 
 class LdapResultUndefinedAttributeTypeException extends LdapResultException {
-  LdapResultUndefinedAttributeTypeException(LDAPResult r) : super(r);
+  LdapResultUndefinedAttributeTypeException(LdapResult r) : super(r);
 }
 
 class LdapResultInappropriateMatchingException extends LdapResultException {
-  LdapResultInappropriateMatchingException(LDAPResult r) : super(r);
+  LdapResultInappropriateMatchingException(LdapResult r) : super(r);
 }
 
 class LdapResultConstraintViolationException extends LdapResultException {
-  LdapResultConstraintViolationException(LDAPResult r) : super(r);
+  LdapResultConstraintViolationException(LdapResult r) : super(r);
 }
 
 class LdapResultAttributeOrValueExistsException extends LdapResultException {
-  LdapResultAttributeOrValueExistsException(LDAPResult r) : super(r);
+  LdapResultAttributeOrValueExistsException(LdapResult r) : super(r);
 }
 
 class LdapResultInvalidAttributeSyntaxException extends LdapResultException {
-  LdapResultInvalidAttributeSyntaxException(LDAPResult r) : super(r);
+  LdapResultInvalidAttributeSyntaxException(LdapResult r) : super(r);
 }
 
 class LdapResultNoSuchObjectException extends LdapResultException {
-  LdapResultNoSuchObjectException(LDAPResult r) : super(r);
+  LdapResultNoSuchObjectException(LdapResult r) : super(r);
 }
 
 class LdapResultAliasProblemException extends LdapResultException {
-  LdapResultAliasProblemException(LDAPResult r) : super(r);
+  LdapResultAliasProblemException(LdapResult r) : super(r);
 }
 
 class LdapResultInvalidDnSyntaxException extends LdapResultException {
-  LdapResultInvalidDnSyntaxException(LDAPResult r) : super(r);
+  LdapResultInvalidDnSyntaxException(LdapResult r) : super(r);
 }
 
 class LdapResultIsLeafException extends LdapResultException {
-  LdapResultIsLeafException(LDAPResult r) : super(r);
+  LdapResultIsLeafException(LdapResult r) : super(r);
 }
 
 class LdapResultAliasDereferencingProblemException extends LdapResultException {
-  LdapResultAliasDereferencingProblemException(LDAPResult r) : super(r);
+  LdapResultAliasDereferencingProblemException(LdapResult r) : super(r);
 }
 
 class LdapResultInappropriateAuthenticationException
     extends LdapResultException {
-  LdapResultInappropriateAuthenticationException(LDAPResult r) : super(r);
+  LdapResultInappropriateAuthenticationException(LdapResult r) : super(r);
 }
 
 class LdapResultInvalidCredentialsException extends LdapResultException {
-  LdapResultInvalidCredentialsException(LDAPResult r) : super(r);
+  LdapResultInvalidCredentialsException(LdapResult r) : super(r);
 }
 
 class LdapResultInsufficientAccessRightsException extends LdapResultException {
-  LdapResultInsufficientAccessRightsException(LDAPResult r) : super(r);
+  LdapResultInsufficientAccessRightsException(LdapResult r) : super(r);
 }
 
 class LdapResultBusyException extends LdapResultException {
-  LdapResultBusyException(LDAPResult r) : super(r);
+  LdapResultBusyException(LdapResult r) : super(r);
 }
 
 class LdapResultUnavailableException extends LdapResultException {
-  LdapResultUnavailableException(LDAPResult r) : super(r);
+  LdapResultUnavailableException(LdapResult r) : super(r);
 }
 
 class LdapResultUnwillingToPerformException extends LdapResultException {
-  LdapResultUnwillingToPerformException(LDAPResult r) : super(r);
+  LdapResultUnwillingToPerformException(LdapResult r) : super(r);
 }
 
 class LdapResultLoopDetectException extends LdapResultException {
-  LdapResultLoopDetectException(LDAPResult r) : super(r);
+  LdapResultLoopDetectException(LdapResult r) : super(r);
 }
 
 class LdapResultNamingViolationException extends LdapResultException {
-  LdapResultNamingViolationException(LDAPResult r) : super(r);
+  LdapResultNamingViolationException(LdapResult r) : super(r);
 }
 
 class LdapResultObjectClassViolationException extends LdapResultException {
-  LdapResultObjectClassViolationException(LDAPResult r) : super(r);
+  LdapResultObjectClassViolationException(LdapResult r) : super(r);
 }
 
 class LdapResultNotAllowedOnNonleafException extends LdapResultException {
-  LdapResultNotAllowedOnNonleafException(LDAPResult r) : super(r);
+  LdapResultNotAllowedOnNonleafException(LdapResult r) : super(r);
 }
 
 class LdapResultNotAllowedOnRdnException extends LdapResultException {
-  LdapResultNotAllowedOnRdnException(LDAPResult r) : super(r);
+  LdapResultNotAllowedOnRdnException(LdapResult r) : super(r);
 }
 
 class LdapResultEntryAlreadyExistsException extends LdapResultException {
-  LdapResultEntryAlreadyExistsException(LDAPResult r) : super(r);
+  LdapResultEntryAlreadyExistsException(LdapResult r) : super(r);
 }
 
 class LdapResultObjectClassModsProhibitedException extends LdapResultException {
-  LdapResultObjectClassModsProhibitedException(LDAPResult r) : super(r);
+  LdapResultObjectClassModsProhibitedException(LdapResult r) : super(r);
 }
 
 class LdapResultAffectsMultipleDsasException extends LdapResultException {
-  LdapResultAffectsMultipleDsasException(LDAPResult r) : super(r);
+  LdapResultAffectsMultipleDsasException(LdapResult r) : super(r);
 }
 
 class LdapResultOtherException extends LdapResultException {
-  LdapResultOtherException(LDAPResult r) : super(r);
+  LdapResultOtherException(LdapResult r) : super(r);
 }
 
 /// Exception for LDAP result codes that are not handled by their own exceptions.
 
 class LdapResultUnknownCodeException extends LdapResultException {
-  LdapResultUnknownCodeException(LDAPResult r) : super(r);
+  LdapResultUnknownCodeException(LdapResult r) : super(r);
 }

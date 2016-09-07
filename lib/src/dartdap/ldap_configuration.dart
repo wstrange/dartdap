@@ -2,11 +2,11 @@ part of dartdap;
 
 /// LDAP configuration.
 ///
-/// This library should be deprecated, since a library should not have
+/// ## Deprecated
+///
+/// **This class is deprecated**, because it should not have
 /// dependencies on configuration files - it should be up to the application
 /// to choose where it obtains its configuration parameters from.
-///
-/// It is only used by the tests.
 ///
 /// A LDAP configuration settings and a LDAP connection created from it.
 ///
@@ -256,7 +256,7 @@ class LDAPConfiguration {
     // opening of closed connections and automatic re-opening of disconnected
     // connections.
 
-    if (_connection != null && _connection.state != LdapConnectionState.connected) {
+    if (_connection != null && _connection.state != ConnectionState.ready) {
       // Use cached connection
       return _connection;
     }
