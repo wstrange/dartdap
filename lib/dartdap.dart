@@ -84,4 +84,3 @@ part 'src/dartdap/protocol/search_request.dart';
 part 'src/dartdap/protocol/search_result_entry.dart';
 */
 
-part 'src/dartdap/ldap_configuration.dart';

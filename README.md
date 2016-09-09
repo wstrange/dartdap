@@ -25,7 +25,7 @@ bottom of this page.
 
 To perform operations on an LDAP directory, the basic process is:
 
-1. Create an LDAP connection ([LdapConnection]).
+1. Create an LDAP connection (`LdapConnection`).
 2. Perform LDAP operations (`search`, `add`, `modify`, `modifyDN`, `compare`, `delete`).
 3. Close the connection (`close`).
 
@@ -90,7 +90,7 @@ Future example() async {
 
 #### Create an LDAP connection
 
-The first step is to instantiate an [LdapConnection] object using its
+The first step is to instantiate an `LdapConnection` object using its
 constructor.
 
 These properties of the connection can be changed from their defaults:
@@ -108,17 +108,17 @@ or with the `setProtocol` and `setAuthentication` methods.
 
 This example performs a search operation.
 
-The `search` method returns a Future to a [SearchResult] object, from
-which a _stream_ of [SearchEntry] objects can be obtained. The results
+The `search` method returns a Future to a `SearchResult` object, from
+which a _stream_ of `SearchEntry` objects can be obtained. The results
 are obtained by listening to the stream (which in the example is done
 using the "await for" syntax).
 
-The [SearchEntry] contains the entry's distinguished name and the
+The `SearchEntry` contains the entry's distinguished name and the
 attributes returned.
-The `dn` is a String. The `attributes` is a [Map] from the name of 
-the attribute (a String) to an [Attribute].
+The `dn` is a String. The `attributes` is a `Map` from the name of 
+the attribute (a String) to an `Attribute`.
 
-An [Attribute] has a `values` member, which returns a [Set] of the
+An `Attribute` has a `values` member, which returns a `Set` of the
 values of the attribute. It is a Set because LDAP allows attributes to
 have multiple values.  It also has a `name` member, which is the name
 of the attribute as a String.
@@ -215,7 +215,7 @@ try {
 
 ## Connecting and authenticating
 
-The [LdapConnection] can operate in automatic or manual modes. The
+The `LdapConnection` can operate in automatic or manual modes. The
 mode can be set when it is created, or by using the `setAutomaticMode`
 method.
 
@@ -253,15 +253,15 @@ It is expected that most applications will use automatic mode.
 
 The `state` property indicates what state the connection is in.
 
-See the documentation of [LdapConnection] for more details.
+See the documentation of `LdapConnection` for more details.
 
 
 ## Exceptions
 
 Methods in the package throws exceptions which are subclasses
-of the [LdapException] abstract class.
+of the `LdapException` abstract class.
 
-See the documentaiton of [LdapException] for more details.
+See the documentaiton of `LdapException` for more details.
 
 
 ## Logging
