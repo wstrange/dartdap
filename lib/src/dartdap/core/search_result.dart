@@ -9,6 +9,7 @@ part of dartdap;
 ///
 /// The [controls] property contains the VLV context information, for example
 /// to pass on to a subsequent search.
+///
 
 // TODO: Is this the right design?
 
@@ -23,6 +24,11 @@ class SearchResult {
   ///     await for (SearchEntry entry in searchResult.stream) { doSomething; }
   /// or
   ///     searchResult.stream.listen((SearchEntry entry) =>  doSomething));
+  ///
+  /// ## Some exceptions
+  ///
+  /// [LdapResultNoSuchObjectException] thrown when the search finds zero
+  /// entries that match.
 
   Stream<SearchEntry> get stream => _stream;
   Stream<SearchEntry> _stream;

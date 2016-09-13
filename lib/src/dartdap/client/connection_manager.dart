@@ -48,16 +48,25 @@ class _StreamPendingOp extends _PendingOp {
     if (op is SearchResultEntry) {
       _controller.add(op.searchEntry);
       return false;
-    } else {
+    } else if (op is SearchResultDone) {
       // we should be done now
       // if this is not a done message we are in trouble...
       var x = (op as SearchResultDone);
 
-      if (x.ldapResult.resultCode != 0) _controller.addError(x.ldapResult);
+      if (x.ldapResult.resultCode != ResultCode.OK) {
+        // Error result: convert to an exception class and add to controller
+        _controller.addError(x.ldapResult.exceptionFromResultCode());
+      }
 
       _searchResult.controls = x.controls;
       _searchResult.ldapResult = x.ldapResult;
       _controller.close();
+      done();
+    } else {
+      // This is unexpected
+      assert(false);
+      _controller.addError(new LdapResultUnknownCodeException(null));
+      _controller.close(); // TODO: Is the correct way to handle this?
       done();
     }
     return true; // op complete
@@ -82,167 +91,8 @@ class _FuturePendingOp extends _PendingOp {
       // These are not treated as errors. Let the result code propagate back.
       completer.complete(ldapResult);
     } else {
-      // Everything else is treated as an error
-
-      var e;
-
-      switch (ldapResult.resultCode) {
-        case ResultCode.OPERATIONS_ERROR:
-          e = new LdapResultOperationsErrorException(ldapResult);
-          break;
-
-        case ResultCode.PROTOCOL_ERROR:
-          e = new LdapResultProtocolErrorException(ldapResult);
-          break;
-
-        case ResultCode.TIME_LIMIT_EXCEEDED:
-          e = new LdapResultTimeLimitExceededException(ldapResult);
-          break;
-
-        case ResultCode.SIZE_LIMIT_EXCEEDED:
-          e = new LdapResultSizeLimitExceededException(ldapResult);
-          break;
-
-        case ResultCode.AUTH_METHOD_NOT_SUPPORTED:
-          e = new LdapResultAuthMethodNotSupportedException(ldapResult);
-          break;
-
-        case ResultCode.STRONG_AUTH_REQUIRED:
-          e = new LdapResultStrongAuthRequiredException(ldapResult);
-          break;
-
-        case ResultCode.REFERRAL:
-          e = new LdapResultReferralException(ldapResult);
-          break;
-
-        case ResultCode.ADMIN_LIMIT_EXCEEDED:
-          e = new LdapResultAdminLimitExceededException(ldapResult);
-          break;
-
-        case ResultCode.UNAVAILABLE_CRITICAL_EXTENSION:
-          e = new LdapResultUnavailableCriticalExtensionException(ldapResult);
-          break;
-
-        case ResultCode.CONFIDENTIALITY_REQUIRED:
-          e = new LdapResultConfidentialityRequiredException(ldapResult);
-          break;
-
-        case ResultCode.SASL_BIND_IN_PROGRESS:
-          e = new LdapResultSaslBindInProgressException(ldapResult);
-          break;
-
-        case ResultCode.NO_SUCH_ATTRIBUTE:
-          e = new LdapResultNoSuchAttributeException(ldapResult);
-          break;
-
-        case ResultCode.UNDEFINED_ATTRIBUTE_TYPE:
-          e = new LdapResultUndefinedAttributeTypeException(ldapResult);
-          break;
-
-        case ResultCode.INAPPROPRIATE_MATCHING:
-          e = new LdapResultInappropriateMatchingException(ldapResult);
-          break;
-
-        case ResultCode.CONSTRAINT_VIOLATION:
-          e = new LdapResultConstraintViolationException(ldapResult);
-          break;
-
-        case ResultCode.ATTRIBUTE_OR_VALUE_EXISTS:
-          e = new LdapResultAttributeOrValueExistsException(ldapResult);
-          break;
-
-        case ResultCode.INVALID_ATTRIBUTE_SYNTAX:
-          e = new LdapResultInvalidAttributeSyntaxException(ldapResult);
-          break;
-
-        case ResultCode.NO_SUCH_OBJECT:
-          e = new LdapResultNoSuchObjectException(ldapResult);
-          break;
-
-        case ResultCode.ALIAS_PROBLEM:
-          e = new LdapResultAliasProblemException(ldapResult);
-          break;
-
-        case ResultCode.INVALID_DN_SYNTAX:
-          e = new LdapResultInvalidDnSyntaxException(ldapResult);
-          break;
-
-        case ResultCode.IS_LEAF:
-          e = new LdapResultIsLeafException(ldapResult);
-          break;
-
-        case ResultCode.ALIAS_DEREFERENCING_PROBLEM:
-          e = new LdapResultAliasDereferencingProblemException(ldapResult);
-          break;
-
-        case ResultCode.INAPPROPRIATE_AUTHENTICATION:
-          e = new LdapResultInappropriateAuthenticationException(ldapResult);
-          break;
-
-        case ResultCode.INVALID_CREDENTIALS:
-          e = new LdapResultInvalidCredentialsException(ldapResult);
-          break;
-
-        case ResultCode.INSUFFICIENT_ACCESS_RIGHTS:
-          e = new LdapResultInsufficientAccessRightsException(ldapResult);
-          break;
-
-        case ResultCode.BUSY:
-          e = new LdapResultBusyException(ldapResult);
-          break;
-
-        case ResultCode.UNAVAILABLE:
-          e = new LdapResultUnavailableException(ldapResult);
-          break;
-
-        case ResultCode.UNWILLING_TO_PERFORM:
-          e = new LdapResultUnwillingToPerformException(ldapResult);
-          break;
-
-        case ResultCode.LOOP_DETECT:
-          e = new LdapResultLoopDetectException(ldapResult);
-          break;
-
-        case ResultCode.NAMING_VIOLATION:
-          e = new LdapResultNamingViolationException(ldapResult);
-          break;
-
-        case ResultCode.OBJECT_CLASS_VIOLATION:
-          e = new LdapResultObjectClassViolationException(ldapResult);
-          break;
-
-        case ResultCode.NOT_ALLOWED_ON_NONLEAF:
-          e = new LdapResultNotAllowedOnNonleafException(ldapResult);
-          break;
-
-        case ResultCode.NOT_ALLOWED_ON_RDN:
-          e = new LdapResultNotAllowedOnRdnException(ldapResult);
-          break;
-
-        case ResultCode.ENTRY_ALREADY_EXISTS:
-          e = new LdapResultEntryAlreadyExistsException(ldapResult);
-          break;
-
-        case ResultCode.OBJECT_CLASS_MODS_PROHIBITED:
-          e = new LdapResultObjectClassModsProhibitedException(ldapResult);
-          break;
-
-        case ResultCode.AFFECTS_MULTIPLE_DSAS:
-          e = new LdapResultAffectsMultipleDsasException(ldapResult);
-          break;
-
-        case ResultCode.OTHER:
-          e = new LdapResultOtherException(ldapResult);
-          break;
-
-        default:
-          assert(ldapResult.resultCode != ResultCode.OK);
-          assert(ldapResult.resultCode != ResultCode.COMPARE_FALSE);
-          assert(ldapResult.resultCode != ResultCode.COMPARE_TRUE);
-          e = new LdapResultUnknownCodeException(ldapResult);
-          break;
-      }
-      completer.completeError(e);
+      // Everything else is treated as an error: convert to an exception
+      completer.completeError(ldapResult.exceptionFromResultCode());
     }
 
     done();
@@ -409,6 +259,7 @@ class _ConnectionManager {
     loggerConnection.finer("listen: onError", error, stacktrace);
 
     if (error is SocketException) {
+      // TODO: convert to other types of specialised ldapsocketexceptions
       throw new LdapSocketException(error);
     } else {
       throw error;

@@ -33,13 +33,28 @@ Future doLdapOperation(LdapConnection ldap) async {
   // This search actually should not find any results, but that doesn't matter
 
   var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
-  await for (SearchEntry entry in searchResults.stream) {
-    expect(entry, isNotNull);
-    expect(entry, new isInstanceOf<SearchEntry>());
+
+  var gotNoResults = false;
+
+  try {
+    await for (SearchEntry entry in searchResults.stream) {
+      expect(entry, isNotNull);
+      expect(entry, new isInstanceOf<SearchEntry>());
+    }
+  } on LdapResultNoSuchObjectException {
+    gotNoResults = true;
+  } catch (e) {
+    print("Caught exception: $e (${e.runtimeType})");
+    expect(false, isTrue); // should not reach here
   }
+
+  expect(gotNoResults, isTrue);
 }
 
 //----------------------------------------------------------------
+
+var NUM_OPEN_CLOSE = 8;
+var NUM_CYCLES = 4;
 
 main() async {
   // Create two connections from parameters in the config file
@@ -74,66 +89,78 @@ main() async {
   group("Race condition", () {
     //----------------------------------------------------------------
 
-        test("multiple opens", () async {
-          var ldap = new LdapConnection(
-              host: p["host"],
-              ssl: p["ssl"],
-              port: p["port"],
-              autoConnect: true);
+    test("multiple opens", () async {
+      var ldap = new LdapConnection(
+          host: p["host"], ssl: p["ssl"], port: p["port"], autoConnect: true);
 
-          expect(ldap.state, equals(ConnectionState.closed));
-          expect(ldap.isAuthenticated, isFalse);
+      expect(ldap.state, equals(ConnectionState.closed));
+      expect(ldap.isAuthenticated, isFalse);
 
-          ldap.open();
+      var pending = new List<Future>();
 
-          await ldap.open();
+      for (var batch = 0; batch < NUM_CYCLES; batch++) {
+        // Multiple asynchronous opens
 
-          expect(ldap.state, equals(ConnectionState.ready));
-          expect(ldap.isAuthenticated, isFalse);
+        for (var x = 0; x < NUM_OPEN_CLOSE; x++) {
+          pending.add(ldap.open());
+        }
 
-          // LDAP operations can be performed on an open connection
+        for (var x = 0; x < NUM_OPEN_CLOSE; x++) {
+          await pending[x];
+        }
+      }
 
-          await doLdapOperation(ldap);
+      expect(ldap.state, equals(ConnectionState.ready));
+      expect(ldap.isAuthenticated, isFalse);
 
-          // Close the connection
+      // LDAP operations can be performed on an open connection
 
-          await ldap.close();
+      await doLdapOperation(ldap);
 
-          expect(ldap.state, equals(ConnectionState.closed));
-          expect(ldap.isAuthenticated, isFalse);
+      // Close the connection
 
-        });
+      await ldap.close();
 
-        //----------------
+      expect(ldap.state, equals(ConnectionState.closed));
+      expect(ldap.isAuthenticated, isFalse);
+    });
 
-        test("multiple close", () async {
-          var ldap = new LdapConnection(
-              host: p["host"],
-              ssl: p["ssl"],
-              port: p["port"],
-              autoConnect: true);
+    //----------------
 
-          expect(ldap.state, equals(ConnectionState.closed));
-          expect(ldap.isAuthenticated, isFalse);
+    test("multiple close", () async {
+      var ldap = new LdapConnection(
+          host: p["host"], ssl: p["ssl"], port: p["port"], autoConnect: true);
 
-          await ldap.open();
+      expect(ldap.state, equals(ConnectionState.closed));
+      expect(ldap.isAuthenticated, isFalse);
 
-          expect(ldap.state, equals(ConnectionState.ready));
-          expect(ldap.isAuthenticated, isFalse);
+      await ldap.open();
 
-          // LDAP operations can be performed on an open connection
+      expect(ldap.state, equals(ConnectionState.ready));
+      expect(ldap.isAuthenticated, isFalse);
 
-          await doLdapOperation(ldap);
+      // LDAP operations can be performed on an open connection
 
-          // Close the connection
+      await doLdapOperation(ldap);
 
-          ldap.close();
-          await ldap.close();
+      // Close the connection
 
-          expect(ldap.state, equals(ConnectionState.closed));
-          expect(ldap.isAuthenticated, isFalse);
-        });
+      var pending = new List<Future>();
 
+      for (var batch = 0; batch < NUM_CYCLES; batch++) {
+        // Multiple asynchronous opens
 
-      });
+        for (var x = 0; x < NUM_OPEN_CLOSE; x++) {
+          pending.add(ldap.close());
+        }
+
+        for (var x = 0; x < NUM_OPEN_CLOSE; x++) {
+          await pending[x];
+        }
+      }
+
+      expect(ldap.state, equals(ConnectionState.closed));
+      expect(ldap.isAuthenticated, isFalse);
+    });
+  });
 }
