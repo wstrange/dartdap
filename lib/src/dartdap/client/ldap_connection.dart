@@ -576,6 +576,14 @@ class LdapConnection {
   Future close([bool immediate = false]) async {
     loggerConnection.fine("close${immediate ? ": immediate" : ""}");
 
+    if (_openCompleters.isNotEmpty) {
+      // Wait for open operation to finish before closing
+      var c = new Completer();
+      _openCompleters.add(c);
+      await c.future;
+      // TODO: should this throw an exception if the open failed?
+    }
+
     switch (state) {
       case ConnectionState.ready:
       case ConnectionState.bindRequired:
@@ -694,6 +702,15 @@ class LdapConnection {
   /// - Other exceptions might also be thrown.
   ///
   Future _requireOpen(bool explicitOpen) async {
+
+    if (_closeCompleters.isNotEmpty) {
+      // Wait for close operation to finish before opening
+      var c = new Completer();
+      _closeCompleters.add(c);
+      await c.future;
+      // TODO: should this throw an exception if the close failed?
+    }
+
     switch (state) {
       case ConnectionState.closed:
       case ConnectionState.disconnected:
