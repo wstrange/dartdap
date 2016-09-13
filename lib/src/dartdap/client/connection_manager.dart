@@ -306,12 +306,15 @@ class _ConnectionManager {
   //----------------------------------------------------------------
   /// Establishes a network connection to the LDAP server.
   ///
-  /// Throws a [LdapSocketException] if a socket exception occurs.
-  /// Two particular socket exceptions are detected.
-  /// Throws a [LdapSocketServerNotFoundException] if the server cannot
-  /// be found.
-  /// Throws a [LdapSocketRefusedException] if the port on the server
-  /// cannot be connected to.
+  /// ## Exceptions
+  ///
+  /// - [LdapSocketException] when an error with the underlying socket.
+  /// - [LdapSocketServerNotFoundException] when the server cannot
+  ///   be found. Check the hostname is correct.
+  /// - [LdapSocketRefusedException] when the port on the server
+  ///   cannot be connected to. Check LDAP is running on the server
+  ///   and the port number is correct.
+  /// - Other exceptions might also be thrown.
 
   Future<_ConnectionManager> connect() async {
     try {

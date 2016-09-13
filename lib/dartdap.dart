@@ -44,7 +44,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:asn1lib/asn1lib.dart';
-import 'package:dart_config/default_server.dart' as server_config;
 import 'package:logging/logging.dart';
 
 import 'src/dartdap/protocol/ldap_protocol.dart'; // Internal library

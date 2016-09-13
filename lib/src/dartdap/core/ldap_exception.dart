@@ -93,8 +93,11 @@ class LdapConnectionDisconnected extends LdapException {
 //===============================================================
 // Exceptions for socket connection
 
-/// Exception when there is a connection problem.
-
+/// Exception when a SocketException was raised.
+///
+/// The original [SocketException] can be obtained from the [socketException]
+/// member.
+///
 class LdapSocketException extends LdapException {
   SocketException socketException;
   LdapSocketException(this.socketException,
@@ -106,6 +109,10 @@ class LdapSocketException extends LdapException {
   String toString() => socketException.toString();
 }
 
+/// Exception indicating the server was not found.
+///
+/// Often caused by the hostname or IP address is incorrect.
+///
 class LdapSocketServerNotFoundException extends LdapSocketException {
   String remoteServer;
   LdapSocketServerNotFoundException(SocketException se, this.remoteServer)
@@ -118,6 +125,11 @@ class LdapSocketServerNotFoundException extends LdapSocketException {
   String toString() => "Cannot connect to $remoteServer";
 }
 
+/// Exception indicating the LDAP/LDAPS port could not be connected to.
+///
+/// Often caused by the LDAP server not running, or access to it has been
+/// blocked.
+///
 class LdapSocketRefusedException extends LdapSocketException {
   int localPort;
   String remoteServer;
@@ -139,6 +151,9 @@ class LdapSocketRefusedException extends LdapSocketException {
 //===============================================================
 
 /// Exception when a problem is encountered with parsing received LDAP messages.
+///
+/// Probably indicates an implementation problem with the LDAP server or
+/// a bug in this package.
 
 class LdapParseException extends LdapException {
   LdapParseException(String message) : super(message);
