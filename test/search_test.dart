@@ -238,10 +238,13 @@ void doTest(String configName) {
         expect(entry, isNotNull);
         count++;
       }
-    } catch (e) {
-      expect(e, new isInstanceOf<LdapResult>());
-      expect(e.resultCode, equals(ResultCode.NO_SUCH_OBJECT));
+    } on LdapResultNoSuchObjectException catch(e) {
+      expect(e.result.matchedDN, equals("dc=example,dc=com")); // part that did match
       gotException = true;
+
+    } catch (e) {
+      expect(e, new isInstanceOf<LdapException>());
+      fail("Unexpected exception: $e");
     }
 
     expect(count, equals(0), reason: "Unexpected number of entries");

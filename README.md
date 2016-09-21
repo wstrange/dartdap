@@ -387,6 +387,12 @@ new Logger("ldap").level = Level.OFF;
   always expect LDAP operations could fail and to open a new
   connection if it fails (verbose and inelegant code).
 
+- The `search` method returns a _Future_ to a `SearchResult`.
+  Previously, it returned the SearchResult synchronously.  This change
+  was necessary because (with the introduction of automatic
+  connections) a search could cause the connection to be opened, and
+  bind request to be sent, before the search request is actually sent.
+
 - Renaming of other classes and methods to consistently follow the
   Dart naming
   [conventions](https://www.dartlang.org/effective-dart/style/).  For
@@ -404,7 +410,7 @@ new Logger("ldap").level = Level.OFF;
   a disconnect in the naming: package X was imported, but only library
   Y was imported. That would have been ok if it had multiple
   libraries, but it currently only contains one publicly visible
-  library.
+  library. Also, many of the classes could apply an LDAP server too.
 
 - `LDAPException` renamed to `LdapException` to follow the Dart naming
   [conventions](https://www.dartlang.org/effective-dart/style/).

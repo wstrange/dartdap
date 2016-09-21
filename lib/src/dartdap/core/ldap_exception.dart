@@ -247,6 +247,11 @@ class LdapResultInvalidAttributeSyntaxException extends LdapResultException {
   LdapResultInvalidAttributeSyntaxException(LdapResult r) : super(r);
 }
 
+/// An LdapResult was received with a result code of "No Such Object".
+///
+/// The `result.matchedDN` member indicates the part of the DN that did match.
+/// That is, it is not the actual DN of the missing object.
+///
 class LdapResultNoSuchObjectException extends LdapResultException {
   LdapResultNoSuchObjectException(LdapResult r) : super(r);
 }

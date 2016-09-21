@@ -1059,9 +1059,6 @@ class LdapConnection {
   ///       // entry.attributes = attributes returned (Map<String,Attribute>)
   ///     }
   ///
-  /// Note: the stream of the [SearchResult] will throw a
-  /// [LdapResultNoSuchObjectException] if there are no entries that match.
-  ///
   Future<SearchResult> search(
       String baseDN, Filter filter, List<String> attributes,
       {int scope: SearchScope.SUB_LEVEL,

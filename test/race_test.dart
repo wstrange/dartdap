@@ -34,21 +34,21 @@ Future doLdapOperation(LdapConnection ldap) async {
 
   var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
 
-  var gotNoResults = false;
+  var numResults = 0;
 
   try {
     await for (SearchEntry entry in searchResults.stream) {
+      numResults++;
       expect(entry, isNotNull);
       expect(entry, new isInstanceOf<SearchEntry>());
     }
   } on LdapResultNoSuchObjectException {
-    gotNoResults = true;
+    fail("Unexpected: LdapResultNoSuchObjectException: ${testDN.dn}");
   } catch (e) {
-    print("Caught exception: $e (${e.runtimeType})");
-    expect(false, isTrue); // should not reach here
+    fail("Unexpected exception: $e (${e.runtimeType})");
   }
 
-  expect(gotNoResults, isTrue);
+ expect(numResults, equals(0), reason: "Got results when not expecting any");
 }
 
 //----------------------------------------------------------------
