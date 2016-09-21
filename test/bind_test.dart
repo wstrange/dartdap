@@ -82,10 +82,8 @@ main() async {
       group("anonymous", () {
         test("using LDAP", () async {
           var ldap = new LdapConnection(
-              host: p["host"],
-              ssl: p["ssl"],
-              port: p["port"],
-              autoConnect: false);
+              host: p["host"], ssl: p["ssl"], port: p["port"]);
+          await ldap.setAutomaticMode(false);
 
           expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAuthenticated, isFalse);
@@ -172,10 +170,8 @@ main() async {
 
         test("close test", () async {
           var ldap = new LdapConnection(
-              host: p["host"],
-              ssl: p["ssl"],
-              port: p["port"],
-              autoConnect: false);
+              host: p["host"], ssl: p["ssl"], port: p["port"]);
+          await ldap.setAutomaticMode(false);
 
           expect(ldap.state, equals(ConnectionState.closed));
           expect(ldap.isAuthenticated, isFalse);
@@ -202,10 +198,8 @@ main() async {
 
         test("using LDAPS", () async {
           var ldaps = new LdapConnection(
-              host: s["host"],
-              ssl: s["ssl"],
-              port: s["port"],
-              autoConnect: false);
+              host: s["host"], ssl: s["ssl"], port: s["port"]);
+          await ldaps.setAutomaticMode(false);
 
           expect(ldaps.state, equals(ConnectionState.closed));
           expect(ldaps.isAuthenticated, isFalse);
@@ -238,8 +232,8 @@ main() async {
               ssl: p["ssl"],
               port: p["port"],
               bindDN: p["bindDN"],
-              password: p["password"],
-              autoConnect: false);
+              password: p["password"]);
+          await ldap.setAutomaticMode(false);
 
           expect(ldap.isAuthenticated, isTrue);
           expect(ldap.state, equals(ConnectionState.closed));
@@ -313,8 +307,8 @@ main() async {
               ssl: s["ssl"],
               port: s["port"],
               bindDN: p["bindDN"],
-              password: p["password"],
-              autoConnect: false);
+              password: p["password"]);
+          await ldaps.setAutomaticMode(false);
 
           expect(ldaps.isAuthenticated, isTrue);
           expect(ldaps.state, equals(ConnectionState.closed));
@@ -357,8 +351,9 @@ main() async {
       //----------------
 
       test("using LDAPS on LDAP", () async {
-        var bad = new LdapConnection(
-            host: p["host"], ssl: true, port: p["port"], autoConnect: false);
+        var bad =
+            new LdapConnection(host: p["host"], ssl: true, port: p["port"]);
+        await bad.setAutomaticMode(false);
 
         expect(bad.state, equals(ConnectionState.closed));
 
@@ -477,8 +472,8 @@ main() async {
             ssl: p["ssl"],
             port: p["port"],
             bindDN: p["bindDN"],
-            password: p["password"],
-            autoConnect: false);
+            password: p["password"]);
+        await ldap.setAutomaticMode(false);
 
         expect(ldap.isAuthenticated, isTrue);
         expect(ldap.state, equals(ConnectionState.closed));
@@ -542,11 +537,9 @@ main() async {
       //----------------
 
       test('with setAuthentication credentials', () async {
-        var ldap = new LdapConnection(
-            host: p["host"],
-            ssl: p["ssl"],
-            port: p["port"],
-            autoConnect: false);
+        var ldap =
+            new LdapConnection(host: p["host"], ssl: p["ssl"], port: p["port"]);
+        await ldap.setAutomaticMode(false);
 
         expect(ldap.isAuthenticated, isFalse);
         expect(ldap.state, equals(ConnectionState.closed));
@@ -578,11 +571,9 @@ main() async {
       //----------------
 
       test('with bad DN fails', () async {
-        var ldap = new LdapConnection(
-            host: p["host"],
-            ssl: p["ssl"],
-            port: p["port"],
-            autoConnect: false);
+        var ldap =
+            new LdapConnection(host: p["host"], ssl: p["ssl"], port: p["port"]);
+        await ldap.setAutomaticMode(false);
 
         expect(ldap.isAuthenticated, isFalse);
         expect(ldap.state, equals(ConnectionState.closed));
@@ -613,11 +604,9 @@ main() async {
       //----------------
 
       test('with bad password fails', () async {
-        var ldap = new LdapConnection(
-            host: p["host"],
-            ssl: p["ssl"],
-            port: p["port"],
-            autoConnect: false);
+        var ldap =
+            new LdapConnection(host: p["host"], ssl: p["ssl"], port: p["port"]);
+        await ldap.setAutomaticMode(false);
 
         expect(ldap.isAuthenticated, isFalse);
         expect(ldap.state, equals(ConnectionState.closed));
@@ -773,8 +762,8 @@ main() async {
             ssl: p["ssl"],
             port: p["port"],
             bindDN: p["bindDN"],
-            password: p["password"],
-            autoConnect: true);
+            password: p["password"]);
+        await ldap.setAutomaticMode(true);
 
         expect(ldap.isAuthenticated, isTrue);
         expect(ldap.state, equals(ConnectionState.closed));

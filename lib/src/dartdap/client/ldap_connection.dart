@@ -172,11 +172,16 @@ class LdapConnection {
   /// LDAP BIND request is finished, and the value is the result from the LDAP
   /// BIND request.
   ///
+  /// **Question:** does anyone use manual mode? If not, a future version might
+  /// remove support for manual mode. In which case, this method would be
+  /// deprecated and then later removed. Removing support for manual mode
+  /// would simplify the internal implementation.
+  ///
   Future<LdapResult> setAutomaticMode(bool newValue) async {
     if (newValue == null) {
       throw new ArgumentError.notNull("autoConnect");
     }
-    if (!newValue is bool) {
+    if (!(newValue is bool)) {
       throw new ArgumentError.value(newValue, "autoConnect", "not a bool");
     }
 
@@ -464,10 +469,10 @@ class LdapConnection {
   ///
   /// The connection is set to use [ssl] (or not) to connect to [port] at
   /// [hostname], and optionally authenticated to [bindDN] with [password].
-  /// Automatic mode or manual mode is set according to [autoConnect].
   ///
   /// The default is to create an automatic mode, anonymous LDAP connection to
   /// localhost.
+  /// The mode can be changed using [setAutomaticMode].
   ///
   /// These parameters can be later changed using [setHost], [setProtocol],
   /// [setAuthentication] and [setAuthentication] (see those methods for details
@@ -486,12 +491,11 @@ class LdapConnection {
       bool ssl: false,
       int port: null,
       String bindDN: null,
-      String password: null,
-      bool autoConnect: true}) {
+      String password: null}) {
     setHost(host);
     setProtocol(ssl, port);
     _setAuthenticationValues(bindDN, password);
-    this._autoConnect = autoConnect;
+    this._autoConnect = true; // defaults to automatic mode
   }
 
   //================================================================
@@ -615,14 +619,13 @@ class LdapConnection {
       var theException = null;
       try {
         loggerConnection.finest("close: started");
-  
+
         await _cmgr.close(immediate);
-  
+
         loggerConnection.finest("close: done");
       } catch (e) {
         theException = e;
         rethrow;
-
       } finally {
         // Notify all invocations in the set, and clear the set.
         for (var cc in _closeCompleters) {
@@ -631,7 +634,6 @@ class LdapConnection {
         _closeCompleters.removeRange(0, _closeCompleters.length);
       }
       return null;
-  
     } else {
       // Not the first invocation in the set.
 
@@ -645,7 +647,6 @@ class LdapConnection {
       }
       return null;
     }
-
   }
 
   //----------------------------------------------------------------
@@ -702,7 +703,6 @@ class LdapConnection {
   /// - Other exceptions might also be thrown.
   ///
   Future _requireOpen(bool explicitOpen) async {
-
     if (_closeCompleters.isNotEmpty) {
       // Wait for close operation to finish before opening
       var c = new Completer();
@@ -794,7 +794,6 @@ class LdapConnection {
         _openCompleters.removeRange(0, _openCompleters.length);
       }
       return null;
-
     } else {
       // Not the first invocation in the set.
 

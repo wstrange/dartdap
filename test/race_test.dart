@@ -91,7 +91,7 @@ main() async {
 
     test("multiple opens", () async {
       var ldap = new LdapConnection(
-          host: p["host"], ssl: p["ssl"], port: p["port"], autoConnect: true);
+          host: p["host"], ssl: p["ssl"], port: p["port"]);
 
       expect(ldap.state, equals(ConnectionState.closed));
       expect(ldap.isAuthenticated, isFalse);
@@ -129,7 +129,7 @@ main() async {
 
     test("multiple close", () async {
       var ldap = new LdapConnection(
-          host: p["host"], ssl: p["ssl"], port: p["port"], autoConnect: true);
+          host: p["host"], ssl: p["ssl"], port: p["port"]);
 
       expect(ldap.state, equals(ConnectionState.closed));
       expect(ldap.isAuthenticated, isFalse);
