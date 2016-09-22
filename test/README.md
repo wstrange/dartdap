@@ -5,25 +5,33 @@ This document describes the unit tests for the _dartdap_ package.
 
 ## Quick Start
 
-1. Deploy a test LDAP directory server. The supplied test
-   configuration (in _test/TEST-config.yaml_) expects the LDAP
-   directory to have an entry for "dc=example,dc=com" and can bind to
-   "cn=Manager,dc=example,dc=com" with the password "p@ssw0rd".
+1. Deploy a test LDAP directory server.
 
-   This can be done by running the _SETUP-dartdap-testing-openldap-centOS7.sh_ script
-   on CentOS 7.
+   The supplied test configuration (in _test/TEST-config.yaml_)
+   expects the LDAP directory to have an entry for "dc=example,dc=com"
+   and can bind to "cn=Manager,dc=example,dc=com" with the password
+   "p@ssw0rd".
 
-2. Establish port forwarding to the LDAP directory. The supplied test
-   configuration expects LDAP on localhost port 10389 and LDAPS on
-   localhost port 10636.
+   A test LDAP directory can be deployed by running the supplied script on CentOS 7:
 
-         ssh -L 10389:localhost:389 -L 10636:localhost:636 username@testVM
+       testVM$  sudo ./SETUP-dartdap-testing-openldap-centOS7.sh
+
+2. Establish port forwarding to the LDAP directory.
+
+   The supplied test configuration expects LDAP on localhost port
+   10389 and LDAPS on localhost port 10636.
+
+       local$  ssh -L 10389:localhost:389 -L 10636:localhost:636 username@testVM
 
 3. Run the tests:
 
-         pub run test
+       local$  pub run test
 
+## Known issues
 
+The tests all run successfully from within the WebStorm IDE.  But when
+run from the command line, some of them fail with an "_OS Error: Too
+many open files_" error message.
 
 ## Test LDAP directory server
 

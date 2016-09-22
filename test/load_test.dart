@@ -3,8 +3,10 @@
 //----------------------------------------------------------------
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dart_config/default_server.dart' as config_file;
+import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 import 'package:dartdap/dartdap.dart';
@@ -25,17 +27,26 @@ const branchDescription = "Branch for $branchOU";
 final branchDN = baseDN.concat("ou=$branchOU");
 final branchAttrs = {
   "objectclass": ["organizationalUnit"],
-  "description": branchDescription
+  "description": branchDescription,
 };
 
-const int NUM_ENTRIES = 2000;
+// The LDAP directory being used for testing must have a size limit greater
+// than or equal to this value (or no size limit) for these tests to succeed.
+
+const int DIRECTORY_MIN_SIZE_LIMIT = 1000;
+
+// The number of entries to use for the load tests
+
+const int NUM_ENTRIES = 10; // 256
+
+const String cnPrefix = "user";
 
 //----------------------------------------------------------------
 // Create entries needed for testing.
 
-Future populateEntries(LDAPConnection ldap) async {
+Future populateEntries(LdapConnection ldap) async {
   var addResult = await ldap.add(branchDN.dn, branchAttrs);
-  assert(addResult is LDAPResult);
+  assert(addResult is LdapResult);
   assert(addResult.resultCode == 0);
 }
 
@@ -43,12 +54,12 @@ Future populateEntries(LDAPConnection ldap) async {
 
 /// Purge entries from the test to clean up
 
-Future purgeEntries(LDAPConnection ldap) async {
+Future purgeEntries(LdapConnection ldap) async {
   // Purge the bulk person entries
 
-  for (int j = 0; j < NUM_ENTRIES; ++j) {
+  for (int j = NUM_ENTRIES - 1; 0 <= j; j--) {
     try {
-      await ldap.delete((branchDN.concat("cn=user$j")).dn);
+      await ldap.delete(branchDN.concat("cn=$cnPrefix$j").dn);
     } catch (e) {
       // ignore any exceptions
     }
@@ -72,11 +83,19 @@ void doTests(String configName) {
 
   setUp(() async {
     var c = (await config_file.loadConfig(testConfigFile))[configName];
-    ldap = new LDAPConnection(c["host"], c["port"], c["ssl"]);
+    ldap = new LdapConnection(
+        host: c["host"],
+        ssl: c["ssl"],
+        port: c["port"],
+        bindDN: c["bindDN"],
+        password: c["password"],
+        badCertificateHandler: (X509Certificate _) => true);
+    // Note: setting badCertificateHandler to accept test certificate
 
-    await ldap.connect();
-    await ldap.bind(c["bindDN"], c["password"]);
+    //await ldap.open();
+    //await ldap.bind();
 
+    await ldap.open(); // optional step: makes log entries more sensible
     await purgeEntries(ldap);
     await populateEntries(ldap);
   });
@@ -90,15 +109,35 @@ void doTests(String configName) {
 
   //----------------
 
+  test("initial", () async {
+    var numToCreate = 10;
+    var sizeLimit = 5;
+
+    expect(numToCreate, lessThanOrEqualTo(DIRECTORY_MIN_SIZE_LIMIT));
+    expect(sizeLimit, lessThanOrEqualTo(numToCreate));
+  });
+/*
+  //----------------
+
   test("add/search/delete under load with $NUM_ENTRIES entries", () async {
-    const cnPrefix = "user";
+
+    var loggerMain = new Logger("main");
+
+    expect(NUM_ENTRIES, lessThanOrEqualTo(DIRECTORY_MIN_SIZE_LIMIT));
 
     // Bulk add
+
+    loggerMain.fine("add");
 
     for (int x = 0; x < NUM_ENTRIES; x++) {
       var attrs = {
         "objectclass": ["inetorgperson"],
-        "sn": "Test User $x"
+        "sn": "User $x",
+        "displayName": "Test User $x",
+        "givenName": "John",
+        "mail": "user$x@example.com",
+        "employeeType": "test",
+        "employeeNumber": "$x",
       };
       var result = await ldap.add(branchDN.concat("cn=$cnPrefix$x").dn, attrs);
       expect(result.resultCode, equals(0));
@@ -108,18 +147,23 @@ void doTests(String configName) {
 
     var filter = Filter.substring("cn=${cnPrefix}*");
 
-    var attrs = ["cn"];
+    var attrs = [
+      "cn",
+      "sn",
+      "givenName",
+      "displayName",
+      "mail",
+      "employeeType",
+      "employeeNumber"
+    ];
+
+
+    loggerMain.fine("search");
 
     var count = 0;
 
-    // bit of a hack. Note the directory has a max limit
-    // for the number of results returned. 1000 is the default for DJ
-    //var expected = Math.min(NUM_ENTRIES, 1000);
-    var expected =
-        NUM_ENTRIES; // TODO: fix this to take into account directory max
-
-    await for (SearchEntry entry
-        in ldap.search(branchDN.dn, filter, attrs).stream) {
+    var searchResults = await ldap.search(branchDN.dn, filter, attrs);
+    await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 
       var cnSet = entry.attributes["cn"];
@@ -127,12 +171,15 @@ void doTests(String configName) {
       expect(cnSet.values.length, equals(1));
       expect(cnSet.values.first, startsWith(cnPrefix));
 
-      expect(entry.attributes.length, equals(1)); // no other attributes
+      // Other attributes
+      expect(entry.attributes.length, equals(attrs.length));
 
       count++;
     }
 
-    expect(count, equals(expected), reason: "Unexpected number of entries");
+    expect(count, equals(NUM_ENTRIES), reason: "Unexpected number of entries");
+
+    loggerMain.fine("delete");
 
     /*
               onError: (LDAPResult r) {
@@ -150,12 +197,107 @@ void doTests(String configName) {
       await ldap.delete(branchDN.concat("cn=$cnPrefix$x").dn);
     }
   }, timeout: new Timeout(new Duration(minutes: 5)));
+
+  //----------------
+
+  test("sizeLimit", () async {
+    var numToCreate = 10;
+    var sizeLimit = 5;
+
+    expect(numToCreate, lessThanOrEqualTo(DIRECTORY_MIN_SIZE_LIMIT));
+    expect(sizeLimit, lessThanOrEqualTo(numToCreate));
+
+    // Bulk add
+
+    for (int x = 0; x < numToCreate; x++) {
+      var attrs = {
+        "objectclass": ["inetorgperson"],
+        "sn": "User $x",
+        "displayName": "Test User $x",
+        "givenName": "John",
+        "mail": "user$x@example.com",
+        "employeeType": "test",
+        "employeeNumber": "$x",
+      };
+      var result = await ldap.add(branchDN.concat("cn=$cnPrefix$x").dn, attrs);
+      expect(result.resultCode, equals(0));
+    }
+
+    // Search with sizeLimit
+
+    var filter = Filter.substring("cn=${cnPrefix}*");
+
+    var attrs = [
+      "cn",
+      "sn",
+      "givenName",
+      "displayName",
+      "mail",
+      "employeeType",
+      "employeeNumber"
+    ];
+
+    var count = 0;
+
+    // Size limit
+
+    var searchResults =
+    await ldap.search(branchDN.dn, filter, attrs, sizeLimit: sizeLimit);
+    var entriesRetrieved = 0;
+    try {
+      await for (SearchEntry entry in searchResults.stream) {
+        expect(entry, isNotNull);
+        entriesRetrieved++;
+      }
+      fail("sizeLimit should have been triggered");
+    } catch (e) {
+      expect(e, new isInstanceOf<LdapResultSizeLimitExceededException>());
+      // Note: server might have a lower size limit set
+      expect(entriesRetrieved, lessThanOrEqualTo(sizeLimit),
+          reason: "search returned more than sizeLimit entries");
+    }
+
+    // Delete
+
+    for (int x = 0; x < numToCreate; x++) {
+      await ldap.delete(branchDN.concat("cn=$cnPrefix$x").dn);
+    }
+  }, timeout: new Timeout(new Duration(minutes: 5)));
+  */
 }
 
 //================================================================
 
+void setupLogging() {
+  const bool doLogging = false; // Enable logging by setting to true.
+
+  if (doLogging) {
+    //  startQuickLogging();
+    hierarchicalLoggingEnabled = true;
+
+    Logger.root.onRecord.listen((LogRecord rec) {
+      print(
+          '${rec.time}: ${rec.loggerName}: ${rec.level.name}: ${rec.message}');
+    });
+
+    Logger.root.level = Level.OFF;
+
+    new Logger("ldap").level = Level.INFO;
+    new Logger("ldap.connection").level = Level.ALL;
+    new Logger("ldap.send.ldap").level = Level.INFO;
+    new Logger("ldap.send.bytes").level = Level.INFO;
+    new Logger("ldap.recv.bytes").level = Level.INFO;
+    new Logger("ldap.recv.asn1").level = Level.INFO;
+    new Logger("main").level = Level.INFO;
+  }
+}
+
+//----------------------------------------------------------------
+
 main() {
+  setupLogging();
+
   group("LDAP", () => doTests("test-LDAP"));
 
-  // group("LDAPS", () => doTests("test-LDAPS")); // uncomment to test with LDAPS
+  group("LDAPS", () => doTests("test-LDAPS"));
 }

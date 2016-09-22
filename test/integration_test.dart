@@ -2,6 +2,8 @@
 //
 //----------------------------------------------------------------
 
+import 'dart:io';
+
 import 'package:test/test.dart';
 import 'package:logging/logging.dart';
 import 'package:dart_config/default_server.dart' as config_file;
@@ -29,21 +31,30 @@ void doTests(String configName) {
     //----------------
     // Create the connection (at the start of the test)
 
-    LDAPConnection ldap;
+    LdapConnection ldap;
 
     if (configName != null) {
       // For testing purposes, load connection parameters from the
       // configName section of a config file.
 
       var c = (await config_file.loadConfig(testConfigFile))[configName];
-      ldap = new LDAPConnection(c["host"], c["port"], c["ssl"]);
-      await ldap.connect();
-      await ldap.bind(c["bindDN"], c["password"]);
+      ldap = new LdapConnection(
+          host: c["host"],
+          ssl: c["ssl"],
+          port: c["port"],
+          bindDN: c["bindDN"],
+          password: c["password"],
+          badCertificateHandler: (X509Certificate _) => true);
+      // Note: setting badCertificateHandler to accept test certificate
+      //await ldap.open();
+      //await ldap.bind();
     } else {
       // Or the connection parameters can be explicitly specified in code.
-      ldap = new LDAPConnection("localhost", 10389, false);
-      await ldap.connect();
-      await ldap.bind("cn=Manager,dc=example,dc=com", "p@ssw0rd");
+      ldap = new LdapConnection(host: "localhost");
+      ldap.setProtocol(false, 10389);
+      await ldap.setAuthentication("cn=Manager,dc=example,dc=com", "p@ssw0rd");
+      //await ldap.open();
+      //await ldap.bind();
     }
 
     //----------------
@@ -140,7 +151,8 @@ void doTests(String configName) {
     // ou=Engineering
 
     int numFound = 0;
-    await for (var entry in ldap.search(baseDN, filter, queryAttrs).stream) {
+    var searchResult = await ldap.search(baseDN, filter, queryAttrs);
+    await for (var entry in searchResult.stream) {
       expect(entry, new isInstanceOf<SearchEntry>());
       numFound++;
     }

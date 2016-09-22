@@ -72,7 +72,7 @@ part of dartdap;
  * Generic LDAP Result
  */
 
-class LDAPResult {
+class LdapResult {
   int _resultCode;
   String _diagnosticMessage;
   String _matchedDN;
@@ -85,7 +85,7 @@ class LDAPResult {
 
   /// Constructor
 
-  LDAPResult(this._resultCode, this._matchedDN, this._diagnosticMessage,
+  LdapResult(this._resultCode, this._matchedDN, this._diagnosticMessage,
       this._referralURLs) {}
 
   String toString() =>
@@ -94,12 +94,177 @@ class LDAPResult {
           ? ": $_diagnosticMessage"
           : "") +
       ((_matchedDN != null && _matchedDN.isNotEmpty) ? ": $_matchedDN" : "");
+
+
+  /// Converts an LdapResult whose result code is an error into an exception.
+  ///
+  /// If the result code does not indicate an exception, null is returned.
+  ///
+  LdapException exceptionFromResultCode() {
+
+    switch (resultCode) {
+      case ResultCode.OPERATIONS_ERROR:
+        return new LdapResultOperationsErrorException(this);
+        break;
+
+      case ResultCode.PROTOCOL_ERROR:
+        return new LdapResultProtocolErrorException(this);
+        break;
+
+      case ResultCode.TIME_LIMIT_EXCEEDED:
+        return new LdapResultTimeLimitExceededException(this);
+        break;
+
+      case ResultCode.SIZE_LIMIT_EXCEEDED:
+        return new LdapResultSizeLimitExceededException(this);
+        break;
+
+      case ResultCode.AUTH_METHOD_NOT_SUPPORTED:
+        return new LdapResultAuthMethodNotSupportedException(this);
+        break;
+
+      case ResultCode.STRONG_AUTH_REQUIRED:
+        return new LdapResultStrongAuthRequiredException(this);
+        break;
+
+      case ResultCode.REFERRAL:
+        return new LdapResultReferralException(this);
+        break;
+
+      case ResultCode.ADMIN_LIMIT_EXCEEDED:
+        return new LdapResultAdminLimitExceededException(this);
+        break;
+
+      case ResultCode.UNAVAILABLE_CRITICAL_EXTENSION:
+        return new LdapResultUnavailableCriticalExtensionException(this);
+        break;
+
+      case ResultCode.CONFIDENTIALITY_REQUIRED:
+        return new LdapResultConfidentialityRequiredException(this);
+        break;
+
+      case ResultCode.SASL_BIND_IN_PROGRESS:
+        return new LdapResultSaslBindInProgressException(this);
+        break;
+
+      case ResultCode.NO_SUCH_ATTRIBUTE:
+        return new LdapResultNoSuchAttributeException(this);
+        break;
+
+      case ResultCode.UNDEFINED_ATTRIBUTE_TYPE:
+        return new LdapResultUndefinedAttributeTypeException(this);
+        break;
+
+      case ResultCode.INAPPROPRIATE_MATCHING:
+        return new LdapResultInappropriateMatchingException(this);
+        break;
+
+      case ResultCode.CONSTRAINT_VIOLATION:
+        return new LdapResultConstraintViolationException(this);
+        break;
+
+      case ResultCode.ATTRIBUTE_OR_VALUE_EXISTS:
+        return new LdapResultAttributeOrValueExistsException(this);
+        break;
+
+      case ResultCode.INVALID_ATTRIBUTE_SYNTAX:
+        return new LdapResultInvalidAttributeSyntaxException(this);
+        break;
+
+      case ResultCode.NO_SUCH_OBJECT:
+        return new LdapResultNoSuchObjectException(this);
+        break;
+
+      case ResultCode.ALIAS_PROBLEM:
+        return new LdapResultAliasProblemException(this);
+        break;
+
+      case ResultCode.INVALID_DN_SYNTAX:
+        return new LdapResultInvalidDnSyntaxException(this);
+        break;
+
+      case ResultCode.IS_LEAF:
+        return new LdapResultIsLeafException(this);
+        break;
+
+      case ResultCode.ALIAS_DEREFERENCING_PROBLEM:
+        return new LdapResultAliasDereferencingProblemException(this);
+        break;
+
+      case ResultCode.INAPPROPRIATE_AUTHENTICATION:
+        return new LdapResultInappropriateAuthenticationException(this);
+        break;
+
+      case ResultCode.INVALID_CREDENTIALS:
+        return new LdapResultInvalidCredentialsException(this);
+        break;
+
+      case ResultCode.INSUFFICIENT_ACCESS_RIGHTS:
+        return new LdapResultInsufficientAccessRightsException(this);
+        break;
+
+      case ResultCode.BUSY:
+        return new LdapResultBusyException(this);
+        break;
+
+      case ResultCode.UNAVAILABLE:
+        return new LdapResultUnavailableException(this);
+        break;
+
+      case ResultCode.UNWILLING_TO_PERFORM:
+        return new LdapResultUnwillingToPerformException(this);
+        break;
+
+      case ResultCode.LOOP_DETECT:
+        return new LdapResultLoopDetectException(this);
+        break;
+
+      case ResultCode.NAMING_VIOLATION:
+        return new LdapResultNamingViolationException(this);
+        break;
+
+      case ResultCode.OBJECT_CLASS_VIOLATION:
+        return new LdapResultObjectClassViolationException(this);
+        break;
+
+      case ResultCode.NOT_ALLOWED_ON_NONLEAF:
+        return new LdapResultNotAllowedOnNonleafException(this);
+        break;
+
+      case ResultCode.NOT_ALLOWED_ON_RDN:
+        return new LdapResultNotAllowedOnRdnException(this);
+        break;
+
+      case ResultCode.ENTRY_ALREADY_EXISTS:
+        return new LdapResultEntryAlreadyExistsException(this);
+        break;
+
+      case ResultCode.OBJECT_CLASS_MODS_PROHIBITED:
+        return new LdapResultObjectClassModsProhibitedException(this);
+        break;
+
+      case ResultCode.AFFECTS_MULTIPLE_DSAS:
+        return new LdapResultAffectsMultipleDsasException(this);
+        break;
+
+      case ResultCode.OTHER:
+        return new LdapResultOtherException(this);
+        break;
+
+      default:
+        assert(resultCode != ResultCode.OK);
+        assert(resultCode != ResultCode.COMPARE_FALSE);
+        assert(resultCode != ResultCode.COMPARE_TRUE);
+        return new LdapResultUnknownCodeException(this);
+        break;
+    }
+  }
 }
 
 //===============================================================
 /// Search entry result produced by the search operation.
 ///
-/// The [LDAPConnection.search] method produces a [SearchResult] which
+/// The [LdapConnection.search] method produces a [SearchResult] which
 /// contains a stream of these objects: each representing an entry that matched
 /// the search request.
 ///

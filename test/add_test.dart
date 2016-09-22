@@ -43,7 +43,7 @@ final testPersonAttrs = {
 
 /// Purge entries from the test to clean up
 
-Future purgeEntries(LDAPConnection ldap) async {
+Future purgeEntries(LdapConnection ldap) async {
   // Purge test person
 
   try {
@@ -70,10 +70,11 @@ void doTests(String configName) {
 
   setUp(() async {
     var c = (await config_file.loadConfig(testConfigFile))[configName];
-    ldap = new LDAPConnection(c["host"], c["port"], c["ssl"]);
-
-    ldap = await ldap.connect();
-    await ldap.bind(c["bindDN"], c["password"]);
+    ldap = new LdapConnection(host: c["host"],
+        ssl: c["ssl"],
+        port: c["port"],
+        bindDN: c["bindDN"],
+        password: c["password"]);
 
     await purgeEntries(ldap);
     // Nothing to populate, since these tests exercise the "add" operation
@@ -102,8 +103,8 @@ void doTests(String configName) {
 
     var count = 0;
 
-    await for (SearchEntry entry
-        in ldap.search(baseDN.dn, filter, searchAttrs).stream) {
+    var searchResult = await ldap.search(baseDN.dn, filter, searchAttrs);
+    await for (SearchEntry entry in searchResult.stream) {
       expect(entry, isNotNull);
 
       var ouSet = entry.attributes["ou"];
@@ -145,8 +146,12 @@ void doTests(String configName) {
 
     // Attempt to add an entry with the same DN
 
-    expect(ldap.add(branchDN.dn, newAttrs),
-        throwsA(new isInstanceOf<LdapResultEntryAlreadyExistsException>()));
+    try {
+      await ldap.add(branchDN.dn, newAttrs);
+      fail("exception not thrown");
+    } catch (e) {
+      expect(e, new isInstanceOf<LdapResultEntryAlreadyExistsException>());
+    }
 
     // The original entry is present and unchanged
 
@@ -155,8 +160,8 @@ void doTests(String configName) {
 
     var count = 0;
 
-    await for (SearchEntry entry
-        in ldap.search(baseDN.dn, filter, searchAttrs).stream) {
+    var searchResults = await ldap.search(baseDN.dn, filter, searchAttrs);
+    await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 
       var ouSet = entry.attributes["ou"];
@@ -199,8 +204,12 @@ void doTests(String configName) {
   test("adding an entry under non-existant entry fails", () async {
     // Attempt to add the test person (without first adding the branch entry)
 
-    expect(ldap.add(testPersonDN.dn, testPersonAttrs),
-        throwsA(new isInstanceOf<LdapResultNoSuchObjectException>()));
+    try {
+      await ldap.add(testPersonDN.dn, testPersonAttrs);
+      fail("exception not thrown");
+    } catch (e) {
+      expect(e, new isInstanceOf<LdapResultNoSuchObjectException>());
+    }
   });
 
   //----------------
@@ -219,8 +228,12 @@ void doTests(String configName) {
       // no "sn" attribute, which is mandatory in the "person" schema
     };
 
-    expect(ldap.add(testPersonDN.dn, attrsMissingMandatory),
-        throwsA(new isInstanceOf<LdapResultObjectClassViolationException>()));
+    try {
+      await ldap.add(testPersonDN.dn, attrsMissingMandatory);
+      fail("exception not thrown");
+    } catch (e) {
+      expect(e, new isInstanceOf<LdapResultObjectClassViolationException>());
+    }
   });
 }
 

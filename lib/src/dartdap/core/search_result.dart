@@ -2,18 +2,19 @@ part of dartdap;
 
 /// Results from a search request.
 ///
-/// This object is produced by the [LDAPConnection.search] method.
+/// This object is produced by the [LdapConnection.search] method.
 ///
 /// Use the [stream] property to get a stream of [SearchEntry] objects, which
 /// representes the results from the search operation.
 ///
 /// The [controls] property contains the VLV context information, for example
 /// to pass on to a subsequent search.
+///
 
 // TODO: Is this the right design?
 
 class SearchResult {
-  LDAPResult ldapResult;
+  LdapResult ldapResult;
 
   SearchResult(this._stream);
 
@@ -23,6 +24,11 @@ class SearchResult {
   ///     await for (SearchEntry entry in searchResult.stream) { doSomething; }
   /// or
   ///     searchResult.stream.listen((SearchEntry entry) =>  doSomething));
+  ///
+  /// ## Some exceptions
+  ///
+  /// [LdapResultNoSuchObjectException] thrown when the search finds zero
+  /// entries that match.
 
   Stream<SearchEntry> get stream => _stream;
   Stream<SearchEntry> _stream;

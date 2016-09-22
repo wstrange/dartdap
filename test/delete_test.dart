@@ -46,26 +46,26 @@ final testPersonAttrs = {
 //----------------------------------------------------------------
 // Create entries needed for testing.
 
-Future populateEntries(LDAPConnection ldap) async {
+Future populateEntries(LdapConnection ldap) async {
   var addResult = await ldap.add(branchDN.dn, branchAttrs);
-  assert(addResult is LDAPResult);
+  assert(addResult is LdapResult);
   assert(addResult.resultCode == 0);
 
   addResult = await ldap.add(testPersonDN.dn, testPersonAttrs);
-  assert(addResult is LDAPResult);
+  assert(addResult is LdapResult);
   assert(addResult.resultCode == 0);
 }
 
 //----------------------------------------------------------------
 /// Clean up before/after testing.
 
-Future purgeEntries(LDAPConnection ldap) async {
+Future purgeEntries(LdapConnection ldap) async {
   // Purge test person
 
   try {
     await ldap.delete(testPersonDN.dn);
   } catch (e) {
-    // ignore any exceptions
+    // ignore any exceptions thrown if entry does not exist
   }
 
   // Purge branch
@@ -73,7 +73,7 @@ Future purgeEntries(LDAPConnection ldap) async {
   try {
     await ldap.delete(branchDN.dn);
   } catch (e) {
-    // ignore any exceptions
+    // ignore any exceptions if entry does not exist
   }
 }
 
@@ -86,10 +86,12 @@ void doTest(String configName) {
 
   setUp(() async {
     var c = (await config_file.loadConfig(testConfigFile))[configName];
-    ldap = new LDAPConnection(c["host"], c["port"], c["ssl"]);
-
-    await ldap.connect();
-    await ldap.bind(c["bindDN"], c["password"]);
+    ldap = new LdapConnection(
+        host: c["host"],
+        ssl: c["ssl"],
+        port: c["port"],
+        bindDN: c["bindDN"],
+        password: c["password"]);
 
     await purgeEntries(ldap);
     await populateEntries(ldap);
@@ -108,7 +110,7 @@ void doTest(String configName) {
     // Delete the entry
 
     var delResult = await ldap.delete(testPersonDN.dn);
-    expect(delResult, new isInstanceOf<LDAPResult>());
+    expect(delResult, new isInstanceOf<LdapResult>());
     expect(delResult.resultCode, equals(0));
 
     // Search to check the entry is gone
@@ -118,8 +120,8 @@ void doTest(String configName) {
 
     var count = 0;
 
-    await for (SearchEntry _
-        in ldap.search(baseDN.dn, filter, searchAttrs).stream) {
+    var searchResults = await ldap.search(baseDN.dn, filter, searchAttrs);
+    await for (SearchEntry _ in searchResults.stream) {
       fail("Entry still exists after delete");
       count++;
     }
@@ -132,8 +134,12 @@ void doTest(String configName) {
   test("deleting a non-existant entry raises an exception", () async {
     var nosuchDN = branchDN.concat("cn=NoSuchPerson");
 
-    expect(ldap.delete(nosuchDN.dn),
-        throwsA(new isInstanceOf<LdapResultNoSuchObjectException>()));
+    try {
+      await ldap.delete(nosuchDN.dn);
+      fail("exception not thrown");
+    } catch (e) {
+      expect(e, new isInstanceOf<LdapResultNoSuchObjectException>());
+    }
   });
 
   //----------------
@@ -142,8 +148,12 @@ void doTest(String configName) {
     // Note: the test person entry is a child of the branch entry, so
     // the branch entry cannot be deleted.
 
-    expect(ldap.delete(branchDN.dn),
-        throwsA(new isInstanceOf<LdapResultNotAllowedOnNonleafException>()));
+    try {
+      await ldap.delete(branchDN.dn);
+      fail("exception not thrown");
+    } catch (e) {
+      expect(e, new isInstanceOf<LdapResultNotAllowedOnNonleafException>());
+    }
   });
 }
 

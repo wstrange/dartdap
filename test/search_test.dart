@@ -27,14 +27,14 @@ const int NUM_ENTRIES = 3;
 //----------------------------------------------------------------
 // Create entries needed for testing.
 
-Future populateEntries(LDAPConnection ldap) async {
+Future populateEntries(LdapConnection ldap) async {
   // Create entry
 
   var addResult = await ldap.add(testDN.dn, {
     "objectclass": ["organizationalUnit"],
     "description": descriptionStr
   });
-  assert(addResult is LDAPResult);
+  assert(addResult is LdapResult);
   assert(addResult.resultCode == 0);
 
   // Create subentries
@@ -45,7 +45,7 @@ Future populateEntries(LDAPConnection ldap) async {
       "sn": "User $j"
     };
     var addResult = await ldap.add(testDN.concat("cn=user$j").dn, attrs);
-    assert(addResult is LDAPResult);
+    assert(addResult is LdapResult);
     assert(addResult.resultCode == 0);
   }
 }
@@ -53,7 +53,7 @@ Future populateEntries(LDAPConnection ldap) async {
 //----------------------------------------------------------------
 /// Clean up before/after testing.
 
-Future purgeEntries(LDAPConnection ldap) async {
+Future purgeEntries(LdapConnection ldap) async {
   // Delete subentries
 
   for (int j = 0; j < NUM_ENTRIES; ++j) {
@@ -83,10 +83,12 @@ void doTest(String configName) {
 
   setUp(() async {
     var c = (await config_file.loadConfig(testConfigFile))[configName];
-    ldap = new LDAPConnection(c["host"], c["port"], c["ssl"]);
-
-    await ldap.connect();
-    await ldap.bind(c["bindDN"], c["password"]);
+    ldap = new LdapConnection(
+        host: c["host"],
+        ssl: c["ssl"],
+        port: c["port"],
+        bindDN: c["bindDN"],
+        password: c["password"]);
 
     await purgeEntries(ldap);
     await populateEntries(ldap);
@@ -108,8 +110,8 @@ void doTest(String configName) {
 
     var count = 0;
 
-    await for (SearchEntry entry
-        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+    var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
+    await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 
       var cnSet = entry.attributes["cn"];
@@ -139,8 +141,8 @@ void doTest(String configName) {
 
     var count = 0;
 
-    await for (SearchEntry entry
-        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+    var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
+    await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 
       var cnSet = entry.attributes["cn"];
@@ -170,8 +172,8 @@ void doTest(String configName) {
 
     var count = 0;
 
-    await for (SearchEntry entry
-        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+    var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
+    await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
       expect(entry, new isInstanceOf<SearchEntry>());
 
@@ -201,8 +203,8 @@ void doTest(String configName) {
 
     var count = 0;
 
-    await for (SearchEntry entry
-        in ldap.search(testDN.dn, filter, searchAttrs).stream) {
+    var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
+    await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
       expect(entry, new isInstanceOf<SearchEntry>());
 
@@ -229,17 +231,20 @@ void doTest(String configName) {
     var gotException = false;
 
     try {
-      await for (SearchEntry entry in ldap
-          .search("ou=NoSuchEntry,dc=example,dc=com", filter, searchAttrs)
-          .stream) {
+      var searchResults = await ldap.search(
+          "ou=NoSuchEntry,dc=example,dc=com", filter, searchAttrs);
+      await for (SearchEntry entry in searchResults.stream) {
         fail("Unexpected result from search under non-existant entry");
         expect(entry, isNotNull);
         count++;
       }
-    } catch (e) {
-      expect(e, new isInstanceOf<LDAPResult>());
-      expect(e.resultCode, equals(ResultCode.NO_SUCH_OBJECT));
+    } on LdapResultNoSuchObjectException catch(e) {
+      expect(e.result.matchedDN, equals("dc=example,dc=com")); // part that did match
       gotException = true;
+
+    } catch (e) {
+      expect(e, new isInstanceOf<LdapException>());
+      fail("Unexpected exception: $e");
     }
 
     expect(count, equals(0), reason: "Unexpected number of entries");
@@ -272,20 +277,20 @@ void setupLogging([Level commonLevel = Level.OFF]) {
   // "FINEST" or "ALL".
 
   //Logger.root.level = Level.OFF;
-  //new Logger("ldap").level = Level.OFF;
+  //new Logger("ldap").level = Level.ALL;
   //new Logger("ldap.connection").level = Level.OFF;
   //new Logger("ldap.recv").level = Level.OFF;
   //new Logger("ldap.recv.ldap").level = Level.OFF;
   //new Logger("ldap.send").level = Level.OFF;
   //new Logger("ldap.recv.ldap").level = Level.OFF;
   //new Logger("ldap.recv.asn1").level = Level.OFF;
-  new Logger("ldap.recv.bytes").level = Level.ALL;
+  //new Logger("ldap.recv.bytes").level = Level.OFF;
 }
 
 //----------------------------------------------------------------
 
 main() {
-  //setupLogging();
+  setupLogging();
 
   group("LDAP", () => doTest("test-LDAP"));
 

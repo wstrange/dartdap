@@ -1,7 +1,7 @@
 part of dartdap;
 
 // todo: why a class? Make a top level functions?
-class LDAPUtil {
+class _LdapUtil {
   /**
    * Escape an ldap string used in a search filter.
    * The LDAP spec requires *,),(,\ and null to be escaped.

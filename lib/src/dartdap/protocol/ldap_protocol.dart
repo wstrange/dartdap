@@ -95,9 +95,19 @@ String _op2String(int op) {
 ///
 Logger loggerConnection = new Logger("ldap.connection");
 
+//----------------
+// Sending
+
 /// Logger for sent LDAP messages
 ///
 Logger loggerSendLdap = new Logger("ldap.send.ldap");
+
+/// Logger for sent bytes
+///
+Logger loggerSendBytes = new Logger("ldap.send.bytes");
+
+//----------------
+// Receiving
 
 /// Logger for received LDAP messages
 ///

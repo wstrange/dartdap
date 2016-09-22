@@ -8,7 +8,6 @@ abstract class ResponseHandler {
     loggeRecvLdap
         .finer("LDAP response received: ${_op2String(m.protocolOp.tag)}");
 
-    ResponseOp op;
     switch (m.protocolOp.tag) {
       case BIND_RESPONSE:
         return new BindResponse(m);
@@ -32,6 +31,5 @@ abstract class ResponseHandler {
       default:
         throw "Not done";
     }
-    return op;
   }
 }
