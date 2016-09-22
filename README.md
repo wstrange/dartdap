@@ -399,6 +399,12 @@ new Logger("ldap").level = Level.OFF;
   example, `LDAPConnection` becomes `LdapConnection`, `LDAPResult`
   becomes `LdapResult`, `LDAPUtil` becomes `LdapUtil`.
 
+- Exception raised if a bad certificate is encountered when opening a
+  SSL/TLS connection. Provide a bad certificate handler function, if
+  the application wants to override the default behaviour. Other than
+  for testing, accepting bad certificates is a security risk: so, the
+  default behaviour is the safer option.
+
 - Internal classes hidden from public interface
   (e.g. `ConnectionManager`, `LDAPUtil`).
 
