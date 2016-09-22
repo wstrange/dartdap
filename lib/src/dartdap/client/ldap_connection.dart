@@ -18,6 +18,13 @@ part of dartdap;
 /// constructor or changed using the [setAuthentication] and [setAnonymous]
 /// methods.
 ///
+/// The [badCertHandler] is a callback function to process bad certificates
+/// (if encountered when attempting to establish a TLS/SSL connection).
+/// The callback function should return true to accept the certificate (and
+/// the security consequences of doing so), or false to reject it. If no
+/// certificate callback is provided, the default behaviour is to throw
+/// the [LdapCertificateException] if a bad certificate is encountered.
+///
 /// ## Connection management
 ///
 /// ### State
@@ -178,6 +185,7 @@ class LdapConnection {
   /// would simplify the internal implementation.
   ///
   Future<LdapResult> setAutomaticMode(bool newValue) async {
+    // TODO: consider deprecating this and eventually getting rid of manual mode
     if (newValue == null) {
       throw new ArgumentError.notNull("autoConnect");
     }
@@ -315,6 +323,20 @@ class LdapConnection {
   }
 
   //----------------------------------------------------------------
+  // Certificate handling
+
+  /// Callback handler for bad certificates encountered when establishing a
+  /// SSL/TLS connection. This method should return true if the program wants
+  /// to accept the certificate anyway (accepting the security risks involved);
+  /// or return false to reject the certificate (and not establish a
+  /// connection).
+  ///
+  /// If this is null, the default behaviour is to throw an
+  /// [LdapCertificateException] if a bad certificate is encountered.
+  ///
+  BadCertHandlerType badCertHandler;
+
+  //----------------------------------------------------------------
   // Authentication credentials
 
   // Note: bindDN and passwords are ALWAYS Strings (possibly empty strings).
@@ -432,6 +454,18 @@ class LdapConnection {
   // For coalescing open, bind, and close requests, these track which are
   // currently in progress.
 
+  // TODO: refactor this to use one "queue" to serialize open/bind/close calls.
+  // That will be a cleaner implementation as well as provide more predictable
+  // behaviour when multiple open/bind/close calls are made asynchronously and
+  // are intermingled. However, any program doing that is already asking for
+  // trouble, so this would not really make the package much safer to use.
+  //
+  // Note: that multiple non-intermingled calls to open/bind/close is currently
+  // correctly handled. It is only when you start mixing them asynchronously
+  // that very weird behaviour might occur. But it is already going to be weird
+  // if you expect mixing asynchronous calls to work. Good programs should
+  // wait for the the futures to complete.
+
   List<Completer> _openCompleters = new List<Completer>();
 
   List<Completer<LdapResult>> _bindCompleters =
@@ -478,6 +512,9 @@ class LdapConnection {
   /// [setAuthentication] and [setAuthentication] (see those methods for details
   /// on the values for the parameters to this constructor).
   ///
+  /// The [badCertHandler] is set to [badCertificateHandler]. If null,
+  /// a [LdapCertificateException] is thrown if the certificate is bad.
+  ///
   /// ## Exceptions
   ///
   /// - [ArgumentError] when parameters are incorrect:
@@ -491,10 +528,12 @@ class LdapConnection {
       bool ssl: false,
       int port: null,
       String bindDN: null,
-      String password: null}) {
+      String password: null,
+      BadCertHandlerType badCertificateHandler: null}) {
     setHost(host);
     setProtocol(ssl, port);
     _setAuthenticationValues(bindDN, password);
+    badCertHandler = badCertificateHandler;
     this._autoConnect = true; // defaults to automatic mode
   }
 
@@ -772,7 +811,8 @@ class LdapConnection {
       try {
         loggerConnection.finest("opening connection: started");
 
-        var tmp = new _ConnectionManager(_host, _port, _isSSL);
+        var tmp = new _ConnectionManager(
+            _host, _port, _isSSL, badCertHandler ?? _defaultBadCertHandler);
 
         await tmp.connect(); // might throw exception
 
@@ -1153,6 +1193,18 @@ class LdapConnection {
     loggerConnection.fine("compare");
     await _requireReady();
     return await _cmgr.process(new CompareRequest(dn, attrName, attrValue));
+  }
+
+  //================================================================
+
+  //----------------------------------------------------------------
+  /// Default bad certificate handler.
+  ///
+  /// Used to handle bad certificates, if no custom handler is provided.
+  ///
+  static bool _defaultBadCertHandler(X509Certificate cert) {
+    throw new LdapCertificateException(cert);
+    // normally, method should return false to reject it
   }
 
   //================================================================

@@ -198,7 +198,11 @@ main() async {
 
         test("using LDAPS", () async {
           var ldaps = new LdapConnection(
-              host: s["host"], ssl: s["ssl"], port: s["port"]);
+              host: s["host"],
+              ssl: s["ssl"],
+              port: s["port"],
+              badCertificateHandler: (X509Certificate _) => true);
+          // Note: setting badCertificateHandler to accept test certificate
           await ldaps.setAutomaticMode(false);
 
           expect(ldaps.state, equals(ConnectionState.closed));
@@ -307,7 +311,9 @@ main() async {
               ssl: s["ssl"],
               port: s["port"],
               bindDN: p["bindDN"],
-              password: p["password"]);
+              password: p["password"],
+              badCertificateHandler: (X509Certificate _) => true);
+          // Note: setting badCertificateHandler to accept test certificate
           await ldaps.setAutomaticMode(false);
 
           expect(ldaps.isAuthenticated, isTrue);

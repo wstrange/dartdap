@@ -2,6 +2,8 @@
 //
 //----------------------------------------------------------------
 
+import 'dart:io';
+
 import 'package:test/test.dart';
 import 'package:logging/logging.dart';
 import 'package:dart_config/default_server.dart' as config_file;
@@ -41,7 +43,9 @@ void doTests(String configName) {
           ssl: c["ssl"],
           port: c["port"],
           bindDN: c["bindDN"],
-          password: c["password"]);
+          password: c["password"],
+          badCertificateHandler: (X509Certificate _) => true);
+      // Note: setting badCertificateHandler to accept test certificate
       //await ldap.open();
       //await ldap.bind();
     } else {

@@ -148,6 +148,22 @@ class LdapSocketRefusedException extends LdapSocketException {
       "Cannot connect to $remoteServer:$remotePort from port $localPort";
 }
 
+
+//===============================================================
+
+/// Exception when a bad certificate is encountered.
+///
+/// This exception can be avoided by providing a custom bad certificate
+/// handler callback for [LdapConnection.badCertHandler].
+
+class LdapCertificateException extends LdapException {
+  X509Certificate certificate;
+  LdapCertificateException(this.certificate) : super("Bad X.509 certificate");
+
+  String toString() =>
+      "$message: subject=${certificate.subject}; issuer=${certificate.issuer}";
+}
+
 //===============================================================
 
 /// Exception when a problem is encountered with parsing received LDAP messages.

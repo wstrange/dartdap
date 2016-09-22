@@ -51,15 +51,14 @@ class _StreamPendingOp extends _PendingOp {
     } else if (op is SearchResultDone) {
       // we should be done now
       // if this is not a done message we are in trouble...
-      var x = (op as SearchResultDone);
 
-      if (x.ldapResult.resultCode != ResultCode.OK) {
+      if (op.ldapResult.resultCode != ResultCode.OK) {
         // Error result: convert to an exception class and add to controller
-        _controller.addError(x.ldapResult.exceptionFromResultCode());
+        _controller.addError(op.ldapResult.exceptionFromResultCode());
       }
 
-      _searchResult.controls = x.controls;
-      _searchResult.ldapResult = x.ldapResult;
+      _searchResult.controls = op.controls;
+      _searchResult.ldapResult = op.ldapResult;
       _controller.close();
       done();
     } else {
@@ -102,6 +101,16 @@ class _FuturePendingOp extends _PendingOp {
 
 //================================================================
 
+/// Callback function type for handling bad certificates.
+///
+/// The function should return true to accept the certificate
+/// (and the security consequences of doing so) or false to
+/// reject it (and not establish the SSL/TLS connection).
+
+typedef bool BadCertHandlerType(X509Certificate cert);
+
+//================================================================
+
 /**
  * Manages the state of the LDAP connection.
  *
@@ -135,6 +144,8 @@ class _ConnectionManager {
   String _host;
   bool _ssl;
 
+  BadCertHandlerType _badCertHandler = null;
+
   /// Completes when the stream transformer is done.
   /// Indicates the connection is completely closed.
   ///
@@ -148,7 +159,7 @@ class _ConnectionManager {
   /// The actual TCP/IP connection is not established.
   ///
 
-  _ConnectionManager(this._host, this._port, this._ssl);
+  _ConnectionManager(this._host, this._port, this._ssl, this._badCertHandler);
 
   //================================================================
   // Connecting
@@ -170,7 +181,8 @@ class _ConnectionManager {
     try {
       if (isClosed()) {
         var s = (_ssl)
-            ? SecureSocket.connect(_host, _port, onBadCertificate: _badCert)
+            ? SecureSocket.connect(_host, _port,
+                onBadCertificate: _badCertHandler)
             : Socket.connect(_host, _port);
 
         _socket = await s;
@@ -199,18 +211,6 @@ class _ConnectionManager {
       }
       rethrow;
     }
-  }
-
-  //----------------------------------------------------------------
-
-  // Called when the SSL cert is not valid
-  // Return true to carry on anyways. TODO: Make it configurable
-  bool _badCert(X509Certificate cert) {
-    loggerConnection.warning(
-        "Invalid Certificate: issuer=${cert.issuer} subject=${cert.subject}");
-    loggerConnection
-        .warning("SSL Connection will proceed. Please fix the certificate");
-    return true; // carry on
   }
 
   //----------------------------------------------------------------
@@ -259,7 +259,18 @@ class _ConnectionManager {
     loggerConnection.finer("listen: onError", error, stacktrace);
 
     if (error is SocketException) {
-      // TODO: convert to other types of specialised ldapsocketexceptions
+      // Thrown a specific subclass of LdapSocketException if possible,
+      // otherwise throw it as a generic LdapSocketException.
+
+      if (error.osError != null) {
+        if (error.osError.errorCode == 61) {
+          // errorCode 61 = "Connection refused"
+          throw new LdapSocketRefusedException(error, _host, _port);
+        } else if (error.osError.errorCode == 8) {
+          // errorCode 8 = "nodename nor servname provided, or not known"
+          throw new LdapSocketServerNotFoundException(error, _host);
+        }
+      }
       throw new LdapSocketException(error);
     } else {
       throw error;
