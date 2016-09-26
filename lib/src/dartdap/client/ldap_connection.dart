@@ -299,17 +299,22 @@ class LdapConnection {
   ///   before attempting to make such changes.
 
   void setProtocol(bool ssl, [int port = null]) {
-    if (port != null && port is! int) {
-      throw new ArgumentError.value(port, "port", "not an int");
+    if (port != null) {
+      if (port is! int) {
+        throw new ArgumentError.value(port, "port", "not an int");
+      }
+      if (port < 0 || 65535 < port) {
+        throw new ArgumentError.value(port, "port", "outside range of 0-65535");
+      }
     }
 
-    var newSSL = (ssl == null || !ssl) ? false : true; // treat null as false
-    var newPort = port;
-    if (newPort == null) {
-      _port = (_isSSL) ? portLdaps : portLdap; // use standard port
+    // Normalize boolean flag and set port number to default, if necessary
+    ssl = (ssl == null || !ssl) ? false : true; // treat null as false
+    if (port == null) {
+      port = (ssl) ? portLdaps : portLdap; // use standard port
     }
 
-    if (newSSL != _isSSL || newPort != _port) {
+    if (ssl != _isSSL || port != _port) {
       // Values are being changed
 
       if (state == ConnectionState.ready ||
@@ -317,8 +322,8 @@ class LdapConnection {
         throw new StateError("cannot change protocol while connection is open");
       }
 
-      _isSSL = newSSL;
-      _port = newPort;
+      _isSSL = ssl;
+      _port = port;
     }
   }
 
