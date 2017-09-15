@@ -1,5 +1,10 @@
 # Dartdap Change Log
 
+* 0.2.2 2017-09-15
+
+- Allow SecurityContext to be passed to LdapConnection and setProtocol to enable
+client certificates or custom CA roots to be added.
+
 * 0.2.1 2016-09-26
 
 - Fixed bug when port number is null.
