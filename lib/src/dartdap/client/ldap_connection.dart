@@ -257,11 +257,13 @@ class LdapConnection {
   }
 
   //----------------------------------------------------------------
-  // SSL and port
+  // SSL, port and Context (for certificates)
 
   bool _isSSL = false;
 
   int _port = portLdap;
+
+  SecurityContext _context = null;
 
   //----------------
   /// Indicates the protocol being used (LDAP over SSL or plain LDAP)
@@ -298,7 +300,7 @@ class LdapConnection {
   ///   the port number and/or use of SSL is changed. Close the connection
   ///   before attempting to make such changes.
 
-  void setProtocol(bool ssl, [int port = null]) {
+  void setProtocol(bool ssl, [int port = null, SecurityContext context = null]) {
     if (port != null) {
       if (port is! int) {
         throw new ArgumentError.value(port, "port", "not an int");
@@ -314,7 +316,7 @@ class LdapConnection {
       port = (ssl) ? portLdaps : portLdap; // use standard port
     }
 
-    if (ssl != _isSSL || port != _port) {
+    if (ssl != _isSSL || port != _port || context != _context) {
       // Values are being changed
 
       if (state == ConnectionState.ready ||
@@ -324,6 +326,7 @@ class LdapConnection {
 
       _isSSL = ssl;
       _port = port;
+      _context = context;
     }
   }
 
@@ -534,9 +537,10 @@ class LdapConnection {
       int port: null,
       String bindDN: null,
       String password: null,
-      BadCertHandlerType badCertificateHandler: null}) {
+      BadCertHandlerType badCertificateHandler: null,
+      SecurityContext context: null}) {
     setHost(host);
-    setProtocol(ssl, port);
+    setProtocol(ssl, port, context);
     _setAuthenticationValues(bindDN, password);
     badCertHandler = badCertificateHandler;
     this._autoConnect = true; // defaults to automatic mode
@@ -817,7 +821,7 @@ class LdapConnection {
         loggerConnection.finest("opening connection: started");
 
         var tmp = new _ConnectionManager(
-            _host, _port, _isSSL, badCertHandler ?? _defaultBadCertHandler);
+            _host, _port, _isSSL, badCertHandler ?? _defaultBadCertHandler, _context);
 
         await tmp.connect(); // might throw exception
 
