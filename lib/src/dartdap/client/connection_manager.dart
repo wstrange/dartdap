@@ -143,6 +143,7 @@ class _ConnectionManager {
   int _port;
   String _host;
   bool _ssl;
+  SecurityContext _context;
 
   BadCertHandlerType _badCertHandler = null;
 
@@ -159,7 +160,8 @@ class _ConnectionManager {
   /// The actual TCP/IP connection is not established.
   ///
 
-  _ConnectionManager(this._host, this._port, this._ssl, this._badCertHandler);
+  _ConnectionManager(this._host, this._port, this._ssl, this._badCertHandler,
+      [this._context]);
 
   //================================================================
   // Connecting
@@ -182,7 +184,7 @@ class _ConnectionManager {
       if (isClosed()) {
         var s = (_ssl)
             ? SecureSocket.connect(_host, _port,
-                onBadCertificate: _badCertHandler)
+                onBadCertificate: _badCertHandler, context: _context)
             : Socket.connect(_host, _port);
 
         _socket = await s;
