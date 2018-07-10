@@ -7,3 +7,5 @@ tags
 .idea
 .project
 *~
+.dart_tool/
+

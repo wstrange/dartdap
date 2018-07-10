@@ -66,7 +66,7 @@ class ResponseOp {
     var dm = s.elements[2] as ASN1OctetString;
     var diagnosticMessage = dm.stringValue;
 
-    var refURLs = [];
+    List<String> refURLs = [];
     if (s.elements.length > 3) {
       var o = s.elements[3];
       loggeRecvLdap.finer("Parse LDAP result: type=$o");

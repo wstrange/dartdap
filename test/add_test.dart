@@ -6,9 +6,9 @@
 
 import 'dart:async';
 import 'package:test/test.dart';
-import 'package:dart_config/default_server.dart' as config_file;
-
 import 'package:dartdap/dartdap.dart';
+
+import "util.dart" as util;
 
 //----------------------------------------------------------------
 
@@ -69,7 +69,9 @@ void doTests(String configName) {
   //----------------
 
   setUp(() async {
-    var c = (await config_file.loadConfig(testConfigFile))[configName];
+    var map = util.loadConfiguration(testConfigFile);
+    print("$map");
+    var c = map[configName];
     ldap = new LdapConnection(host: c["host"],
         ssl: c["ssl"],
         port: c["port"],
@@ -145,6 +147,10 @@ void doTests(String configName) {
     expect(newDescription, isNot(equals(branchDescription)));
 
     // Attempt to add an entry with the same DN
+
+
+    // WS: try new matcher
+    //expect(ldap.add(branchDN.dn, newAttrs), throwsA(LdapResultEntryAlreadyExistsException) );
 
     try {
       await ldap.add(branchDN.dn, newAttrs);
@@ -240,7 +246,9 @@ void doTests(String configName) {
 //================================================================
 
 main() {
-  group("LDAP", () => doTests("test-LDAP"));
+  //group("LDAP", () => doTests("test-LDAP"));
+  group("LDAP", () => doTests("test-dj"));
+
 
   // group("LDAPS", () => doTest("test-LDAPS")); // uncomment to test with LDAPS
 }

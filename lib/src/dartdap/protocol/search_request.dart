@@ -55,8 +55,8 @@ class SearchRequest extends RequestOp {
       ..add(new ASN1OctetString(_baseDN))
       ..add(new ASN1Enumerated(_scope))
       ..add(new ASN1Enumerated(_derefPolicy))
-      ..add(new ASN1Integer(_sizeLimit))
-      ..add(new ASN1Integer(_timeLimit))
+      ..add(ASN1Integer.fromInt(_sizeLimit))
+      ..add(ASN1Integer.fromInt(_timeLimit))
       ..add(new ASN1Boolean(_typesOnly))
       ..add(_filter.toASN1())
       ..add(attrSet);

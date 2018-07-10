@@ -405,7 +405,7 @@ class ResultCode {
   ///
   /// Returns true if and only if the [value] of the two are the same.
 
-  bool operator ==(ResultCode that) =>
+  bool operator ==(Object that) =>
       (that is ResultCode && this._value == that._value);
 
   String toString() => message(_value);

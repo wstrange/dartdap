@@ -77,7 +77,7 @@ class _StreamPendingOp extends _PendingOp {
 // A pending opertion that expects a single return response message
 // returned via a future. For all LDAP ops except search results
 class _FuturePendingOp extends _PendingOp {
-  var completer = new Completer();
+  var completer = Completer<LdapResult>();
 
   _FuturePendingOp(LDAPMessage m) : super(m);
 
@@ -191,7 +191,8 @@ class _ConnectionManager {
 
         _whenDone = new Completer();
 
-        _socket.transform(_createLdapTransformer()).listen(
+        // see https://github.com/dart-lang/site-www/issues/736 for a discussion of .cast
+        (_socket.cast<Uint8List>()).transform(_createLdapTransformer()).listen(
             (m) => _handleLDAPMessage(m),
             onError: _ldapListenerOnError,
             onDone: _ldapListenerOnDone);
@@ -231,9 +232,8 @@ class _ConnectionManager {
     // hanndle this case
 
     if (rop is ExtendedResponse) {
-      var o = rop as ExtendedResponse;
-      loggeRecvLdap.fine(
-          "Got extended response ${o.responseName} code=${rop.ldapResult.resultCode}");
+      loggeRecvLdap.fine("Got extended response ${rop.responseName} code=${rop
+          .ldapResult.resultCode}");
     }
 
     var pending_op = _pendingResponseMessages[m.messageId];
@@ -243,8 +243,8 @@ class _ConnectionManager {
     // we should throw an exception or try to ignore the error bytes
     // and carry on....
     if (pending_op == null)
-      throw new LdapParseException(
-          "Server sent us an unknown message id = ${m.messageId} opCode=${m.protocolTag}");
+      throw new LdapParseException("Server sent us an unknown message id = ${m
+          .messageId} opCode=${m.protocolTag}");
 
     if (pending_op.processResult(rop)) {
       // op is now complete. Remove it from pending q

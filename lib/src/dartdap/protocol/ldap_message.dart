@@ -113,7 +113,7 @@ class LDAPMessage {
     //logger.finest("Converting this object to bytes ${toString()}");
     ASN1Sequence seq = new ASN1Sequence();
 
-    seq.add(new ASN1Integer(_messageId));
+    seq.add(ASN1Integer.fromInt(_messageId));
 
     seq.add(_obj);
     if (_controls != null) seq.add(_controls);

@@ -44,8 +44,9 @@ class Attribute {
 
   // two attributes are equal if they have the same name
   // and contain the same set of values.
-  bool operator ==(Attribute other) =>
-      (_name == other._name) &&
+  bool operator ==(Object other) =>
+      (other is Attribute &&
+          _name == other._name) &&
       _values.containsAll(other._values) &&
       other._values.containsAll(_values);
 

@@ -31,7 +31,7 @@ class ModifyRequest extends RequestOp {
 
     _mods.forEach((Modification m) {
       var s = new ASN1Sequence();
-      s.add(new ASN1Integer(m.operation));
+      s.add(ASN1Integer.fromInt(m.operation));
       s.add(_encodeAttrTypeAndValues(m.attributeName, m.values));
       modSeq.add(s);
     });

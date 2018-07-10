@@ -235,8 +235,6 @@ void doTest(String configName) {
           "ou=NoSuchEntry,dc=example,dc=com", filter, searchAttrs);
       await for (SearchEntry entry in searchResults.stream) {
         fail("Unexpected result from search under non-existant entry");
-        expect(entry, isNotNull);
-        count++;
       }
     } on LdapResultNoSuchObjectException catch(e) {
       expect(e.result.matchedDN, equals("dc=example,dc=com")); // part that did match

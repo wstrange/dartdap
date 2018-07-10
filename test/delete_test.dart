@@ -123,7 +123,8 @@ void doTest(String configName) {
     var searchResults = await ldap.search(baseDN.dn, filter, searchAttrs);
     await for (SearchEntry _ in searchResults.stream) {
       fail("Entry still exists after delete");
-      count++;
+      // dead code
+      //count++;
     }
 
     expect(count, equals(0));

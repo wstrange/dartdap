@@ -1,5 +1,5 @@
 name: dartdap
-version: 0.2.2
+version: 0.2.3
 authors:
 - Warren Strange <warren.strange@gmail.com>
 - Chris Ridd <chrisridd@mac.com>
@@ -8,11 +8,12 @@ authors:
 description: LDAP v3 client library for Dart
 homepage: https://github.com/wstrange/dartdap
 environment:
-  sdk: '>=1.9.1 <2.0.0'
+  sdk: '>=2.0.0-dev.68 <2.0.0'
 dependencies:
-  asn1lib: "^0.4.0"
-  dart_config: "^0.5.0"
+  asn1lib: "^0.5.1"
   logging: "^0.11.2"
 dev_dependencies:
   logging_handlers: "^0.8.0"
-  test: "^0.12.10"
+  dart_config: "^0.5.0"
+  test: "1.2.0"
+  yaml: "^2.1.14"

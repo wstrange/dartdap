@@ -13,3 +13,8 @@ test-LDAPS:
   bindDN: cn=Manager,dc=example,dc=com
   password: p@ssw0rd
 
+test-dj:
+  port: 1389
+  host: localhost
+  bindDN: "cn=Directory Manager"
+  password: password

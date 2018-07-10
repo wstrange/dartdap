@@ -27,10 +27,12 @@ class SearchResultEntry extends ResponseOp {
 
     _searchEntry = new SearchEntry(dn);
 
-    seq.elements.forEach((ASN1Sequence attr) {
-      var attrName = attr.elements[0] as ASN1OctetString;
+    //  seq.elements.forEach((ASN1Sequence attr) {
+    seq.elements.forEach((attr) {
+      var a = attr as ASN1Sequence;
+      var attrName = a.elements[0] as ASN1OctetString;
 
-      var vals = attr.elements[1] as ASN1Set;
+      var vals = a.elements[1] as ASN1Set;
       var valSet =
           vals.elements.map((v) => (v as ASN1OctetString).stringValue).toSet();
 

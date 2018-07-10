@@ -3,6 +3,7 @@ part of dartdap;
 /// Returns a [StreamTransformer<Uint8List,LDAPMessage>] that transform a stream
 /// of bytes to a stream of LDAP messages.
 
+///
 StreamTransformer<Uint8List, LDAPMessage> _createLdapTransformer() {
   Uint8List leftover = null; // unused bytes from an earlier data event, or null
 
