@@ -251,7 +251,7 @@ void doTests(String configName) {
       }
       fail("sizeLimit should have been triggered");
     } catch (e) {
-      expect(e, new isInstanceOf<LdapResultSizeLimitExceededException>());
+      expect(e, const TypeMatcher<LdapResultSizeLimitExceededException>());
       // Note: server might have a lower size limit set
       expect(entriesRetrieved, lessThanOrEqualTo(sizeLimit),
           reason: "search returned more than sizeLimit entries");

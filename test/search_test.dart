@@ -175,7 +175,7 @@ void doTest(String configName) {
     var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
     await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
-      expect(entry, new isInstanceOf<SearchEntry>());
+      expect(entry, const TypeMatcher<SearchEntry>());
 
       var cnSet = entry.attributes["cn"];
       expect(cnSet, isNotNull);
@@ -206,7 +206,7 @@ void doTest(String configName) {
     var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
     await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
-      expect(entry, new isInstanceOf<SearchEntry>());
+      expect(entry, const TypeMatcher<SearchEntry>());
 
       var cnSet = entry.attributes["cn"];
       expect(cnSet, isNotNull);
@@ -233,6 +233,7 @@ void doTest(String configName) {
     try {
       var searchResults = await ldap.search(
           "ou=NoSuchEntry,dc=example,dc=com", filter, searchAttrs);
+      // ignore: unused_local_variable
       await for (SearchEntry entry in searchResults.stream) {
         fail("Unexpected result from search under non-existant entry");
       }
@@ -241,7 +242,7 @@ void doTest(String configName) {
       gotException = true;
 
     } catch (e) {
-      expect(e, new isInstanceOf<LdapException>());
+      expect(e, const TypeMatcher<LdapException>());
       fail("Unexpected exception: $e");
     }
 

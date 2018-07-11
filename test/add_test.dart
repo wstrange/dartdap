@@ -7,7 +7,6 @@
 import 'dart:async';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
-
 import "util.dart" as util;
 
 //----------------------------------------------------------------
@@ -69,8 +68,7 @@ void doTests(String configName) {
   //----------------
 
   setUp(() async {
-    var map = util.loadConfiguration(testConfigFile);
-    print("$map");
+    var map = util.loadConfig(testConfigFile);
     var c = map[configName];
     ldap = new LdapConnection(host: c["host"],
         ssl: c["ssl"],
@@ -148,15 +146,11 @@ void doTests(String configName) {
 
     // Attempt to add an entry with the same DN
 
-
-    // WS: try new matcher
-    //expect(ldap.add(branchDN.dn, newAttrs), throwsA(LdapResultEntryAlreadyExistsException) );
-
     try {
       await ldap.add(branchDN.dn, newAttrs);
       fail("exception not thrown");
     } catch (e) {
-      expect(e, new isInstanceOf<LdapResultEntryAlreadyExistsException>());
+      expect(e, const TypeMatcher<LdapResultEntryAlreadyExistsException>());
     }
 
     // The original entry is present and unchanged
@@ -214,7 +208,7 @@ void doTests(String configName) {
       await ldap.add(testPersonDN.dn, testPersonAttrs);
       fail("exception not thrown");
     } catch (e) {
-      expect(e, new isInstanceOf<LdapResultNoSuchObjectException>());
+      expect(e, const TypeMatcher<LdapResultNoSuchObjectException>());
     }
   });
 
@@ -238,7 +232,7 @@ void doTests(String configName) {
       await ldap.add(testPersonDN.dn, attrsMissingMandatory);
       fail("exception not thrown");
     } catch (e) {
-      expect(e, new isInstanceOf<LdapResultObjectClassViolationException>());
+      expect(e, const TypeMatcher<LdapResultObjectClassViolationException>());
     }
   });
 }

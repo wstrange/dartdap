@@ -40,7 +40,7 @@ Future doLdapOperation(LdapConnection ldap) async {
     await for (SearchEntry entry in searchResults.stream) {
       numResults++;
       expect(entry, isNotNull);
-      expect(entry, new isInstanceOf<SearchEntry>());
+      expect(entry, const TypeMatcher<SearchEntry>());
     }
   } on LdapResultNoSuchObjectException {
     fail("Unexpected: LdapResultNoSuchObjectException: ${testDN.dn}");

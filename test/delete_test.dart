@@ -110,7 +110,7 @@ void doTest(String configName) {
     // Delete the entry
 
     var delResult = await ldap.delete(testPersonDN.dn);
-    expect(delResult, new isInstanceOf<LdapResult>());
+    expect(delResult, const TypeMatcher<LdapResult>());
     expect(delResult.resultCode, equals(0));
 
     // Search to check the entry is gone
@@ -139,7 +139,7 @@ void doTest(String configName) {
       await ldap.delete(nosuchDN.dn);
       fail("exception not thrown");
     } catch (e) {
-      expect(e, new isInstanceOf<LdapResultNoSuchObjectException>());
+      expect(e, const TypeMatcher<LdapResultNoSuchObjectException>());
     }
   });
 
@@ -153,7 +153,7 @@ void doTest(String configName) {
       await ldap.delete(branchDN.dn);
       fail("exception not thrown");
     } catch (e) {
-      expect(e, new isInstanceOf<LdapResultNotAllowedOnNonleafException>());
+      expect(e, const TypeMatcher<LdapResultNotAllowedOnNonleafException>());
     }
   });
 }

@@ -51,7 +51,7 @@ main() {
 
     var m2 = Attribute.newAttributeMap(m);
 
-    m2.forEach((k, v) => expect(v, new isInstanceOf<Attribute>()));
+    m2.forEach((k, v) => expect(v, const TypeMatcher<Attribute>()));
 
     expect(m2, containsPair("cn", new Attribute("cn", "Foo")));
     expect(m2, containsPair("sn", new Attribute("sn", ["two", "one"])));

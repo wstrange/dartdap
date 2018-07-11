@@ -3,7 +3,6 @@ part of dartdap;
 /// Returns a [StreamTransformer<Uint8List,LDAPMessage>] that transform a stream
 /// of bytes to a stream of LDAP messages.
 
-///
 StreamTransformer<Uint8List, LDAPMessage> _createLdapTransformer() {
   Uint8List leftover = null; // unused bytes from an earlier data event, or null
 
@@ -16,7 +15,7 @@ StreamTransformer<Uint8List, LDAPMessage> _createLdapTransformer() {
     // Set buf to the bytes to attempt to process: leftover bytes from an
     // earlier data event (if any) plus the new bytes in data.
 
-    var buf;
+    Uint8List buf;
     if (leftover == null) {
       // No left over bytes from before: new data only
       loggerRecvBytes.fine("received: ${data.length}");

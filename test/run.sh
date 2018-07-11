@@ -11,5 +11,5 @@ cd $ROOT_DIR
 
 for ut in $UNIT_TESTS;
 do
-   dart --enable-checked-mode $ROOT_DIR/test/"$ut"_test.dart
+   dart $ROOT_DIR/test/"$ut"_test.dart
 done 

@@ -153,7 +153,7 @@ void doTests(String configName) {
     int numFound = 0;
     var searchResult = await ldap.search(baseDN, filter, queryAttrs);
     await for (var entry in searchResult.stream) {
-      expect(entry, new isInstanceOf<SearchEntry>());
+      expect(entry, const TypeMatcher<SearchEntry>());
       numFound++;
     }
     expect(numFound, equals(1),
@@ -167,7 +167,7 @@ void doTests(String configName) {
     numFound = 0;
     await for (var entry
         in ldap.search("dc=example,dc=com", notFilter, queryAttrs).stream) {
-      expect(entry, new isInstanceOf<SearchEntry>());
+      expect(entry, const TypeMatcher<SearchEntry>());
       numFound++;
     }
     expect(numFound, equals(1),

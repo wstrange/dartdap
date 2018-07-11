@@ -191,8 +191,9 @@ class _ConnectionManager {
 
         _whenDone = new Completer();
 
-        // see https://github.com/dart-lang/site-www/issues/736 for a discussion of .cast
-        (_socket.cast<Uint8List>()).transform(_createLdapTransformer()).listen(
+        // FIXME: I think the .cast causes bad performance...
+        // https://www.dartlang.org/guides/language/effective-dart/usage#avoid-using-cast
+        _socket.cast<Uint8List>().transform(_createLdapTransformer()).listen(
             (m) => _handleLDAPMessage(m),
             onError: _ldapListenerOnError,
             onDone: _ldapListenerOnDone);

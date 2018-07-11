@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 import 'package:matcher/mirror_matchers.dart';
-import 'package:dart_config/default_server.dart' as config_file;
+import "util.dart" as util;
 
 import 'package:dartdap/dartdap.dart';
 
@@ -33,10 +33,10 @@ Future doLdapOperation(LdapConnection ldap) async {
 
   // This search actually should not find any results, but that doesn't matter
 
-  var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
+  var searchResults = await ldap.search(testDN.dn, filter, searchAttrs, sizeLimit: 100);
   await for (SearchEntry entry in searchResults.stream) {
     expect(entry, isNotNull);
-    expect(entry, new isInstanceOf<SearchEntry>());
+    expect(entry, const TypeMatcher<SearchEntry>());
   }
 }
 
@@ -45,10 +45,10 @@ Future doLdapOperation(LdapConnection ldap) async {
 main() async {
   // Create two connections from parameters in the config file
 
-  var p = (await config_file.loadConfig(testConfigFile))["test-LDAP"];
+  var p = (util.loadConfig(testConfigFile))["test-LDAP"];
   assert(p["ssl"] == null || p["ssl"] == false);
 
-  var s = (await config_file.loadConfig(testConfigFile))["test-LDAPS"];
+  var s = (util.loadConfig(testConfigFile))["test-LDAPS"];
   assert(s["ssl"] == true);
 
   const bool doLogging = false;
@@ -120,7 +120,7 @@ main() async {
             await ldap.open();
             expect(false, isTrue);
           } catch (e) {
-            expect(e, new isInstanceOf<StateError>());
+            expect(e, const TypeMatcher<StateError>());
           }
 
           expect(ldap.state, equals(ConnectionState.ready));
@@ -147,7 +147,7 @@ main() async {
             await ldap.bind();
             expect(false, isTrue);
           } catch (e) {
-            expect(e, new isInstanceOf<StateError>());
+            expect(e, const TypeMatcher<StateError>());
           }
 
           expect(ldap.state, equals(ConnectionState.closed));
@@ -159,7 +159,7 @@ main() async {
             await doLdapOperation(ldap);
             expect(false, isTrue);
           } catch (e) {
-            expect(e, new isInstanceOf<StateError>());
+            expect(e, const TypeMatcher<StateError>());
           }
 
           expect(ldap.state, equals(ConnectionState.closed));
@@ -266,7 +266,7 @@ main() async {
             await doLdapOperation(ldap);
             expect(false, isTrue);
           } catch (e) {
-            expect(e, new isInstanceOf<StateError>());
+            expect(e, const TypeMatcher<StateError>());
           }
 
           expect(ldap.state, equals(ConnectionState.closed));
@@ -283,7 +283,7 @@ main() async {
             await doLdapOperation(ldap);
             expect(false, isTrue);
           } catch (e) {
-            expect(e, new isInstanceOf<StateError>());
+            expect(e, const TypeMatcher<StateError>());
           }
 
           expect(ldap.state, equals(ConnectionState.bindRequired));
@@ -367,7 +367,7 @@ main() async {
           await bad.open();
           expect(false, isTrue);
         } catch (e) {
-          expect(e, new isInstanceOf<HandshakeException>());
+          expect(e, const TypeMatcher<HandshakeException>());
         }
 
         // Connection cannot be established because handshake fails
@@ -391,7 +391,7 @@ main() async {
       //   await bad.connect();
       //   expect(false, isTrue);
       // } catch (e) {
-      //   expect(e, new isInstanceOf<TimeoutException>());
+      //   expect(e, const TypeMatcher<TimeoutException>());
       // }
 
       await bad.bind(); // TODO: should fail, but can't catch test's TimeoutException
@@ -418,7 +418,7 @@ main() async {
           await bad.open();
           expect(false, isTrue);
         } catch (e) {
-          expect(e, new isInstanceOf<LdapSocketServerNotFoundException>());
+          expect(e, const TypeMatcher<LdapSocketServerNotFoundException>());
           expect(e, hasProperty("remoteServer", badHost));
         }
       });
@@ -431,7 +431,7 @@ main() async {
           await bad.open();
           expect(false, isTrue);
         } catch (e) {
-          expect(e, new isInstanceOf<LdapSocketServerNotFoundException>());
+          expect(e, const TypeMatcher<LdapSocketServerNotFoundException>());
           expect(e, hasProperty("remoteServer", badHost));
         }
       });
@@ -444,7 +444,7 @@ main() async {
           await bad.open();
           expect(false, isTrue);
         } catch (e) {
-          expect(e, new isInstanceOf<LdapSocketRefusedException>());
+          expect(e, const TypeMatcher<LdapSocketRefusedException>());
           expect(e, hasProperty("remoteServer", p["host"]));
           expect(e, hasProperty("remotePort", badPort));
           expect(e, hasProperty("localPort"));
@@ -459,7 +459,7 @@ main() async {
           await bad.open();
           expect(false, isTrue);
         } catch (e) {
-          expect(e, new isInstanceOf<LdapSocketRefusedException>());
+          expect(e, const TypeMatcher<LdapSocketRefusedException>());
           expect(e, hasProperty("remoteServer", s["host"]));
           expect(e, hasProperty("remotePort", badPort));
           expect(e, hasProperty("localPort"));
@@ -494,7 +494,7 @@ main() async {
         // Bind
 
         var result = await ldap.bind();
-        expect(result, new isInstanceOf<LdapResult>());
+        expect(result, const TypeMatcher<LdapResult>());
         expect(result.resultCode, equals(ResultCode.OK));
 
         expect(ldap.isAuthenticated, isTrue);
@@ -510,7 +510,7 @@ main() async {
         // Bind to apply change
 
         result = await ldap.bind();
-        expect(result, new isInstanceOf<LdapResult>());
+        expect(result, const TypeMatcher<LdapResult>());
         expect(result.resultCode, equals(ResultCode.OK));
 
         expect(ldap.isAuthenticated, isFalse);
@@ -526,7 +526,7 @@ main() async {
         // Bind to apply change
 
         result = await ldap.bind();
-        expect(result, new isInstanceOf<LdapResult>());
+        expect(result, const TypeMatcher<LdapResult>());
         expect(result.resultCode, equals(ResultCode.OK));
 
         expect(ldap.isAuthenticated, isTrue);
@@ -567,7 +567,7 @@ main() async {
         // Bind
 
         var result = await ldap.bind();
-        expect(result, new isInstanceOf<LdapResult>());
+        expect(result, const TypeMatcher<LdapResult>());
         expect(result.resultCode, equals(ResultCode.OK));
 
         expect(ldap.isAuthenticated, isTrue);
@@ -603,7 +603,7 @@ main() async {
           await ldap.bind();
           expect(false, isTrue);
         } catch (e) {
-          expect(e, new isInstanceOf<LdapResultInvalidCredentialsException>());
+          expect(e, const TypeMatcher<LdapResultInvalidCredentialsException>());
         }
       });
 
@@ -635,7 +635,7 @@ main() async {
           await ldap.bind();
           expect(false, isTrue);
         } catch (e) {
-          expect(e, new isInstanceOf<LdapResultInvalidCredentialsException>());
+          expect(e, const TypeMatcher<LdapResultInvalidCredentialsException>());
         }
       });
     }); // end group
@@ -821,7 +821,7 @@ main() async {
           await doLdapOperation(ldap);
           fail("LDAP operation succeeded when it should have failed");
         } catch (e) {
-          expect(e, new isInstanceOf<LdapResultInvalidCredentialsException>());
+          expect(e, const TypeMatcher<LdapResultInvalidCredentialsException>());
         }
 
         await ldap.close();
@@ -845,7 +845,7 @@ main() async {
           await ldap.open();
           fail("open succeeded when it should not have");
         } catch (e) {
-          expect(e, new isInstanceOf<LdapResultInvalidCredentialsException>());
+          expect(e, const TypeMatcher<LdapResultInvalidCredentialsException>());
         }
 
         await ldap.close();
@@ -872,7 +872,7 @@ main() async {
           await ldap.setAuthentication(p["bindDN"], "INCORRECT_PASSWORD");
           fail("setAuthentication succeeded when it should not have");
         } catch (e) {
-          expect(e, new isInstanceOf<LdapResultInvalidCredentialsException>());
+          expect(e, const TypeMatcher<LdapResultInvalidCredentialsException>());
         }
         await ldap.close();
       });
@@ -934,7 +934,7 @@ main() async {
         // Bind
 
         var result = await ldap.bind();
-        expect(result, new isInstanceOf<LdapResult>());
+        expect(result, const TypeMatcher<LdapResult>());
         expect(result.resultCode, equals(ResultCode.OK));
 
         expect(ldap.isAuthenticated, isTrue);
@@ -950,7 +950,7 @@ main() async {
         // Redundant bind
 
         result = await ldap.bind();
-        expect(result, new isInstanceOf<LdapResult>());
+        expect(result, const TypeMatcher<LdapResult>());
         expect(result.resultCode, equals(ResultCode.OK));
 
         expect(ldap.isAuthenticated, isFalse);
@@ -966,7 +966,7 @@ main() async {
         // Redundant bind
 
         result = await ldap.bind();
-        expect(result, new isInstanceOf<LdapResult>());
+        expect(result, const TypeMatcher<LdapResult>());
         expect(result.resultCode, equals(ResultCode.OK));
 
         expect(ldap.isAuthenticated, isTrue);

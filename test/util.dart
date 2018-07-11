@@ -4,7 +4,7 @@ import "dart:io";
 import "package:yaml/yaml.dart";
 
 
-Map<dynamic,dynamic> loadConfiguration(String file) {
+Map<dynamic,dynamic> loadConfig(String file) {
 
   var f = new File(file);
 
