@@ -5,10 +5,9 @@
 //----------------------------------------------------------------
 
 import 'dart:async';
-
-import 'package:dart_config/default_server.dart' as config_file;
 import 'package:test/test.dart';
 import 'package:logging/logging.dart';
+import 'util.dart' as util;
 
 import 'package:dartdap/dartdap.dart';
 
@@ -82,7 +81,7 @@ void doTest(String configName) {
   //----------------
 
   setUp(() async {
-    var c = (await config_file.loadConfig(testConfigFile))[configName];
+    var c = (util.loadConfig(testConfigFile))[configName];
     ldap = new LdapConnection(
         host: c["host"],
         ssl: c["ssl"],
