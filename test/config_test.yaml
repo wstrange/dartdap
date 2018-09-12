@@ -1,0 +1,8 @@
+# LDAP configuration file
+#
+
+hostname: localhost
+port: 1389
+
+
+baseDN: "dc=example,dc=com"

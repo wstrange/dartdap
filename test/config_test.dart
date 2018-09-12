@@ -14,7 +14,7 @@ import 'test_configuration.dart';
 
 
 
-const String CONFIG_FILE = "test/configuration_test.yaml";
+const String CONFIG_FILE = "test/config_test.yaml";
 
 void main() {
 
