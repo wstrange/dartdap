@@ -1,26 +1,30 @@
 # LDAP configuration file
 
-test-LDAP:
-  host: localhost
-#  port: 10389
-#  bindDN: cn=Manager,dc=example,dc=com
-#  password: p@ssw0rd
-  port: 1389
-  bindDN: "cn=Directory Manager"
-  password: password
+connections:
+  test-LDAP:
+    host: localhost
+    baseDN: o=userstore
+    #  port: 10389
+    #  bindDN: cn=Manager,dc=example,dc=com
+    #  password: p@ssw0rd
+    port: 1389
+    bindDN: "cn=Directory Manager"
+    password: password
 
-test-LDAPS:
-  host: localhost
-  ssl: true
-#  port: 10636
-#  bindDN: cn=Manager,dc=example,dc=com
-#  password: p@ssw0rd
-  port: 1389
-  bindDN: "cn=Directory Manager"
-  password: password
+  test-LDAPS:
+    host: localhost
+    ssl: true
+    baseDN: o=userstore
+    #  port: 10636
+    #  bindDN: cn=Manager,dc=example,dc=com
+    #  password: p@ssw0rd
+    port: 1389
+    bindDN: "cn=Directory Manager"
+    password: password
 
-test-dj:
-  port: 1389
-  host: localhost
-  bindDN: "cn=Directory Manager"
-  password: password
+  opendj:
+    port: 1389
+    host: localhost
+    baseDN: "o=userstore"
+    bindDN: "cn=Directory Manager"
+    password: password

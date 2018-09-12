@@ -5,8 +5,7 @@
 import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
-import 'package:dart_config/default_server.dart' as config_file;
-
+import 'test_configuration.dart';
 import 'package:dartdap/dartdap.dart';
 
 //----------------------------------------------------------------
@@ -59,11 +58,11 @@ var NUM_CYCLES = 4;
 main() async {
   // Create two connections from parameters in the config file
 
-  var p = (await config_file.loadConfig(testConfigFile))["test-LDAP"];
-  assert(p["ssl"] == null || p["ssl"] == false);
+  var p = new TestConfiguration(testConfigFile).connections["test-LDAP"];
+  assert(p.ssl == false);
 
-  var s = (await config_file.loadConfig(testConfigFile))["test-LDAPS"];
-  assert(s["ssl"] == true);
+  var s = new TestConfiguration(testConfigFile).connections["test-LDAPs"];
+  assert(s.ssl == true);
 
   if (doLogging) {
     //  startQuickLogging();
@@ -91,7 +90,7 @@ main() async {
 
     test("multiple opens", () async {
       var ldap = new LdapConnection(
-          host: p["host"], ssl: p["ssl"], port: p["port"]);
+          host: p.host, ssl: p.ssl, port: p.port);
 
       expect(ldap.state, equals(ConnectionState.closed));
       expect(ldap.isAuthenticated, isFalse);
@@ -129,7 +128,7 @@ main() async {
 
     test("multiple close", () async {
       var ldap = new LdapConnection(
-          host: p["host"], ssl: p["ssl"], port: p["port"]);
+          host: p.host, ssl: p.ssl, port: p.port);
 
       expect(ldap.state, equals(ConnectionState.closed));
       expect(ldap.isAuthenticated, isFalse);

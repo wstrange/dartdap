@@ -5,11 +5,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dart_config/default_server.dart' as config_file;
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 import 'package:dartdap/dartdap.dart';
+
+import 'test_configuration.dart';
 
 //----------------------------------------------------------------
 
@@ -82,13 +83,14 @@ void doTests(String configName) {
   //----------------
 
   setUp(() async {
-    var c = (await config_file.loadConfig(testConfigFile))[configName];
+    var c = new TestConfiguration(testConfigFile).connections[configName];
+
     ldap = new LdapConnection(
-        host: c["host"],
-        ssl: c["ssl"],
-        port: c["port"],
-        bindDN: c["bindDN"],
-        password: c["password"],
+        host: c.host,
+        ssl: c.ssl,
+        port: c.port,
+        bindDN: c.bindDN,
+        password: c.password,
         badCertificateHandler: (X509Certificate _) => true);
     // Note: setting badCertificateHandler to accept test certificate
 

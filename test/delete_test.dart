@@ -6,25 +6,18 @@
 
 import 'dart:async';
 
-import 'package:dart_config/default_server.dart' as config_file;
 import 'package:test/test.dart';
 
 import 'package:dartdap/dartdap.dart';
 
+import 'test_configuration.dart';
+
 //----------------------------------------------------------------
 
 const String testConfigFile = "test/TEST-config.yaml";
-
-// Base
-
-final baseDN = new DN("dc=example,dc=com");
-
-// Test branch
-
 const branchOU = "entry_delete_test";
 const branchDescription = "Branch for $branchOU";
 
-final branchDN = baseDN.concat("ou=$branchOU");
 final branchAttrs = {
   "objectclass": ["organizationalUnit"],
   "description": branchDescription
@@ -36,7 +29,12 @@ const testPersonCN = "John Citizen"; // mandatory attribute (in person schema)
 const testPersonSurname = "Citizen"; // mandatory attribute
 const testPersonDescription = "Test person"; // optional attribute
 
-var testPersonDN = branchDN.concat("cn=$testPersonCN");
+// todo: WS refactor to get rid of these globals
+
+DN testPersonDN;
+DN branchDN;
+DN baseDN;
+
 final testPersonAttrs = {
   "objectclass": ["person"],
   "sn": testPersonSurname,
@@ -80,18 +78,31 @@ Future purgeEntries(LdapConnection ldap) async {
 //----------------------------------------------------------------
 
 void doTest(String configName) {
-  var ldap;
+
+// Base
+;
+
+  LdapConnection ldap;
 
   //----------------
 
   setUp(() async {
-    var c = (await config_file.loadConfig(testConfigFile))[configName];
-    ldap = new LdapConnection(
-        host: c["host"],
-        ssl: c["ssl"],
-        port: c["port"],
-        bindDN: c["bindDN"],
-        password: c["password"]);
+//    var c = (await config_file.loadConfig(testConfigFile))[configName];
+//    ldap = new LdapConnection(
+//        host: c["host"],
+//        ssl: c["ssl"],
+//        port: c["port"],
+//        bindDN: c["bindDN"],
+//        password: c["password"]);
+
+    var cfg = new TestConfiguration(testConfigFile);
+    ldap = cfg.getConnection(configName);
+
+
+    baseDN = new DN(cfg.connections[configName].baseDN);
+    branchDN =baseDN.concat("ou=$branchOU");
+    testPersonDN = branchDN.concat("cn=$testPersonCN");
+
 
     await purgeEntries(ldap);
     await populateEntries(ldap);
@@ -161,7 +172,7 @@ void doTest(String configName) {
 //================================================================
 
 main() {
-  group("LDAP", () => doTest("test-LDAP"));
+  group("LDAP", () => doTest("opendj"));
 
   // group("LDAPS", () => doTest("test-LDAPS")); // uncomment to test with LDAPS
 }

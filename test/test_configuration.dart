@@ -1,12 +1,31 @@
 import 'dart:io';
+import 'package:dartdap/dartdap.dart';
 import "package:safe_config/safe_config.dart";
 
 
 class TestConfiguration extends Configuration {
   TestConfiguration(String filename): super.fromFile(new File(filename));
 
+
+  Map<String,LDAPConnectionConfiguration> connections;
+
+  LdapConnection getConnection(String configName) {
+    var c = connections[configName];
+    return new LdapConnection(
+        host: c.host,
+        ssl: c.ssl,
+        port: c.port,
+        bindDN: c.bindDN,
+        password: c.password);
+  }
+
+}
+
+class LDAPConnectionConfiguration extends Configuration {
+
   int port;
-  String hostname;
+  @optionalConfiguration
+  String host = "localhost";
   String baseDN;
 
   @optionalConfiguration
@@ -15,5 +34,7 @@ class TestConfiguration extends Configuration {
   @optionalConfiguration
   String bindDN = "cn=Directory Manager";
 
+  @optionalConfiguration
+  bool ssl = false;
 
 }
