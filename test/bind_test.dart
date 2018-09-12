@@ -6,9 +6,8 @@ import 'dart:io';
 import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
-import 'package:matcher/mirror_matchers.dart';
 import "util.dart" as util;
-
+import 'package:matcher/mirror_matchers.dart';
 import 'package:dartdap/dartdap.dart';
 
 //----------------------------------------------------------------
