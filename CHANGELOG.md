@@ -1,5 +1,9 @@
 # Dartdap Change Log
 
+* 0.3.0-beta
+
+* prepare for Dart 2.0. All tests except for search_test are broken, but the code works for Dart 2.0.
+
 * 0.2.2 2017-09-15
 
 - Allow SecurityContext to be passed to LdapConnection and setProtocol to enable
