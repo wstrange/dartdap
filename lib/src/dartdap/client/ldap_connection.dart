@@ -300,7 +300,8 @@ class LdapConnection {
   ///   the port number and/or use of SSL is changed. Close the connection
   ///   before attempting to make such changes.
 
-  void setProtocol(bool ssl, [int port = null, SecurityContext context = null]) {
+  void setProtocol(bool ssl,
+      [int port = null, SecurityContext context = null]) {
     if (port != null) {
       if (port is! int) {
         throw new ArgumentError.value(port, "port", "not an int");
@@ -820,8 +821,8 @@ class LdapConnection {
       try {
         loggerConnection.finest("opening connection: started");
 
-        var tmp = new _ConnectionManager(
-            _host, _port, _isSSL, badCertHandler ?? _defaultBadCertHandler, _context);
+        var tmp = new _ConnectionManager(_host, _port, _isSSL,
+            badCertHandler ?? _defaultBadCertHandler, _context);
 
         await tmp.connect(); // might throw exception
 

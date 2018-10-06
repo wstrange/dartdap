@@ -148,7 +148,6 @@ class LdapSocketRefusedException extends LdapSocketException {
       "Cannot connect to $remoteServer:$remotePort from port $localPort";
 }
 
-
 //===============================================================
 
 /// Exception when a bad certificate is encountered.

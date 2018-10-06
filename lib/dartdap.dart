@@ -82,4 +82,3 @@ part 'src/dartdap/protocol/response_handler.dart';
 part 'src/dartdap/protocol/search_request.dart';
 part 'src/dartdap/protocol/search_result_entry.dart';
 */
-

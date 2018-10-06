@@ -87,8 +87,8 @@ class LDAPMessage {
       throw new LdapParseException("Parsing error on ${bytes}");
     }
     if (elements.length != 2 && elements.length != 3) {
-      throw new LdapParseException("Expecting 2 or 3 elements: got ${elements
-              .length} obj=$_obj");
+      throw new LdapParseException(
+          "Expecting 2 or 3 elements: got ${elements.length} obj=$_obj");
     }
 
     var i = elements[0] as ASN1Integer;

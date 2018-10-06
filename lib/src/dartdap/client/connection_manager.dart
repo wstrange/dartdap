@@ -233,8 +233,8 @@ class _ConnectionManager {
     // hanndle this case
 
     if (rop is ExtendedResponse) {
-      loggeRecvLdap.fine("Got extended response ${rop.responseName} code=${rop
-          .ldapResult.resultCode}");
+      loggeRecvLdap.fine(
+          "Got extended response ${rop.responseName} code=${rop.ldapResult.resultCode}");
     }
 
     var pending_op = _pendingResponseMessages[m.messageId];
@@ -244,8 +244,8 @@ class _ConnectionManager {
     // we should throw an exception or try to ignore the error bytes
     // and carry on....
     if (pending_op == null)
-      throw new LdapParseException("Server sent us an unknown message id = ${m
-          .messageId} opCode=${m.protocolTag}");
+      throw new LdapParseException(
+          "Server sent us an unknown message id = ${m.messageId} opCode=${m.protocolTag}");
 
     if (pending_op.processResult(rop)) {
       // op is now complete. Remove it from pending q

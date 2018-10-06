@@ -95,13 +95,11 @@ class LdapResult {
           : "") +
       ((_matchedDN != null && _matchedDN.isNotEmpty) ? ": $_matchedDN" : "");
 
-
   /// Converts an LdapResult whose result code is an error into an exception.
   ///
   /// If the result code does not indicate an exception, null is returned.
   ///
   LdapException exceptionFromResultCode() {
-
     switch (resultCode) {
       case ResultCode.OPERATIONS_ERROR:
         return new LdapResultOperationsErrorException(this);
@@ -272,7 +270,6 @@ class LdapResult {
 /// [attributes] properties to get the attributes which were returned.
 
 class SearchEntry {
-
   /// The entry's distinguished name.
 
   String get dn => _dn;
@@ -298,46 +295,46 @@ class SearchEntry {
  * LDAP Result Codes
  */
 class ResultCode {
-  static const int OK = 0;
-  static const int OPERATIONS_ERROR = 1;
-  static const int PROTOCOL_ERROR = 2;
-  static const int TIME_LIMIT_EXCEEDED = 3;
-  static const int SIZE_LIMIT_EXCEEDED = 4;
-  static const int COMPARE_FALSE = 5;
-  static const int COMPARE_TRUE = 6;
-  static const int AUTH_METHOD_NOT_SUPPORTED = 7;
-  static const int STRONG_AUTH_REQUIRED = 8;
-  static const int REFERRAL = 9;
-  static const int ADMIN_LIMIT_EXCEEDED = 11;
-  static const int UNAVAILABLE_CRITICAL_EXTENSION = 12;
-  static const int CONFIDENTIALITY_REQUIRED = 13;
-  static const int SASL_BIND_IN_PROGRESS = 14;
-  static const int NO_SUCH_ATTRIBUTE = 16;
-  static const int UNDEFINED_ATTRIBUTE_TYPE = 17;
-  static const int INAPPROPRIATE_MATCHING = 18;
-  static const int CONSTRAINT_VIOLATION = 19;
-  static const int ATTRIBUTE_OR_VALUE_EXISTS = 20;
-  static const int INVALID_ATTRIBUTE_SYNTAX = 21;
-  static const int NO_SUCH_OBJECT = 32;
-  static const int ALIAS_PROBLEM = 33;
-  static const int INVALID_DN_SYNTAX = 34;
-  static const int IS_LEAF = 35;
-  static const int ALIAS_DEREFERENCING_PROBLEM = 36;
-  static const int INAPPROPRIATE_AUTHENTICATION = 48;
-  static const int INVALID_CREDENTIALS = 49;
-  static const int INSUFFICIENT_ACCESS_RIGHTS = 50;
-  static const int BUSY = 51;
-  static const int UNAVAILABLE = 52;
-  static const int UNWILLING_TO_PERFORM = 53;
-  static const int LOOP_DETECT = 54;
-  static const int NAMING_VIOLATION = 64;
-  static const int OBJECT_CLASS_VIOLATION = 65;
-  static const int NOT_ALLOWED_ON_NONLEAF = 66;
-  static const int NOT_ALLOWED_ON_RDN = 67;
-  static const int ENTRY_ALREADY_EXISTS = 68;
-  static const int OBJECT_CLASS_MODS_PROHIBITED = 69;
-  static const int AFFECTS_MULTIPLE_DSAS = 71;
-  static const int OTHER = 80;
+  static const OK = 0;
+  static const OPERATIONS_ERROR = 1;
+  static const PROTOCOL_ERROR = 2;
+  static const TIME_LIMIT_EXCEEDED = 3;
+  static const SIZE_LIMIT_EXCEEDED = 4;
+  static const COMPARE_FALSE = 5;
+  static const COMPARE_TRUE = 6;
+  static const AUTH_METHOD_NOT_SUPPORTED = 7;
+  static const STRONG_AUTH_REQUIRED = 8;
+  static const REFERRAL = 9;
+  static const ADMIN_LIMIT_EXCEEDED = 11;
+  static const UNAVAILABLE_CRITICAL_EXTENSION = 12;
+  static const CONFIDENTIALITY_REQUIRED = 13;
+  static const SASL_BIND_IN_PROGRESS = 14;
+  static const NO_SUCH_ATTRIBUTE = 16;
+  static const UNDEFINED_ATTRIBUTE_TYPE = 17;
+  static const INAPPROPRIATE_MATCHING = 18;
+  static const CONSTRAINT_VIOLATION = 19;
+  static const ATTRIBUTE_OR_VALUE_EXISTS = 20;
+  static const INVALID_ATTRIBUTE_SYNTAX = 21;
+  static const NO_SUCH_OBJECT = 32;
+  static const ALIAS_PROBLEM = 33;
+  static const INVALID_DN_SYNTAX = 34;
+  static const IS_LEAF = 35;
+  static const ALIAS_DEREFERENCING_PROBLEM = 36;
+  static const INAPPROPRIATE_AUTHENTICATION = 48;
+  static const INVALID_CREDENTIALS = 49;
+  static const INSUFFICIENT_ACCESS_RIGHTS = 50;
+  static const BUSY = 51;
+  static const UNAVAILABLE = 52;
+  static const UNWILLING_TO_PERFORM = 53;
+  static const LOOP_DETECT = 54;
+  static const NAMING_VIOLATION = 64;
+  static const OBJECT_CLASS_VIOLATION = 65;
+  static const NOT_ALLOWED_ON_NONLEAF = 66;
+  static const NOT_ALLOWED_ON_RDN = 67;
+  static const ENTRY_ALREADY_EXISTS = 68;
+  static const OBJECT_CLASS_MODS_PROHIBITED = 69;
+  static const AFFECTS_MULTIPLE_DSAS = 71;
+  static const OTHER = 80;
 
   // Important: do not add constants without also adding a message for it below,
   // creating a unique exception for it, and throwing that exception in
