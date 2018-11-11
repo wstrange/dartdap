@@ -448,7 +448,7 @@ class _ConnectionManager {
 
   Future _doClose() async {
     if (!isClosed()) {
-      await _socket.close();
+      await _socket.destroy();
       _socket = null; // this marks the connection as being closed
     }
   }

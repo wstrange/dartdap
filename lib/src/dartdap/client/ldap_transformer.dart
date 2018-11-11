@@ -30,11 +30,8 @@ StreamTransformer<Uint8List, LDAPMessage> _createLdapTransformer() {
       leftover = null;
     }
 
-    if (Level.FINEST <= loggerRecvBytes.level) {
-      // If statement prevents this potentially computationally expensive
-      // code to be executed if it is not needed.
-      loggerRecvBytes.finest("received: ${data}");
-    }
+    // closure prevents expensive code to be executed if it is not needed.
+    loggerRecvBytes.finest(() => "received: ${data}");
 
     // Try to process the bytes, until there are not enough bytes left to form a
     // complete ASN1 object. Using a do-while loop because since this handleData
@@ -48,6 +45,7 @@ StreamTransformer<Uint8List, LDAPMessage> _createLdapTransformer() {
       var value_size = null; // null if insufficient bytes to determine length
       var length_size; // number of bytes used by length field
 
+      // todo: Would make sense to move this kind of logic into the asn1 package
       if (2 <= buf.length) {
         // Enough data for the start of the length field
         int first_length_byte = buf[1]; // note: tag is at position 0
@@ -75,10 +73,10 @@ StreamTransformer<Uint8List, LDAPMessage> _createLdapTransformer() {
 
         var message_size = (1 + length_size + value_size); // tag, length, data
 
-        loggerRecvBytes.finer("parsed ASN.1 object: $message_size bytes");
+        loggerRecvBytes.finer(() => "parsed ASN.1 object: $message_size bytes");
         loggerRecvAsn1
-            .fine("ASN.1 object received: tag=${buf[0]}, length=${value_size}");
-        loggerRecvAsn1.finest(
+            .fine(() => "ASN.1 object received: tag=${buf[0]}, length=${value_size}");
+        loggerRecvAsn1.finest( () =>
             "ASN.1 value: ${new Uint8List.view(buf.buffer, 1 + length_size, value_size)}");
 
         if (buf[0] == 10) {

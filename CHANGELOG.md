@@ -1,5 +1,14 @@
 # Dartdap Change Log
 
+* 0.3.3 
+
+* socket.destroy()  https://github.com/wstrange/dartdap/issues/20 
+* Experimental support for ldap search referrals: https://github.com/wstrange/dartdap/issues/19
+
+* 0.3.2 
+
+- Bug fix for ASN1 lib. dartfmt 
+
 * 0.3.0
 
 - tests compile -  but still need major refactoring. Getting this published so folks can use it again.

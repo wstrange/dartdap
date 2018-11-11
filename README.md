@@ -134,6 +134,15 @@ The close method returns a Future, which completes when the
 connection is completely closed.
 
 
+### Searching
+
+A search request returns a stream of SearchResults. 
+
+There is *EXPERIMENTAL* support for search result references (referrals)
+
+If SearchResult.referrals[] is not empty, it is an array or strings which are the DNs to repeat
+the search request. The SDK does not automatically follow referrals.
+
 ### Adding entries
 
 ```dart

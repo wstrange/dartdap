@@ -235,15 +235,10 @@ class LdapConnection {
   ///
   /// ## Exceptions
   ///
-  /// - [ArgumentError] when host is not null and not a String.
   /// - [StateError] when the connection is currently open and the hostname
   ///   is changed. Close the connection before making the change.
   ///
   void setHost(String hostname) {
-    if (hostname != null && hostname is! String) {
-      throw new ArgumentError.value(hostname, "hostname", "not a String");
-    }
-
     var n = (hostname != null && hostname.isNotEmpty) ? hostname : _defaultHost;
 
     if (n != _host) {
@@ -295,7 +290,7 @@ class LdapConnection {
   ///
   /// ## Exceptions
   ///
-  /// - [ArgumentError] when port is not null or an int.
+  /// - [ArgumentError] if port is out of range.
   /// - [StateError] - when the connection is currently open and either
   ///   the port number and/or use of SSL is changed. Close the connection
   ///   before attempting to make such changes.
@@ -303,9 +298,6 @@ class LdapConnection {
   void setProtocol(bool ssl,
       [int port = null, SecurityContext context = null]) {
     if (port != null) {
-      if (port is! int) {
-        throw new ArgumentError.value(port, "port", "not an int");
-      }
       if (port < 0 || 65535 < port) {
         throw new ArgumentError.value(port, "port", "outside range of 0-65535");
       }
@@ -1180,9 +1172,8 @@ class LdapConnection {
   /// If [deleteOldRDN] is true delete the old entry.
   /// If [newSuperior] is not null, re-parent the entry.
   ///
-  // todo: consider making optional args as named args
   Future<LdapResult> modifyDN(String dn, String rdn,
-      [bool deleteOldRDN = true, String newSuperior]) async {
+      {bool deleteOldRDN = true, String newSuperior}) async {
     loggerConnection.fine("modifyDN");
     await _requireReady();
     return await _cmgr

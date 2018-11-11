@@ -275,6 +275,12 @@ class SearchEntry {
   String get dn => _dn;
   String _dn;
 
+  final List<String> _referrals;
+
+  // Return the list of referrals. The search should be repeated
+  // using these URIs
+  List<String> get referrals => _referrals;
+
   /// Attributes returned by the search operation.
   ///
   /// This is a [Map] from the [String] name of the attribute to an [Attribute]
@@ -285,7 +291,7 @@ class SearchEntry {
 
   /// Constructor
 
-  SearchEntry(this._dn);
+  SearchEntry(this._dn, {List<String> referrals = const []}) : _referrals = referrals;
 
   String toString() => "Entry[$_dn,$_attributes]";
 }

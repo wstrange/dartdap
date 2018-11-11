@@ -49,7 +49,7 @@ class ResponseOp {
   ResponseOp.searchEntry(); // needed for SearchResultEntry - that does not have an LDAPMessage
 
   ResponseOp(LDAPMessage m) {
-    loggeRecvLdap.finer("Response op=$m");
+    loggeRecvLdap.finer(() => "Response op=$m");
     _ldapResult = _parseLDAPResult(m.protocolOp);
     // Parse controls;
     if (m.hasControls) _controls = Control.parseControls(m._controls);

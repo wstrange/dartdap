@@ -6,27 +6,30 @@ abstract class ResponseHandler {
 
   static ResponseOp handleResponse(LDAPMessage m) {
     loggeRecvLdap
-        .finer("LDAP response received: ${_op2String(m.protocolOp.tag)}");
+        .finer(() => "LDAP response received: ${_op2String(m.protocolOp.tag)}");
 
     switch (m.protocolOp.tag) {
       case BIND_RESPONSE:
-        return new BindResponse(m);
+        return BindResponse(m);
 
       case SEARCH_RESULT_ENTRY:
-        return new SearchResultEntry(m);
+        return SearchResultEntry(m);
+
+      case SEARCH_RESULT_REFERENCE:
+        return SearchResultEntry.referral(m);
 
       case SEARCH_RESULT_DONE:
-        return new SearchResultDone(m);
+        return SearchResultDone(m);
 
       case EXTENDED_RESPONSE:
-        return new ExtendedResponse(m);
+        return ExtendedResponse(m);
 
       case ADD_RESPONSE:
       case DELETE_RESPONSE:
       case MODIFY_RESPONSE:
       case MODIFY_DN_RESPONSE:
       case COMPARE_RESPONSE:
-        return new GenericResponse(m);
+        return GenericResponse(m);
 
       default:
         throw "Not done";

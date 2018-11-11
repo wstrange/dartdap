@@ -52,8 +52,6 @@ const int INTERMEDIATE_RESPONSE = 0x79;
 // encoding of LDAP controls sequence type
 const int CONTROLS = 0xA0;
 
-// todo: Convert to a map when
-// https://code.google.com/p/dart/issues/detail?id=4207 is fixed
 String _op2String(int op) {
   switch (op) {
     case BIND_REQUEST:

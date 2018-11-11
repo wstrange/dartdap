@@ -13,6 +13,13 @@ class SearchResultEntry extends ResponseOp {
 
   SearchEntry get searchEntry => _searchEntry;
 
+  SearchResultEntry.referral(LDAPMessage m) : super.searchEntry() {
+    loggeRecvLdap.fine( () => "Search result is a referral");
+    var uris = m.protocolOp.elements;
+    var l = uris.map( (obj) => (obj as ASN1OctetString).stringValue).toList();
+    _searchEntry = SearchEntry(null,referrals:l);
+  }
+
   SearchResultEntry(LDAPMessage m) : super.searchEntry() {
     var s = m.protocolOp;
 
@@ -20,14 +27,13 @@ class SearchResultEntry extends ResponseOp {
 
     var dn = t.stringValue;
 
-    loggeRecvLdap.fine("Search Result Entry: dn=${dn}");
+    loggeRecvLdap.fine(() => "Search Result Entry: dn=${dn}");
 
     // embedded sequence is attr list
     var seq = s.elements[1] as ASN1Sequence;
 
     _searchEntry = new SearchEntry(dn);
 
-    //  seq.elements.forEach((ASN1Sequence attr) {
     seq.elements.forEach((attr) {
       var a = attr as ASN1Sequence;
       var attrName = a.elements[0] as ASN1OctetString;
