@@ -1,5 +1,9 @@
 # Dartdap Change Log
 
+* 0.3.4 
+
+* Fixes for #21
+
 * 0.3.3 
 
 * socket.destroy()  https://github.com/wstrange/dartdap/issues/20 

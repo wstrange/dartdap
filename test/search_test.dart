@@ -239,6 +239,7 @@ void doTest(String configName) {
       }
     } on LdapResultNoSuchObjectException catch(e) {
       // todo: WS Update
+      print(e);
       //expect(e.result.matchedDN, equals(baseDN.dn)); // part that did match
       gotException = true;
 
