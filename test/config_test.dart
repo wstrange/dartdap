@@ -6,7 +6,6 @@
 // Requirements: the "test/configuration_test.yaml" file
 
 
-import 'dart:math';
 import 'package:test/test.dart';
 
 import 'package:dartdap/dartdap.dart';
