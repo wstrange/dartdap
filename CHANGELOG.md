@@ -1,8 +1,12 @@
 # Dartdap Change Log
 
+* 0.3.5 
+
+- Fix #22
+
 * 0.3.4 
 
-* Fixes for #21
+- Fixes for #21
 
 * 0.3.3 
 
