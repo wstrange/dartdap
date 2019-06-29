@@ -1,8 +1,15 @@
-part of dartdap;
+import 'package:logging/logging.dart';
+import 'package:asn1lib/asn1lib.dart';
+import 'virtual_list_view.dart';
+import 'server_side_sort.dart';
+
+export 'virtual_list_view.dart';
+export 'server_side_sort.dart';
+export 'sort_key.dart';
 
 /// Logger for the control section of dartdap.
 
-Logger _clogger = new Logger("ldap.control");
+Logger clogger = new Logger("ldap.control");
 
 /**
  * An LDAP Control
@@ -39,7 +46,7 @@ abstract class Control {
   Control();
 
   static List<Control> parseControls(ASN1Sequence obj) {
-    _clogger.finest("Create Controls from $obj");
+    clogger.finest("Create Controls from $obj");
     // todo: Parse the object, return
     var controls = [];
 
@@ -51,7 +58,7 @@ abstract class Control {
 
   static _parseControl(ASN1Sequence s) {
     var oid = (s.elements.first as ASN1OctetString).stringValue;
-    _clogger.finest("Got control $oid");
+    clogger.finest("Got control $oid");
     switch (oid) {
       case VLVResponseControl.OID:
         return new VLVResponseControl.fromASN1(s.elements[1]);

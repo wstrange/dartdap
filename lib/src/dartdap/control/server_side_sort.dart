@@ -1,4 +1,6 @@
-part of dartdap;
+import 'control.dart';
+import 'package:asn1lib/asn1lib.dart';
+import 'sort_key.dart';
 
 class ServerSideSortRequestControl extends Control {
   static const OID = "1.2.840.113556.1.4.473";

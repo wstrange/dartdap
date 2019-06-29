@@ -1,4 +1,12 @@
-part of dartdap;
+import 'dart:collection';
+import 'dart:io';
+
+import '../core/core.dart';
+import '../protocol/ldap_protocol.dart';
+import '../control/control.dart';
+import 'ldap_transformer.dart';
+import 'dart:async';
+import 'dart:typed_data';
 
 /**
  * Holds a pending LDAP operation that we have issued to the server. We
@@ -117,7 +125,7 @@ typedef bool BadCertHandlerType(X509Certificate cert);
  * Queues LDAP operations and sends them to the LDAP server.
  */
 
-class _ConnectionManager {
+class ConnectionManager {
   // Queue for all outbound messages.
   Queue<_PendingOp> _outgoingMessageQueue = new Queue<_PendingOp>();
 
@@ -160,7 +168,7 @@ class _ConnectionManager {
   /// The actual TCP/IP connection is not established.
   ///
 
-  _ConnectionManager(this._host, this._port, this._ssl, this._badCertHandler,
+  ConnectionManager(this._host, this._port, this._ssl, this._badCertHandler,
       [this._context]);
 
   //================================================================
@@ -179,7 +187,7 @@ class _ConnectionManager {
   ///   and the port number is correct.
   /// - Other exceptions might also be thrown.
 
-  Future<_ConnectionManager> connect() async {
+  Future<ConnectionManager> connect() async {
     try {
       if (isClosed()) {
         var s = (_ssl)
@@ -193,7 +201,7 @@ class _ConnectionManager {
 
         // FIXME: I think the .cast causes bad performance...
         // https://www.dartlang.org/guides/language/effective-dart/usage#avoid-using-cast
-        _socket.cast<Uint8List>().transform(_createLdapTransformer()).listen(
+        _socket.cast<Uint8List>().transform(createLdapTransformer()).listen(
             (m) => _handleLDAPMessage(m),
             onError: _ldapListenerOnError,
             onDone: _ldapListenerOnDone);

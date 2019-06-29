@@ -1,12 +1,67 @@
 import 'package:petitparser/petitparser.dart';
-
+import 'package:petitparser/petitparser.dart' as prefix0;
+import 'filter.dart';
 
 // Create LDAP Queries using https://tools.ietf.org/html/rfc2254 syntax
 
+final queryParser = QueryParser();
 
+class QueryParser<Filter> extends GrammarParser {
+  QueryParser() : super(QueryParserDefinition());
+}
+
+// The grammar turns the parsed stream into a Filter
+class QueryParserDefinition extends QueryGrammarDefinition {
+  const QueryParserDefinition();
+
+  Parser attr() => super.attr().flatten();
+  Parser value() => super.value().flatten();
+
+  Parser filter() => super.filter().map((each) => each[1]);
+
+  Parser<List<Filter>> filterlist() => super.filterlist().map((each) {
+        print(each);
+        return List<Filter>.from(each);
+        //
+      });
+
+  Parser<Filter> simple() =>
+      super.simple().map((each) => Filter.equals(each[0], each[2]));
+
+  Parser<Filter> and() =>
+      super.and().map((each) => Filter.and(List<Filter>.from(each[1])));
+  
+  
+  String _flatten(List each) {
+    var s = "";
+    each.forEach( (val) )
+  }
+
+  // Complex - but see the grammar rule in the super class for an explanation
+  Parser<Filter> substring() => super.substring().map((each) {
+        var x = each[3] as List;
+        String any = "";
+        x.forEach( (val) {
+          if( val is Token )
+            any += val.value;
+          else if( val is List) 
+        });
+
+
+        return SubstringFilter.rfc224(each[0], // attribute name
+            initial: each[2],
+            any: any,
+            finalValue: each[4]);
+      });
+}
+
+class QueryGrammar extends GrammarParser {
+  QueryGrammar() : super(QueryGrammarDefinition());
+}
+
+// Grammar comments taken from: https://tools.ietf.org/html/rfc2254
 class QueryGrammarDefinition extends GrammarDefinition {
   const QueryGrammarDefinition();
-
 
   Parser token(Object input) {
     if (input is Parser) {
@@ -19,12 +74,11 @@ class QueryGrammarDefinition extends GrammarDefinition {
     throw ArgumentError.value(input, 'invalid token parser');
   }
 
-
   Parser LPAREN() => ref(token, '(');
 
   Parser RPAREN() => ref(token, ')');
 
-  Parser AND() => ref(token, '&') & ref(filterlist);
+  Parser and() => ref(token, '&') & ref(filterlist);
 
   Parser OR() => ref(token, '|') & ref(filterlist);
 
@@ -38,9 +92,10 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser LESS() => ref(token, '<=');
 
+  Parser STAR() => ref(token, '*');
+
   //  filterlist = 1*filter
   Parser filterlist() => ref(filter).plus();
-
 
   @override
   Parser start() => ref(filter).end();
@@ -49,11 +104,12 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser filter() => LPAREN() & ref(filtercomp) & RPAREN();
 
   //  filtercomp = and / or / not / item
-  Parser filtercomp() => ref(AND) | ref(OR) | ref(NOT) | ref(item);
+  Parser filtercomp() => ref(and) | ref(OR) | ref(NOT) | ref(item);
 
   // item       = simple / present / substring / extensible
   // todo: Implement extensible
-  Parser item() => ref(simple) | ref(present) | ref(substring);
+  Parser item() => ref(substring) | ref(simple) | ref(present);
+  //       ref(substring).starGreedy(STAR()) | ref(simple) | ref(present);
 
   //Parser item() => ref(simple) | ref(present) | ref(substring) | ref(extensible);
 
@@ -70,25 +126,31 @@ class QueryGrammarDefinition extends GrammarDefinition {
   //  extensible = attr [":dn"] [":" matchingrule] ":=" value
   //  / [":dn"] ":" matchingrule ":=" value
 
-
   //  substring  = attr "=" [initial] any [final]
-  // TOOD: must be able to parse   (o=univ*of*mich*)
-  Parser substring() => ref(attr) & ref(EQUAL) & ref(initial) & ref(any) & ref(_final).optional();
-
-  Parser initial() => ref(value);
-  Parser _final() => ref(value);
+  //  [notation] means "optional"
+  Parser substring() =>
+      ref(attr) &
+      ref(EQUAL) &
+      ref(initial).optional() &
+      ref(any) &
+      ref(_final).optional();
 
   //  initial    = value
+  Parser initial() => ref(value);
+  // final = value  - we use _final because final is a reserved word
+  Parser _final() => ref(value);
+
   //  any        = "*" *(value "*")
-  Parser any() => ref(token,'*');
+  Parser any() => STAR() & (value() & STAR()).star();
 //  final      = value
 
   //  attr       = AttributeDescription from Section 4.1.5 of [1]
   Parser attr() => word().plus();
 
+  // todo:
   //  matchingrule = MatchingRuleId from Section 4.1.9 of [1]
 
   //  value      = AttributeValue from Section 4.1.6 of [1]
+  // todo: This needs to allow the escape sequence.  \xx
   Parser value() => letter() & word().star();
-
 }

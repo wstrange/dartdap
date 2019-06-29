@@ -1,5 +1,5 @@
-part of dartdap;
-
+import 'ldap_exception.dart';
+import 'attribute.dart';
 /**
  * Various ldap result objects
  */

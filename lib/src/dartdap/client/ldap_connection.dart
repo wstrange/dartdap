@@ -1,4 +1,14 @@
-part of dartdap;
+import 'dart:io';
+import 'dart:async';
+
+import '../core/core.dart';
+import 'connection_manager.dart';
+import '../protocol/ldap_protocol.dart';
+import '../control/control.dart';
+import 'package:logging/logging.dart';
+
+
+
 
 /// Connection to perform LDAP operations on an LDAP server.
 ///
@@ -141,7 +151,7 @@ class LdapConnection {
 
   /// The underlying connection manager.
   ///
-  _ConnectionManager _cmgr;
+  ConnectionManager _cmgr;
 
   //----------------------------------------------------------------
   /// Mode (automatic or manual)
@@ -813,7 +823,7 @@ class LdapConnection {
       try {
         loggerConnection.finest("opening connection: started");
 
-        var tmp = new _ConnectionManager(_host, _port, _isSSL,
+        var tmp = new ConnectionManager(_host, _port, _isSSL,
             badCertHandler ?? _defaultBadCertHandler, _context);
 
         await tmp.connect(); // might throw exception

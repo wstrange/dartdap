@@ -198,7 +198,7 @@ void doTest(String configName) {
   //----------------
 
   test("search with filter: substring", () async {
-    var filter = Filter.substring("cn=uS*"); // note: cn is case-insensitive
+    var filter = Filter.substring("cn","uS*"); // note: cn is case-insensitive
     var searchAttrs = ["cn"];
 
     var count = 0;

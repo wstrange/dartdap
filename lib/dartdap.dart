@@ -38,47 +38,9 @@ to the git repository.
 
 library dartdap;
 
-import 'dart:async';
-import 'dart:collection';
-import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:asn1lib/asn1lib.dart';
-import 'package:logging/logging.dart';
+export 'src/dartdap/client/connection_manager.dart';
+export 'src/dartdap/client/ldap_connection.dart';
+export 'src/dartdap/core/core.dart';
+export 'src/dartdap/control/control.dart';
 
-import 'src/dartdap/protocol/ldap_protocol.dart'; // Internal library
-
-// Parts
-
-part 'src/dartdap/client/connection_manager.dart';
-part 'src/dartdap/client/ldap_connection.dart';
-part 'src/dartdap/client/ldap_transformer.dart';
-
-part 'src/dartdap/control/control.dart';
-part 'src/dartdap/control/server_side_sort.dart';
-part 'src/dartdap/control/sort_key.dart';
-part 'src/dartdap/control/virtual_list_view.dart';
-
-part 'src/dartdap/core/attribute.dart';
-part 'src/dartdap/core/filter.dart';
-part 'src/dartdap/core/ldap_exception.dart';
-part 'src/dartdap/core/ldap_result.dart';
-part 'src/dartdap/core/ldap_util.dart';
-part 'src/dartdap/core/modification.dart';
-part 'src/dartdap/core/search_result.dart';
-part 'src/dartdap/core/search_scope.dart';
-
-/* Individual files in the internal library
-part 'src/dartdap/protocol/add_request.dart';
-part 'src/dartdap/protocol/bind_request.dart';
-part 'src/dartdap/protocol/compare_request.dart';
-part 'src/dartdap/protocol/delete_request.dart';
-part 'src/dartdap/protocol/ldap_message.dart';
-part 'src/dartdap/protocol/ldap_responses.dart';
-part 'src/dartdap/protocol/moddn_request.dart';
-part 'src/dartdap/protocol/modify_request.dart';
-part 'src/dartdap/protocol/protocol_op.dart';
-part 'src/dartdap/protocol/response_handler.dart';
-part 'src/dartdap/protocol/search_request.dart';
-part 'src/dartdap/protocol/search_result_entry.dart';
-*/

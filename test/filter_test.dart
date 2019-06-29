@@ -90,7 +90,7 @@ main() {
     });
 
     test('(foo=bar*)', () {
-      var f = Filter.substring("foo=bar*");
+      var f = Filter.substring("foo","bar*");
       var b = f.toASN1().encodedBytes;
       expect(
           b,

@@ -1,5 +1,12 @@
 # Dartdap Change Log
 
+* 0.4.0
+
+- New Feature: LDAP query parser - implements https://tools.ietf.org/html/rfc2254#ref-1
+- Breaking change: The Filter.substring() constructor now specifies the attribute and patterns
+  separately. 
+- Code has been reorganized to use library imports and move away form using parts.
+
 * 0.3.5 
 
 - Fix #22

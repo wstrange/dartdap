@@ -1,5 +1,3 @@
-part of dartdap;
-
 /// Represents an LDAP Attribute.
 ///
 /// Use the [name] property to retrieve the attribute's name and
