@@ -20,37 +20,63 @@ class QueryParserDefinition extends QueryGrammarDefinition {
   Parser filter() => super.filter().map((each) => each[1]);
 
   Parser<List<Filter>> filterlist() => super.filterlist().map((each) {
-        print(each);
         return List<Filter>.from(each);
         //
       });
 
   Parser<Filter> simple() =>
-      super.simple().map((each) => Filter.equals(each[0], each[2]));
+      super.simple().map((each) {
+        var token = each[1] as Token;
+        var s = token.value as String;
+        var attrName = each[0];
+        var val = each[2];
+        // todo: There is prolly a better way to do this..
+        switch(s) {
+          case '=':
+            return Filter.equals(attrName, val);
+          case '~=':
+            return Filter.approx(attrName, val);
+          case '>=':
+            return Filter.greaterOrEquals(attrName, val);
+          case '<=':
+            return Filter.lessOrEquals(attrName, val);
+          default:
+            throw Exception("Parser error (bad grammar). Report this bug");
+        }
+      });
 
   Parser<Filter> and() =>
       super.and().map((each) => Filter.and(List<Filter>.from(each[1])));
+
+  Parser<Filter> or() =>
+    super.or().map( (each) => Filter.or(List<Filter>.from(each[1])));
+
+  Parser<Filter> not() =>
+    super.not().map( (each) => Filter.not(each[1] ));
+
+//  Parser<Filter> present() =>
+//    super.present().map( (each) => Filter.present(each[0]));
   
-  
+  // todo: There must be a better way to get petit parser to flatten this for us
   String _flatten(List each) {
     var s = "";
-    each.forEach( (val) )
+    each.forEach( (val) {
+      if( val is Token )
+        s += (val.value as String);
+      else if( val is List)
+        s += _flatten(val);
+      else
+        s += val.toString();
+    });
+    return s;
   }
 
   // Complex - but see the grammar rule in the super class for an explanation
   Parser<Filter> substring() => super.substring().map((each) {
-        var x = each[3] as List;
-        String any = "";
-        x.forEach( (val) {
-          if( val is Token )
-            any += val.value;
-          else if( val is List) 
-        });
-
 
         return SubstringFilter.rfc224(each[0], // attribute name
             initial: each[2],
-            any: any,
+            any:  _flatten(each[3]),
             finalValue: each[4]);
       });
 }
@@ -80,18 +106,19 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   Parser and() => ref(token, '&') & ref(filterlist);
 
-  Parser OR() => ref(token, '|') & ref(filterlist);
+  Parser or() => ref(token, '|') & ref(filterlist);
 
-  Parser NOT() => ref(token, '!') & ref(filter);
+  Parser not() => ref(token, '!') & ref(filter);
 
   Parser EQUAL() => ref(token, '=');
 
-  Parser APPROX() => ref(token, '~=');
+  Parser approx() => ref(token, '~=');
 
   Parser GREATER() => ref(token, '>=');
 
   Parser LESS() => ref(token, '<=');
 
+  // NOTE: This needs to be uppercase to avoid conflict with the petit star()
   Parser STAR() => ref(token, '*');
 
   //  filterlist = 1*filter
@@ -104,23 +131,22 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser filter() => LPAREN() & ref(filtercomp) & RPAREN();
 
   //  filtercomp = and / or / not / item
-  Parser filtercomp() => ref(and) | ref(OR) | ref(NOT) | ref(item);
+  Parser filtercomp() => ref(and) | ref(or) | ref(not) | ref(item);
 
   // item       = simple / present / substring / extensible
   // todo: Implement extensible
   Parser item() => ref(substring) | ref(simple) | ref(present);
   //       ref(substring).starGreedy(STAR()) | ref(simple) | ref(present);
-
   //Parser item() => ref(simple) | ref(present) | ref(substring) | ref(extensible);
 
   //  simple     = attr filtertype value
   Parser simple() => ref(attr) & ref(filtertype) & ref(value);
 
   //  filtertype = equal / approx / greater / less
-  Parser filtertype() => ref(EQUAL) | ref(APPROX) | ref(GREATER) | ref(LESS);
+  Parser filtertype() => ref(EQUAL) | ref(approx) | ref(GREATER) | ref(LESS);
 
   //  present    = attr "=*"
-  Parser present() => ref(attr) & ref(token, '=*');
+  Parser present() => ref(attr) & ref(token, '=*').end();
 
   // todo:
   //  extensible = attr [":dn"] [":" matchingrule] ":=" value
@@ -141,7 +167,12 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser _final() => ref(value);
 
   //  any        = "*" *(value "*")
-  Parser any() => STAR() & (value() & STAR()).star();
+  Parser any() => STAR() & (ref(value) & STAR()).star();
+  //Parser any() => STAR() & (value() & STAR());
+  // Parser any() => STAR() & starValue();
+
+  //Parser starValue() => (ref(value) & STAR() & starValue()).optional();
+
 //  final      = value
 
   //  attr       = AttributeDescription from Section 4.1.5 of [1]
@@ -152,5 +183,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
 
   //  value      = AttributeValue from Section 4.1.6 of [1]
   // todo: This needs to allow the escape sequence.  \xx
-  Parser value() => letter() & word().star();
+  // Parser value() => letter() & word().star();
+  Parser value() => word().plus();
+
 }

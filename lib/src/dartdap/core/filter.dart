@@ -119,7 +119,7 @@ class Filter {
   Filter operator |(Filter other) => Filter.or([this, other]);
 
   String toString() =>
-      "Filter(type=$_filterType attrName=$_attributeName val=$_assertionValue, subFilters=$_subFilters)";
+      "Filter(type=0x${_filterType.toRadixString(16)} attrName=$_attributeName val=$_assertionValue, subFilters=$_subFilters)";
 
   /**
     * Convert a Filter expression to an ASN1 Object
@@ -286,5 +286,5 @@ class SubstringFilter extends Filter {
       other._attributeName == _attributeName &&
       other._initial == _initial &&
       other._final == _final &&
-      _eq(other._any, _any);
+      other._any == _any;
 }
