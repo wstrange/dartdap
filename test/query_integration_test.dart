@@ -3,6 +3,7 @@ import "util.dart" as util;
 import "package:dartdap/dartdap.dart";
 
 // Integration test against OpenDJ, populated with 2000 sample users under dc=example,dc=com
+// TODO: Refactor test suites to better accomodate AD, OpenDJ, OpenLDAP, etc.
 
 var baseDN = "ou=People,dc=example,dc=com";
 

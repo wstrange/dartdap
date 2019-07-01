@@ -140,8 +140,14 @@ A search request returns a stream of SearchResults.
 
 There is *EXPERIMENTAL* support for search result references (referrals)
 
-If SearchResult.referrals[] is not empty, it is an array or strings which are the DNs to repeat
+If SearchResult.referrals[] is not empty, it is an array of strings which are the DNs to repeat
 the search request. The SDK does not automatically follow referrals.
+
+There are two search methods:
+* `ldap.search` takes a dart `Filter` object. 
+* `ldap.query` takes an https://tools.ietf.org/html/rfc2254 string to construct the filter
+
+
 
 ### Adding entries
 
