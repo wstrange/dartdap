@@ -1,3 +1,4 @@
+import 'package:dartdap/dartdap.dart';
 import 'package:petitparser/petitparser.dart';
 import 'package:petitparser/petitparser.dart' as prefix0;
 import 'filter.dart';
@@ -8,6 +9,18 @@ final queryParser = QueryParser();
 
 class QueryParser<Filter> extends GrammarParser {
   QueryParser() : super(QueryParserDefinition());
+
+  // Parse the rfc2254 search filter and and return a [Filter]
+  // throws [LdapParseException] if the input can not be parsed.
+  // TODO: Consider caching queries
+  Filter getFilter(String input) {
+    var result = this.parse(input);
+
+    if( result.isSuccess )
+      return result.value;
+    else
+      throw new LdapParseException("Can't parse filter '$input'. Error is ${result.message}");
+  }
 }
 
 // The grammar turns the parsed stream into a Filter
@@ -41,7 +54,7 @@ class QueryParserDefinition extends QueryGrammarDefinition {
           case '<=':
             return Filter.lessOrEquals(attrName, val);
           default:
-            throw Exception("Parser error (bad grammar). Report this bug");
+            throw Exception("Parser error (bad grammar spec). Report this bug");
         }
       });
 
@@ -54,30 +67,39 @@ class QueryParserDefinition extends QueryGrammarDefinition {
   Parser<Filter> not() =>
     super.not().map( (each) => Filter.not(each[1] ));
 
-//  Parser<Filter> present() =>
-//    super.present().map( (each) => Filter.present(each[0]));
+  // This doesn't appear to work. The substring grammar matches before this.
+  Parser<Filter> present() =>
+    super.present().map( (each) => Filter.present(each[0]));
   
-  // todo: There must be a better way to get petit parser to flatten this for us
-  String _flatten(List each) {
-    var s = "";
+  // todo: There must be a better way to get petit parser to flatten this
+  List<String> _flatten(List each) {
+    var s = List<String>();
     each.forEach( (val) {
-      if( val is Token )
-        s += (val.value as String);
-      else if( val is List)
-        s += _flatten(val);
-      else
-        s += val.toString();
+      if( val is List)
+        s.addAll(_flatten(val));
+      else if (val is String)
+        s.add(val);
     });
     return s;
   }
 
   // Complex - but see the grammar rule in the super class for an explanation
   Parser<Filter> substring() => super.substring().map((each) {
+        var init = each[2];
+        var finalVal = each[4];
+        var any = _flatten(each[3]);
+
+        // There is a special case where the substring grammar also
+        // matches the present filter. This can possibly
+        // be fixed in the grammar spec - but this works:
+        if( init == null && finalVal == null && any.length == 0) {
+          return Filter.present(each[0]);
+        }
 
         return SubstringFilter.rfc224(each[0], // attribute name
-            initial: each[2],
-            any:  _flatten(each[3]),
-            finalValue: each[4]);
+            initial: init,
+            any:  any,
+            finalValue: finalVal);
       });
 }
 
@@ -146,7 +168,8 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser filtertype() => ref(EQUAL) | ref(approx) | ref(GREATER) | ref(LESS);
 
   //  present    = attr "=*"
-  Parser present() => ref(attr) & ref(token, '=*').end();
+  // always matches the substring!!!!
+  Parser present() => ref(attr) & ref(token, '=*');
 
   // todo:
   //  extensible = attr [":dn"] [":" matchingrule] ":=" value

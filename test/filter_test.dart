@@ -3,6 +3,11 @@
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 
+
+// TODO: We should also test the query parser as well.
+// One test for the Filter(), one to see if the Filter() created by the parser
+// also produces the same encoding.
+//
 main() {
   group('Filter Encoding', () {
     test('(foo=bar)', () {
@@ -90,7 +95,7 @@ main() {
     });
 
     test('(foo=bar*)', () {
-      var f = Filter.substring("foo","bar*");
+      var f = Filter.substring("foo", "bar*");
       var b = f.toASN1().encodedBytes;
       expect(
           b,
@@ -217,8 +222,8 @@ main() {
     });
 
     test('(&(foo=bar)(baz=banana))', () {
-      var f = Filter
-          .and([Filter.equals("foo", "bar"), Filter.equals("baz", "banana")]);
+      var f = Filter.and(
+          [Filter.equals("foo", "bar"), Filter.equals("baz", "banana")]);
       var b = f.toASN1().encodedBytes;
       expect(
           b,

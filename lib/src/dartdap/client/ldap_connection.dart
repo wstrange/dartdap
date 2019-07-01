@@ -5,10 +5,6 @@ import '../core/core.dart';
 import 'connection_manager.dart';
 import '../protocol/ldap_protocol.dart';
 import '../control/control.dart';
-import 'package:logging/logging.dart';
-
-
-
 
 /// Connection to perform LDAP operations on an LDAP server.
 ///
@@ -1121,6 +1117,22 @@ class LdapConnection {
     return _cmgr.processSearch(
         new SearchRequest(baseDN, filter, attributes, scope, sizeLimit),
         controls);
+  }
+
+  // Perform an LDAP search using an rfc224 query string. This method
+  // creates a Filter from the query string and delegates to [search].
+  //
+  // See https://tools.ietf.org/html/rfc2254
+  // See [search]
+  Future<SearchResult> query(
+      String baseDN, String query, List<String> attributes,
+      {int scope: SearchScope.SUB_LEVEL,
+      int sizeLimit: 0,
+      List<Control> controls: null}) async {
+    var filter = queryParser.getFilter(query);
+    return this.search(baseDN, filter, attributes,
+          scope: scope, sizeLimit: sizeLimit);
+
   }
 
   //----------------------------------------------------------------

@@ -194,21 +194,23 @@ class SubstringFilter extends Filter {
   static const int TYPE_SUBFINAL = 0x82;
 
   String _initial;
-  String _any;
+  List<String> _any;
   String _final;
 
   /** The initial substring filter component. Zero or one */
   String get initial => _initial;
   /** The list of "any" components. Zero or more */
-  String get any => _any;
+  List<String> get any => _any;
   /** The final component. Zero or more */
   String get finalString => _final;
 
-  SubstringFilter.rfc224(String attributeName, {String initial, String any, String finalValue})  : super(Filter.TYPE_SUBSTRING){
+  SubstringFilter.rfc224(String attributeName, {String initial, List<String> any: const [], String finalValue})  : super(Filter.TYPE_SUBSTRING){
     this._attributeName = attributeName;
     _final = finalValue;
     _any = any == null ? []: any;
     _initial = initial;
+
+
   }
 
   SubstringFilter.fromPattern(String attributeName, String pattern)
@@ -248,9 +250,9 @@ class SubstringFilter extends Filter {
     if (x.last != "") {
       _final = x.last;
     }
-    _any = "";
+    _any = [];
     for (int i = 1; i < x.length - 1; ++i) {
-        _any += x[i];
+        _any.add(x[i]);
     }
   }
 
@@ -264,9 +266,9 @@ class SubstringFilter extends Filter {
       sSeq.add(
           new ASN1OctetString(initial, tag: SubstringFilter.TYPE_SUBINITIAL));
     }
-    if (any != null && _any.length > 0) {
-      sSeq.add(
-          new ASN1OctetString(any, tag: SubstringFilter.TYPE_SUBANY));
+    if (any != null) {
+      any.forEach( (v) => sSeq.add(
+          new ASN1OctetString(v, tag: SubstringFilter.TYPE_SUBANY)));
     }
     if (finalString != null) {
       sSeq.add(
@@ -286,5 +288,5 @@ class SubstringFilter extends Filter {
       other._attributeName == _attributeName &&
       other._initial == _initial &&
       other._final == _final &&
-      other._any == _any;
+      _eq(other._any,_any);
 }

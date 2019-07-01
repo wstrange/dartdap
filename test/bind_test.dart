@@ -14,6 +14,7 @@ import 'package:dartdap/dartdap.dart';
 
 const String testConfigFile = "test/TEST-config.yaml";
 
+
 var badHost = "doesNotExist.example.com";
 var badPort = 10999; // there must not be anything listing on this port
 
@@ -51,10 +52,11 @@ FutureOr<void> doLdapOperation(LdapConnection ldap) async {
 main() async {
   // Create two connections from parameters in the config file
 
-  var p = (util.loadConfig(testConfigFile))["test-LDAP"];
+  var c = util.loadConfig(testConfigFile);
+  var p = c["test-LDAP"];
   assert(p["ssl"] == null || p["ssl"] == false);
 
-  var s = (util.loadConfig(testConfigFile))["test-LDAPS"];
+  var s = c["test-LDAPS"];
   assert(s["ssl"] == true);
 
   const bool doLogging = false;

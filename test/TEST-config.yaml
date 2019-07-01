@@ -3,28 +3,23 @@
 connections:
   test-LDAP:
     host: localhost
-    baseDN: o=userstore
-    #  port: 10389
-    #  bindDN: cn=Manager,dc=example,dc=com
-    #  password: p@ssw0rd
+    baseDN: dc=example,dc=com
     port: 1389
     bindDN: "cn=Directory Manager"
     password: password
+    ssl: false
 
   test-LDAPS:
     host: localhost
     ssl: true
-    baseDN: o=userstore
-    #  port: 10636
-    #  bindDN: cn=Manager,dc=example,dc=com
-    #  password: p@ssw0rd
-    port: 1389
+    baseDN: dc=example,dc=com
+    port: 1636
     bindDN: "cn=Directory Manager"
     password: password
 
   opendj:
     port: 1389
     host: localhost
-    baseDN: "o=userstore"
+    baseDN: "dc=example,dc=com"
     bindDN: "cn=Directory Manager"
     password: password
