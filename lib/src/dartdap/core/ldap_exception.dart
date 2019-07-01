@@ -1,5 +1,5 @@
-part of dartdap;
-
+import 'dart:io';
+import 'ldap_result.dart';
 //===============================================================
 
 /// Abstract base class for all LDAP exceptions.

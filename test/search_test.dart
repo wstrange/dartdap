@@ -15,8 +15,8 @@ import 'package:dartdap/dartdap.dart';
 
 const String testConfigFile = "test/TEST-config.yaml";
 
-//var baseDN = new DN("dc=example,dc=com");
-var baseDN = new DN("o=userstore");
+var baseDN = new DN("dc=example,dc=com");
+//var baseDN = new DN("o=userstore");
 var testDN = baseDN.concat("ou=People");
 var nosuchDN = baseDN.concat("ou=NoSuchEntry");
 
@@ -198,7 +198,7 @@ void doTest(String configName) {
   //----------------
 
   test("search with filter: substring", () async {
-    var filter = Filter.substring("cn=uS*"); // note: cn is case-insensitive
+    var filter = Filter.substring("cn","uS*"); // note: cn is case-insensitive
     var searchAttrs = ["cn"];
 
     var count = 0;

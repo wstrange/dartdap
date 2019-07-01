@@ -1,12 +1,12 @@
 /// LDAP protocol messages.
-
 library ldap_protocol;
 
 import 'dart:typed_data';
 import 'package:asn1lib/asn1lib.dart';
 import 'package:logging/logging.dart';
 
-import 'package:dartdap/dartdap.dart';
+import '../core/core.dart';
+import '../control/control.dart';
 
 part 'protocol_op.dart';
 part 'bind_request.dart';
@@ -89,10 +89,10 @@ String _op2String(int op) {
 //----------------------------------------------------------------
 // Loggers
 
+
 /// Logger for connection events
 ///
 Logger loggerConnection = new Logger("ldap.connection");
-
 //----------------
 // Sending
 

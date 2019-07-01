@@ -13,12 +13,12 @@ main() {
   test("LDAP Filter composition ", () {
     //var xx = Filter.substring("cn=foo");
 
-    var f1 = new SubstringFilter("cn=foo*");
+    var f1 = new SubstringFilter.fromPattern("cn","foo*");
     expect(f1.any, isEmpty);
     expect(f1.initial, equals("foo"));
     expect(f1.finalString, isNull);
 
-    var f2 = new SubstringFilter("cn=*bar");
+    var f2 = new SubstringFilter.fromPattern("cn","*bar");
     expect(f2.initial, isNull);
     expect(f2.any, isEmpty);
     expect(f2.finalString, equals("bar"));

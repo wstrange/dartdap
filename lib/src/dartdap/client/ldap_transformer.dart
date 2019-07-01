@@ -1,9 +1,13 @@
-part of dartdap;
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:async';
+import '../core/core.dart';
+import '../protocol/ldap_protocol.dart';
 
 /// Returns a [StreamTransformer<Uint8List,LDAPMessage>] that transform a stream
 /// of bytes to a stream of LDAP messages.
 
-StreamTransformer<Uint8List, LDAPMessage> _createLdapTransformer() {
+StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
   Uint8List leftover = null; // unused bytes from an earlier data event, or null
 
   return new StreamTransformer.fromHandlers(

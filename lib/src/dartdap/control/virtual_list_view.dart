@@ -1,4 +1,5 @@
-part of dartdap;
+import 'control.dart';
+import 'package:asn1lib/asn1lib.dart';
 
 /// Virtual List View Controls
 /// See [http://www.ietf.org/archive/id/draft-ietf-ldapext-ldapv3-vlv-09.txt]
@@ -91,7 +92,7 @@ class VLVRequestControl extends Control {
       s.add(ASN1Integer.fromInt(contentCount));
       seq.add(s);
     } else {
-      _clogger.finest("VLV request Assertion value = $assertionValue");
+      clogger.finest("VLV request Assertion value = $assertionValue");
       seq.add(new ASN1OctetString(assertionValue.codeUnits,
           tag: TYPE_TARGET_GREATERTHANOREQUAL));
     }
@@ -120,12 +121,12 @@ class VLVResponseControl extends Control {
     // asn1 library.    octetString.unwrapSequence();
     bytes[0] = SEQUENCE_TYPE;
     var seq = new ASN1Sequence.fromBytes(bytes);
-    _clogger.finest("Create control from $s  seq=${seq}");
+    clogger.finest("Create control from $s  seq=${seq}");
 
     var x = (seq.elements.first as ASN1Sequence);
 
     // todo: confirm order of response
-    x.elements.forEach((e) => _clogger.finest(" ${e.runtimeType}  $e"));
+    x.elements.forEach((e) => clogger.finest(" ${e.runtimeType}  $e"));
     targetPosition = (x.elements[0] as ASN1Integer).intValue;
     contentCount = (x.elements[1] as ASN1Integer).intValue;
     extraParam = (x.elements[2] as ASN1Integer).intValue;

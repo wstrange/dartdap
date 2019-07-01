@@ -1,4 +1,8 @@
-part of dartdap;
+import 'package:asn1lib/asn1lib.dart';
+import 'package:collection/collection.dart';
+import 'package:quiver_hashcode/hashcode.dart';
+import 'ldap_util.dart';
+import 'ldap_exception.dart';
 
 /// An LDAP search filter.
 ///
@@ -90,7 +94,8 @@ class Filter {
   /// The _match_ must not be a single `*` (e.g. "foo=*" is not permitted). If
   /// such a filter is required, use the [present] filter instead.
 
-  static Filter substring(String pattern) => new SubstringFilter(pattern);
+  static Filter substring(String attribute, String pattern) =>
+      new SubstringFilter.fromPattern(attribute, pattern);
 
   /// Creates a [Filter] that matches an entry that contains the [attributeName]
   /// with a value that is greater than or equal to [attrValue].
@@ -114,7 +119,7 @@ class Filter {
   Filter operator |(Filter other) => Filter.or([this, other]);
 
   String toString() =>
-      "Filter(type=$_filterType attrName=$_attributeName val=$_assertionValue, subFilters=$_subFilters)";
+      "Filter(type=0x${_filterType.toRadixString(16)} attrName=$_attributeName val=$_assertionValue, subFilters=$_subFilters)";
 
   /**
     * Convert a Filter expression to an ASN1 Object
@@ -129,7 +134,7 @@ class Filter {
       case Filter.TYPE_APPROXIMATE_MATCH:
         var seq = new ASN1Sequence(tag: filterType);
         seq.add(new ASN1OctetString(attributeName));
-        seq.add(new ASN1OctetString(_LdapUtil.escapeString(assertionValue)));
+        seq.add(new ASN1OctetString(LdapUtil.escapeString(assertionValue)));
         return seq;
 
       case Filter.TYPE_AND:
@@ -158,6 +163,20 @@ class Filter {
             "Unexpected filter type = $filterType. This should never happen");
     }
   }
+
+  Function _eq = const ListEquality().equals;
+
+  //
+  bool operator ==(other) =>
+      other is Filter &&
+      other._filterType == _filterType &&
+      other._assertionValue == _assertionValue &&
+      other._attributeName == _attributeName &&
+      _eq(other._subFilters, _subFilters);
+
+  @override
+  int get hashCode =>
+      hash4(_filterType, _assertionValue, _attributeName, _subFilters);
 }
 
 /**
@@ -175,7 +194,7 @@ class SubstringFilter extends Filter {
   static const int TYPE_SUBFINAL = 0x82;
 
   String _initial;
-  List<String> _any = [];
+  List<String> _any;
   String _final;
 
   /** The initial substring filter component. Zero or one */
@@ -185,20 +204,27 @@ class SubstringFilter extends Filter {
   /** The final component. Zero or more */
   String get finalString => _final;
 
-  SubstringFilter(String pattern) : super(Filter.TYPE_SUBSTRING) {
+  SubstringFilter.rfc224(String attributeName, {String initial, List<String> any: const [], String finalValue})  : super(Filter.TYPE_SUBSTRING){
+    this._attributeName = attributeName;
+    _final = finalValue;
+    _any = any == null ? []: any;
+    _initial = initial;
+
+
+  }
+
+  SubstringFilter.fromPattern(String attributeName, String pattern)
+      : super(Filter.TYPE_SUBSTRING) {
     // todo: We probaby need to properly escape special chars = and *
-    var l = pattern.split("=");
-    if (l.length != 2 || l[0] == "" || l[1] == "") {
+    if (pattern == null || pattern.length <= 2 || !pattern.contains("*")) {
       throw new LdapUsageException(
           "Invalid substring pattern: expecting attr=match: '$pattern'");
     }
 
-    _attributeName = l[0];
-    var matchString = l[1];
-
+    this._attributeName = attributeName;
     // now parse initial, any, final
 
-    var x = matchString.split("*");
+    var x = pattern.split("*");
 
     if (x.length == 1) {
       throw new LdapUsageException(
@@ -224,8 +250,9 @@ class SubstringFilter extends Filter {
     if (x.last != "") {
       _final = x.last;
     }
+    _any = [];
     for (int i = 1; i < x.length - 1; ++i) {
-      _any.add(x[i]);
+        _any.add(x[i]);
     }
   }
 
@@ -239,8 +266,10 @@ class SubstringFilter extends Filter {
       sSeq.add(
           new ASN1OctetString(initial, tag: SubstringFilter.TYPE_SUBINITIAL));
     }
-    any.forEach((String o) =>
-        sSeq.add(new ASN1OctetString(o, tag: SubstringFilter.TYPE_SUBANY)));
+    if (any != null) {
+      any.forEach( (v) => sSeq.add(
+          new ASN1OctetString(v, tag: SubstringFilter.TYPE_SUBANY)));
+    }
     if (finalString != null) {
       sSeq.add(
           new ASN1OctetString(finalString, tag: SubstringFilter.TYPE_SUBFINAL));
@@ -251,4 +280,13 @@ class SubstringFilter extends Filter {
 
   String toString() =>
       "SubstringFilter(_init=$_initial, any=$_any, fin=$_final)";
+
+  @override
+  operator ==(other) =>
+      other is SubstringFilter &&
+      other._filterType == _filterType &&
+      other._attributeName == _attributeName &&
+      other._initial == _initial &&
+      other._final == _final &&
+      _eq(other._any,_any);
 }

@@ -1,5 +1,5 @@
 name: dartdap
-version: 0.3.5
+version: 0.4.0-beta
 authors:
 - Warren Strange <warren.strange@gmail.com>
 - Chris Ridd <chrisridd@mac.com>
@@ -14,6 +14,8 @@ environment:
 dependencies:
   asn1lib: "^0.5.3"
   logging: "^0.11.2"
+  petitparser: "^2.4.0"
+  quiver_hashcode: ^2.0.0
 dev_dependencies:
   safe_config: "^2.0.0"
   test: any
