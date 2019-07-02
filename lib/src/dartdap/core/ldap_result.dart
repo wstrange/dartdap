@@ -291,7 +291,8 @@ class SearchEntry {
 
   /// Constructor
 
-  SearchEntry(this._dn, {List<String> referrals = const []}) : _referrals = referrals;
+  SearchEntry(this._dn, {List<String> referrals = const []})
+      : _referrals = referrals;
 
   String toString() => "Entry[$_dn,$_attributes]";
 }

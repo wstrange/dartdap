@@ -10,7 +10,7 @@ description: >
     any LDAP v3 compliant server.
 homepage: https://github.com/wstrange/dartdap
 environment:
-  sdk: '>=2.0.0-dev.17.0  <3.0.0'
+  sdk: '>=2.4.0  <3.0.0'
 dependencies:
   asn1lib: "^0.5.3"
   logging: "^0.11.2"

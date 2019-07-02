@@ -1,4 +1,3 @@
-
 // todo: why a class? Make a top level functions?
 class LdapUtil {
   /**

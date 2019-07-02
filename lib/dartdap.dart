@@ -38,9 +38,7 @@ to the git repository.
 
 library dartdap;
 
-
 export 'src/dartdap/client/connection_manager.dart';
 export 'src/dartdap/client/ldap_connection.dart';
 export 'src/dartdap/core/core.dart';
 export 'src/dartdap/control/control.dart';
-

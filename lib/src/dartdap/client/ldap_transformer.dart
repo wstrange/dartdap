@@ -78,9 +78,9 @@ StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
         var message_size = (1 + length_size + value_size); // tag, length, data
 
         loggerRecvBytes.finer(() => "parsed ASN.1 object: $message_size bytes");
-        loggerRecvAsn1
-            .fine(() => "ASN.1 object received: tag=${buf[0]}, length=${value_size}");
-        loggerRecvAsn1.finest( () =>
+        loggerRecvAsn1.fine(
+            () => "ASN.1 object received: tag=${buf[0]}, length=${value_size}");
+        loggerRecvAsn1.finest(() =>
             "ASN.1 value: ${new Uint8List.view(buf.buffer, 1 + length_size, value_size)}");
 
         if (buf[0] == 10) {

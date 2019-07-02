@@ -89,7 +89,6 @@ String _op2String(int op) {
 //----------------------------------------------------------------
 // Loggers
 
-
 /// Logger for connection events
 ///
 Logger loggerConnection = new Logger("ldap.connection");
