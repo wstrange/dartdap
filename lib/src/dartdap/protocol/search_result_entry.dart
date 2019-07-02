@@ -14,10 +14,10 @@ class SearchResultEntry extends ResponseOp {
   SearchEntry get searchEntry => _searchEntry;
 
   SearchResultEntry.referral(LDAPMessage m) : super.searchEntry() {
-    loggeRecvLdap.fine( () => "Search result is a referral");
+    loggeRecvLdap.fine(() => "Search result is a referral");
     var uris = m.protocolOp.elements;
-    var l = uris.map( (obj) => (obj as ASN1OctetString).stringValue).toList();
-    _searchEntry = SearchEntry(null,referrals:l);
+    var l = uris.map((obj) => (obj as ASN1OctetString).stringValue).toList();
+    _searchEntry = SearchEntry(null, referrals: l);
   }
 
   SearchResultEntry(LDAPMessage m) : super.searchEntry() {

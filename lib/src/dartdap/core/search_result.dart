@@ -1,5 +1,6 @@
 import 'ldap_result.dart';
 import '../control/control.dart';
+
 /// Results from a search request.
 ///
 /// This object is produced by the [LdapConnection.search] method.

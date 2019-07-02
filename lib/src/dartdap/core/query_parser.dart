@@ -16,10 +16,11 @@ class QueryParser<Filter> extends GrammarParser {
   Filter getFilter(String input) {
     var result = this.parse(input);
 
-    if( result.isSuccess )
+    if (result.isSuccess)
       return result.value;
     else
-      throw new LdapParseException("Can't parse filter '$input'. Error is ${result.message}");
+      throw new LdapParseException(
+          "Can't parse filter '$input'. Error is ${result.message}");
   }
 }
 
@@ -37,14 +38,13 @@ class QueryParserDefinition extends QueryGrammarDefinition {
         //
       });
 
-  Parser<Filter> simple() =>
-      super.simple().map((each) {
+  Parser<Filter> simple() => super.simple().map((each) {
         var token = each[1] as Token;
         var s = token.value as String;
         var attrName = each[0];
         var val = each[2];
         // todo: There is prolly a better way to do this..
-        switch(s) {
+        switch (s) {
           case '=':
             return Filter.equals(attrName, val);
           case '~=':
@@ -62,23 +62,21 @@ class QueryParserDefinition extends QueryGrammarDefinition {
       super.and().map((each) => Filter.and(List<Filter>.from(each[1])));
 
   Parser<Filter> or() =>
-    super.or().map( (each) => Filter.or(List<Filter>.from(each[1])));
+      super.or().map((each) => Filter.or(List<Filter>.from(each[1])));
 
-  Parser<Filter> not() =>
-    super.not().map( (each) => Filter.not(each[1] ));
+  Parser<Filter> not() => super.not().map((each) => Filter.not(each[1]));
 
   // This doesn't appear to work. The substring grammar matches before this.
   Parser<Filter> present() =>
-    super.present().map( (each) => Filter.present(each[0]));
-  
+      super.present().map((each) => Filter.present(each[0]));
+
   // todo: There must be a better way to get petit parser to flatten this
   List<String> _flatten(List each) {
     var s = List<String>();
-    each.forEach( (val) {
-      if( val is List)
+    each.forEach((val) {
+      if (val is List)
         s.addAll(_flatten(val));
-      else if (val is String)
-        s.add(val);
+      else if (val is String) s.add(val);
     });
     return s;
   }
@@ -92,13 +90,13 @@ class QueryParserDefinition extends QueryGrammarDefinition {
         // There is a special case where the substring grammar also
         // matches the present filter. This can possibly
         // be fixed in the grammar spec - but this works:
-        if( init == null && finalVal == null && any.length == 0) {
+        if (init == null && finalVal == null && any.length == 0) {
           return Filter.present(each[0]);
         }
 
         return SubstringFilter.rfc224(each[0], // attribute name
             initial: init,
-            any:  any,
+            any: any,
             finalValue: finalVal);
       });
 }
@@ -208,5 +206,4 @@ class QueryGrammarDefinition extends GrammarDefinition {
   // todo: This needs to allow the escape sequence.  \xx
   // Parser value() => letter() & word().star();
   Parser value() => word().plus();
-
 }

@@ -1,4 +1,3 @@
-
 class SearchScope {
   static const int BASE_LEVEL = 0;
   static const int ONE_LEVEL = 1;

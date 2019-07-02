@@ -1,4 +1,3 @@
-
 /**
  * An LDAP modification operation type.
  *

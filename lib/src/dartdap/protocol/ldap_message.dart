@@ -104,7 +104,7 @@ class LDAPMessage {
       if (c[0] == Control.CONTROLS_TAG)
         _controls = new ASN1Sequence.fromBytes(c);
     }
-    loggeRecvLdap.fine( () =>
+    loggeRecvLdap.fine(() =>
         "LDAP message received: Id=${messageId} protocolOp=${protocolOp}");
   }
 

@@ -1130,9 +1130,8 @@ class LdapConnection {
       int sizeLimit: 0,
       List<Control> controls: null}) async {
     var filter = queryParser.getFilter(query);
-    return this.search(baseDN, filter, attributes,
-          scope: scope, sizeLimit: sizeLimit);
-
+    return this
+        .search(baseDN, filter, attributes, scope: scope, sizeLimit: sizeLimit);
   }
 
   //----------------------------------------------------------------
