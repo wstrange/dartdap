@@ -1,6 +1,5 @@
 import 'package:dartdap/dartdap.dart';
 import 'package:petitparser/petitparser.dart';
-import 'package:petitparser/petitparser.dart' as prefix0;
 import 'filter.dart';
 
 // Create LDAP Queries using https://tools.ietf.org/html/rfc2254 syntax
@@ -71,6 +70,8 @@ class QueryParserDefinition extends QueryGrammarDefinition {
       super.present().map((each) => Filter.present(each[0]));
 
   // todo: There must be a better way to get petit parser to flatten this
+  // The list is going to be a list of strings and the * token
+  // We flatten the list - ommitting the * token.
   List<String> _flatten(List each) {
     var s = List<String>();
     each.forEach((val) {
@@ -166,12 +167,14 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser filtertype() => ref(EQUAL) | ref(approx) | ref(GREATER) | ref(LESS);
 
   //  present    = attr "=*"
-  // always matches the substring!!!!
+  // Note: Does not work if used. Always matches the substring rule, not this.
   Parser present() => ref(attr) & ref(token, '=*');
 
   // todo:
   //  extensible = attr [":dn"] [":" matchingrule] ":=" value
   //  / [":dn"] ":" matchingrule ":=" value
+
+
 
   //  substring  = attr "=" [initial] any [final]
   //  [notation] means "optional"
@@ -179,7 +182,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
       ref(attr) &
       ref(EQUAL) &
       ref(initial).optional() &
-      ref(any) &
+      ref(_any) &
       ref(_final).optional();
 
   //  initial    = value
@@ -188,22 +191,31 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser _final() => ref(value);
 
   //  any        = "*" *(value "*")
-  Parser any() => STAR() & (ref(value) & STAR()).star();
-  //Parser any() => STAR() & (value() & STAR());
-  // Parser any() => STAR() & starValue();
+  Parser _any() => STAR() & (ref(value) & STAR()).star();
 
-  //Parser starValue() => (ref(value) & STAR() & starValue()).optional();
-
-//  final      = value
 
   //  attr       = AttributeDescription from Section 4.1.5 of [1]
-  Parser attr() => word().plus();
+  Parser attr() => pattern('a-zA-Z0-9\-.').plus();
 
   // todo:
   //  matchingrule = MatchingRuleId from Section 4.1.9 of [1]
 
+
+
   //  value      = AttributeValue from Section 4.1.6 of [1]
-  // todo: This needs to allow the escape sequence.  \xx
-  // Parser value() => letter() & word().star();
-  Parser value() => word().plus();
+  // todo: This needs to allow the escape sequence, unicode characters, etc
+  // See https://tools.ietf.org/html/rfc4512
+  // Note: The petit pattern uses ^ to invert the match.
+  // Works - but is not complete / correct.
+  Parser value() => pattern('a-zA-Z0-9-._\\').plus() ;
+
+  //Parser value() => pattern('^=)');
+
+
+// Taken from Dart parser. String
+//  Parser STRING_CONTENT_DQ() =>
+//      pattern('^\\"\n\r') | char('\\') & pattern('\n\r');
+
+
+
 }

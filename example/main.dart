@@ -7,13 +7,13 @@ Future example() async {
 
   var host = "localhost";
   var ssl = false; // true = use LDAPS (i.e. LDAP over SSL/TLS)
-  var port = null; // null = use standard LDAP/LDAPS port
+  var port;      // null = use standard LDAP/LDAPS port
   var bindDN = "cn=Manager,dc=example,dc=com"; // null=unauthenticated
   var password = "p@ssw0rd";
 
   var connection = new LdapConnection(host: host);
   connection.setProtocol(ssl, port);
-  connection.setAuthentication(bindDN, password);
+  await connection.setAuthentication(bindDN, password);
 
   try {
     // Perform search operation

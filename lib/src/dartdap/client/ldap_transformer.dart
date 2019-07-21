@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:async';
-import '../core/core.dart';
 import '../protocol/ldap_protocol.dart';
 
 /// Returns a [StreamTransformer<Uint8List,LDAPMessage>] that transform a stream

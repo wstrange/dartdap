@@ -37,9 +37,7 @@ class Filter {
   List<Filter> _subFilters = new List<Filter>();
   List<Filter> get subFilters => _subFilters;
 
-  /**
-   * BER types
-   */
+  // BER Types
   static const int TYPE_AND = 0xA0;
   static const int TYPE_OR = 0xA1;
   static const int TYPE_NOT = 0xA2;
@@ -121,11 +119,9 @@ class Filter {
   String toString() =>
       "Filter(type=0x${_filterType.toRadixString(16)} attrName=$_attributeName val=$_assertionValue, subFilters=$_subFilters)";
 
-  /**
-    * Convert a Filter expression to an ASN1 Object
-    *
-    * This may be called recursively
-    */
+
+  /// Convert a Filter expression to an ASN1 Object
+  /// This may be called recursively
   ASN1Object toASN1() {
     switch (filterType) {
       case Filter.TYPE_EQUALITY:
@@ -166,7 +162,6 @@ class Filter {
 
   Function _eq = const ListEquality().equals;
 
-  //
   bool operator ==(other) =>
       other is Filter &&
       other._filterType == _filterType &&
@@ -179,10 +174,9 @@ class Filter {
       hash4(_filterType, _assertionValue, _attributeName, _subFilters);
 }
 
-/**
- * A Substring filter
- * Clients should not need to invoke this directly. Use [Filter.substring()]
- */
+
+ /// A Substring filter
+ /// Clients should not need to invoke this directly. Use [Filter.substring()]
 class SubstringFilter extends Filter {
   /// BER type for initial part of string filter
   static const int TYPE_SUBINITIAL = 0x80;
@@ -205,7 +199,7 @@ class SubstringFilter extends Filter {
   String get finalString => _final;
 
   SubstringFilter.rfc224(String attributeName,
-      {String initial, List<String> any: const [], String finalValue})
+      {String initial, List<String> any = const [], String finalValue})
       : super(Filter.TYPE_SUBSTRING) {
     this._attributeName = attributeName;
     _final = finalValue;

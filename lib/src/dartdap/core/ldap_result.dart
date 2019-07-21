@@ -86,7 +86,7 @@ class LdapResult {
   /// Constructor
 
   LdapResult(this._resultCode, this._matchedDN, this._diagnosticMessage,
-      this._referralURLs) {}
+      this._referralURLs);
 
   String toString() =>
       ResultCode.message(_resultCode) +
@@ -403,7 +403,7 @@ class ResultCode {
 
   /// Constructor from an integer value.
 
-  ResultCode(this._value) {}
+  ResultCode(this._value);
 
   /// The equality operator
   ///
