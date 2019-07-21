@@ -1,5 +1,9 @@
 # Dartdap Change Log
 
+## 0.4.2 
+
+* Fix missing dependency. Address some analyser warnings.
+
 ## 0.4.0-beta
 
 * New Feature: LDAP query parser. implements https://tools.ietf.org/html/rfc2254
