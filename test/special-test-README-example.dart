@@ -18,7 +18,7 @@ Future example() async {
 
   var connection = new LdapConnection(host: host);
   connection.setProtocol(ssl, port);
-  connection.setAuthentication(bindDN, password);
+  await connection.setAuthentication(bindDN, password);
 
   try {
     // Perform search operation

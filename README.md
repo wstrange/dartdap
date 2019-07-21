@@ -388,6 +388,11 @@ new Logger("ldap").level = Level.OFF;
 
 ## Breaking changes
 
+### Version 0.4.0
+
+* `LdapConnection.search` new signature is `search(attributeName,searchExpression)`
+* A new `LdapConnection.query(attr,searchQuery)` supports rfc2254 query filters.
+
 ### Version 0.1.x to 0.2.x
 
 - `LdapConnection` changed to support automatic
@@ -458,3 +463,7 @@ new Logger("ldap").level = Level.OFF;
   cleaned up. This should not be noticable by existing code,
   unless it was directly referencing those internal libraries
   or files.
+
+## References
+
+https://tools.ietf.org/html/rfc4511

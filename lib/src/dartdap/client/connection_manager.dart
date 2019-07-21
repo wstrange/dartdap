@@ -365,7 +365,7 @@ class ConnectionManager {
    * server
    */
   bool _messagesToSend() =>
-      (!_outgoingMessageQueue.isEmpty) && (_bindPending == false);
+      (_outgoingMessageQueue.isNotEmpty) && (_bindPending == false);
 
   //----------------------------------------------------------------
   // Send a single message to the server
@@ -397,7 +397,7 @@ class ConnectionManager {
       });
     } catch (e) {
       loggerSendBytes.severe("[${op.message.messageId}] caught: $e");
-      throw e;
+      rethrow;
     }
   }
 

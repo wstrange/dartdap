@@ -66,10 +66,10 @@ class LDAPMessage {
   /// the total length of this encoded message in bytes
   int get messageLength => _obj.totalEncodedByteLength;
 
-  LDAPMessage(this._messageId, RequestOp rop, [List<Control> controls = null]) {
+  LDAPMessage(this._messageId, RequestOp rop, [List<Control> controls]) {
     _protocolTag = rop.protocolOpCode;
     _obj = rop.toASN1();
-    if (controls != null && controls.length > 0) {
+    if (controls != null && controls.isNotEmpty) {
       _controls = new ASN1Sequence(tag: CONTROLS);
       controls.forEach((control) {
         _controls.add(control.toASN1());
