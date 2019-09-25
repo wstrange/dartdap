@@ -1,4 +1,7 @@
 # Dartdap Change Log
+## 0.4.3 
+
+Fix #28
 
 ## 0.4.2 
 

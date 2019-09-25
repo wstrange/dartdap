@@ -8,14 +8,12 @@ import 'ldap_transformer.dart';
 import 'dart:async';
 import 'dart:typed_data';
 
-/**
- * Holds a pending LDAP operation that we have issued to the server. We
- * expect to get a response back from the server for this op. We match
- * the response against the message Id. example: We send request with id = 1234,
- * we expect a response with id = 1234
- *
- * todo: Implement timeouts?
- */
+/// Holds a pending LDAP operation that we have issued to the server. We
+/// expect to get a response back from the server for this op. We match
+/// the response against the message Id. example: We send request with id = 1234,
+/// we expect a response with id = 1234
+///
+/// todo: Implement timeouts?
 abstract class _PendingOp {
   Stopwatch _stopwatch = new Stopwatch()..start();
 
@@ -119,11 +117,9 @@ typedef bool BadCertHandlerType(X509Certificate cert);
 
 //================================================================
 
-/**
- * Manages the state of the LDAP connection.
- *
- * Queues LDAP operations and sends them to the LDAP server.
- */
+/// Manages the state of the LDAP connection.
+///
+/// Queues LDAP operations and sends them to the LDAP server.
 
 class ConnectionManager {
   // Queue for all outbound messages.
@@ -153,7 +149,7 @@ class ConnectionManager {
   bool _ssl;
   SecurityContext _context;
 
-  BadCertHandlerType _badCertHandler = null;
+  BadCertHandlerType _badCertHandler;
 
   /// Completes when the stream transformer is done.
   /// Indicates the connection is completely closed.
@@ -357,13 +353,11 @@ class ConnectionManager {
 
   //----------------------------------------------------------------
 
-  /**
-   * Return TRUE if there are messages waiting to be sent.
-   *
-   * Note that BIND is synchronous (as per LDAP spec) - so if there is a pending BIND
-   * we must wait to send more messages until the BIND response comes back from the
-   * server
-   */
+  /// Return TRUE if there are messages waiting to be sent.
+  ///
+  /// Note that BIND is synchronous (as per LDAP spec) - so if there is a pending BIND
+  /// we must wait to send more messages until the BIND response comes back from the
+  /// server
   bool _messagesToSend() =>
       (_outgoingMessageQueue.isNotEmpty) && (_bindPending == false);
 
@@ -405,15 +399,13 @@ class ConnectionManager {
   // Disconnecting
 
   //----------------------------------------------------------------
-  /**
-   *
-   *
-   * Close the LDAP connection.
-   *
-   * Pending operations will be allowed to finish, unless immediate = true
-   *
-   * Returns a Future that is called when the connection is closed
-   */
+  ///
+  ///
+  /// Close the LDAP connection.
+  ///
+  /// Pending operations will be allowed to finish, unless immediate = true
+  ///
+  /// Returns a Future that is called when the connection is closed
 
   Future close(bool immediate) async {
     if (immediate || _canClose()) {
@@ -440,9 +432,7 @@ class ConnectionManager {
   }
 
   //----------------------------------------------------------------
-  /**
-   * Return true if there are no more pending messages.
-   */
+  /// Return true if there are no more pending messages.
   bool _canClose() {
     if (_pendingResponseMessages.isEmpty && _outgoingMessageQueue.isEmpty) {
       return true;

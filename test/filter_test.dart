@@ -3,7 +3,6 @@
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 
-
 // TODO: We should also test the query parser as well.
 // One test for the Filter(), one to see if the Filter() created by the parser
 // also produces the same encoding.

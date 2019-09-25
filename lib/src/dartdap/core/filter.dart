@@ -116,9 +116,14 @@ class Filter {
   /// Operator version of the [or] filter factory method.
   Filter operator |(Filter other) => Filter.or([this, other]);
 
-  String toString() =>
-      "Filter(type=0x${_filterType.toRadixString(16)} attrName=$_attributeName val=$_assertionValue, subFilters=$_subFilters)";
-
+  String toString() {
+    var s = "Filter(type=0x${_filterType.toRadixString(16)}";
+    if (_attributeName != null) s += ",attributeName=$_attributeName";
+    if (_assertionValue != null) s += ",value=$_assertionValue,";
+    if (_subFilters != null) s += _subFilters.toString();
+    s += ")";
+    return s;
+  }
 
   /// Convert a Filter expression to an ASN1 Object
   /// This may be called recursively
@@ -174,9 +179,8 @@ class Filter {
       hash4(_filterType, _assertionValue, _attributeName, _subFilters);
 }
 
-
- /// A Substring filter
- /// Clients should not need to invoke this directly. Use [Filter.substring()]
+/// A Substring filter
+/// Clients should not need to invoke this directly. Use [Filter.substring()]
 class SubstringFilter extends Filter {
   /// BER type for initial part of string filter
   static const int TYPE_SUBINITIAL = 0x80;
@@ -273,7 +277,7 @@ class SubstringFilter extends Filter {
   }
 
   String toString() =>
-      "SubstringFilter(_init=$_initial, any=$_any, fin=$_final)";
+      'SubstringFilter(initial=$_initial, ${_any != null ? "any=$_any" : ""},  ${_final != null ? "final $_final" : ""})';
 
   @override
   operator ==(other) =>
