@@ -23,7 +23,7 @@ var badPort = 10999; // there must not be anything listing on this port
 var allowAnonymousSearch = false;
 //----------------------------------------------------------------
 
-var testDN = new DN("dc=example,dc=com");
+var testDN = DN("dc=example,dc=com");
 
 /// Perform some LDAP operation.
 ///
@@ -32,8 +32,9 @@ var testDN = new DN("dc=example,dc=com");
 ///
 FutureOr<void> doLdapOperation(LdapConnection ldap) async {
 
-  if( ! allowAnonymousSearch )
+  if( ! allowAnonymousSearch ) {
     return;
+  }
 
   var filter = Filter.present("cn");
   var searchAttrs = ["cn", "sn"];
@@ -72,12 +73,12 @@ main() async {
 
     Logger.root.level = Level.OFF;
 
-    new Logger("ldap").level = Level.INFO;
-    new Logger("ldap.connection").level = Level.INFO;
-    new Logger("ldap.send.ldap").level = Level.INFO;
-    new Logger("ldap.send.bytes").level = Level.INFO;
-    new Logger("ldap.recv.bytes").level = Level.INFO;
-    new Logger("ldap.recv.asn1").level = Level.INFO;
+    Logger("ldap").level = Level.INFO;
+    Logger("ldap.connection").level = Level.INFO;
+    Logger("ldap.send.ldap").level = Level.INFO;
+    Logger("ldap.send.bytes").level = Level.INFO;
+    Logger("ldap.recv.bytes").level = Level.INFO;
+    Logger("ldap.recv.asn1").level = Level.INFO;
   }
 
   //================================================================
@@ -89,7 +90,7 @@ main() async {
     group("connect succeeds", () {
       group("anonymous", () {
         test("using LDAP", () async {
-          var ldap = new LdapConnection(
+          var ldap = LdapConnection(
               host: p["host"], ssl: p["ssl"], port: p["port"]);
           await ldap.setAutomaticMode(false);
 
@@ -176,7 +177,7 @@ main() async {
         //----------------
 
         test("close test", () async {
-          var ldap = new LdapConnection(
+          var ldap = LdapConnection(
               host: p["host"], ssl: p["ssl"], port: p["port"]);
           await ldap.setAutomaticMode(false);
 
@@ -204,7 +205,7 @@ main() async {
         //----------------
 
         test("using LDAPS", () async {
-          var ldaps = new LdapConnection(
+          var ldaps = LdapConnection(
               host: s["host"],
               ssl: s["ssl"],
               port: s["port"],
@@ -238,7 +239,7 @@ main() async {
 
       group("authenticated", () {
         test("using LDAP", () async {
-          var ldap = new LdapConnection(
+          var ldap = LdapConnection(
               host: p["host"],
               ssl: p["ssl"],
               port: p["port"],
@@ -315,7 +316,7 @@ main() async {
         //----------------
 
         test("using LDAPS", () async {
-          var ldaps = new LdapConnection(
+          var ldaps = LdapConnection(
               host: s["host"],
               ssl: s["ssl"],
               port: s["port"],
@@ -367,7 +368,7 @@ main() async {
 
       test("using LDAPS on LDAP", () async {
         var bad =
-            new LdapConnection(host: p["host"], ssl: true, port: p["port"]);
+            LdapConnection(host: p["host"], ssl: true, port: p["port"]);
         await bad.setAutomaticMode(false);
 
         expect(bad.state, equals(ConnectionState.closed));
@@ -389,7 +390,7 @@ main() async {
     // Test does not work yet: can't capture the timeout exception
 
     test("using LDAP on LDAPS", () async {
-      var bad = new LDAPConnection(s["host"],
+      var bad = LDAPConnection(s["host"],
           ssl: false, port: s["port"], autoConnect: false);
 
       expect(bad.state, equals(LdapConnectionState.closed));
@@ -408,7 +409,7 @@ main() async {
       // Should not get to here
       assert(false);
       expect(bad.state, equals(LdapConnectionState.closed));
-    }, timeout: new Timeout(new Duration(seconds: 3))
+    }, timeout: Timeout(Duration(seconds: 3))
         // , skip: "this never fails and the test timesout"
         );
     */
@@ -421,7 +422,7 @@ main() async {
     group("TCP/IP socket fails", () {
       test("using LDAP on non-existant host", () async {
         var bad =
-            new LdapConnection(host: badHost, ssl: p["ssl"], port: p["port"]);
+            LdapConnection(host: badHost, ssl: p["ssl"], port: p["port"]);
 
         try {
           await bad.open();
@@ -436,7 +437,7 @@ main() async {
 
       test("using LDAPS on non-existant host", () async {
         var bad =
-            new LdapConnection(host: badHost, ssl: s["ssl"], port: s["port"]);
+            LdapConnection(host: badHost, ssl: s["ssl"], port: s["port"]);
 
         try {
           await bad.open();
@@ -450,7 +451,7 @@ main() async {
 
       test("using LDAP on non-existant port", () async {
         var bad =
-            new LdapConnection(host: p["host"], ssl: p["ssl"], port: badPort);
+            LdapConnection(host: p["host"], ssl: p["ssl"], port: badPort);
 
         try {
           await bad.open();
@@ -465,7 +466,7 @@ main() async {
 
       test("using LDAPS on non-existant port", () async {
         var bad =
-            new LdapConnection(host: s["host"], ssl: s["ssl"], port: badPort);
+            LdapConnection(host: s["host"], ssl: s["ssl"], port: badPort);
 
         try {
           await bad.open();
@@ -485,7 +486,7 @@ main() async {
       //----------------
 
       test('with constructor credentials', () async {
-        var ldap = new LdapConnection(
+        var ldap = LdapConnection(
             host: p["host"],
             ssl: p["ssl"],
             port: p["port"],
@@ -556,7 +557,7 @@ main() async {
 
       test('with setAuthentication credentials', () async {
         var ldap =
-            new LdapConnection(host: p["host"], ssl: p["ssl"], port: p["port"]);
+            LdapConnection(host: p["host"], ssl: p["ssl"], port: p["port"]);
         await ldap.setAutomaticMode(false);
 
         expect(ldap.isAuthenticated, isFalse);
@@ -590,7 +591,7 @@ main() async {
 
       test('with bad DN fails', () async {
         var ldap =
-            new LdapConnection(host: p["host"], ssl: p["ssl"], port: p["port"]);
+            LdapConnection(host: p["host"], ssl: p["ssl"], port: p["port"]);
         await ldap.setAutomaticMode(false);
 
         expect(ldap.isAuthenticated, isFalse);
@@ -623,7 +624,7 @@ main() async {
 
       test('with bad password fails', () async {
         var ldap =
-            new LdapConnection(host: p["host"], ssl: p["ssl"], port: p["port"]);
+            LdapConnection(host: p["host"], ssl: p["ssl"], port: p["port"]);
         await ldap.setAutomaticMode(false);
 
         expect(ldap.isAuthenticated, isFalse);
@@ -662,7 +663,7 @@ main() async {
     group("automatic open", () {
       test("anonymous", () async {
         var ldap =
-            new LdapConnection(host: p["host"], ssl: p["ssl"], port: p["port"]);
+            LdapConnection(host: p["host"], ssl: p["ssl"], port: p["port"]);
 
         expect(ldap.state, equals(ConnectionState.closed));
         expect(ldap.isAuthenticated, isFalse);
@@ -718,7 +719,7 @@ main() async {
       });
 
       test("authenticated", () async {
-        var ldap = new LdapConnection(
+        var ldap = LdapConnection(
             host: p["host"],
             ssl: p["ssl"],
             port: p["port"],
@@ -775,7 +776,7 @@ main() async {
       //----------------
 
       test('succeess', () async {
-        var ldap = new LdapConnection(
+        var ldap = LdapConnection(
             host: p["host"],
             ssl: p["ssl"],
             port: p["port"],
@@ -818,7 +819,7 @@ main() async {
       //----------------
 
       test('with bad password fails with LDAP operation', () async {
-        var ldap = new LdapConnection(
+        var ldap = LdapConnection(
             host: p["host"],
             ssl: p["ssl"],
             port: p["port"],
@@ -842,7 +843,7 @@ main() async {
       //----------------
 
       test('with bad password fails with explicit open', () async {
-        var ldap = new LdapConnection(
+        var ldap = LdapConnection(
             host: p["host"],
             ssl: p["ssl"],
             port: p["port"],
@@ -867,7 +868,7 @@ main() async {
 
       test('with bad password fails with setAuthentication', () async {
         var ldap =
-            new LdapConnection(host: p["host"], ssl: p["ssl"], port: p["port"]);
+            LdapConnection(host: p["host"], ssl: p["ssl"], port: p["port"]);
 
         expect(ldap.isAutomatic, isTrue);
         expect(ldap.isAuthenticated, isFalse);
@@ -896,7 +897,7 @@ main() async {
       //----------------
 
       test('for open', () async {
-        var ldap = new LdapConnection(
+        var ldap = LdapConnection(
             host: p["host"],
             ssl: p["ssl"],
             port: p["port"],
@@ -932,7 +933,7 @@ main() async {
       //----------------
 
       test('for bind', () async {
-        var ldap = new LdapConnection(
+        var ldap = LdapConnection(
             host: p["host"],
             ssl: p["ssl"],
             port: p["port"],

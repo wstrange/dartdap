@@ -1,4 +1,9 @@
 # Dartdap Change Log
+## 0.4.4
+
+* Added a SimplePagedResult Control and a sample
+* Extensive update to remove use of the "new" keyword
+
 ## 0.4.3 
 
 Fix #28

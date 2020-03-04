@@ -15,7 +15,7 @@ const String testConfigFile = "test/TEST-config.yaml";
 
 // Base
 
-final baseDN = new DN("dc=example,dc=com");
+final baseDN = DN("dc=example,dc=com");
 
 // Test branch
 
@@ -70,7 +70,7 @@ void doTests(String configName) {
   setUp(() async {
     var map = util.loadConfig(testConfigFile);
     var c = map[configName];
-    ldap = new LdapConnection(host: c["host"],
+    ldap = LdapConnection(host: c["host"],
         ssl: c["ssl"],
         port: c["port"],
         bindDN: c["bindDN"],

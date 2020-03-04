@@ -12,7 +12,7 @@ class ProtocolOp {
    * Sublclasses must add additional elements
    */
   ASN1Sequence _startSequence() {
-    var seq = new ASN1Sequence(tag: _protocolOp);
+    var seq = ASN1Sequence(tag: _protocolOp);
     return seq;
   }
 }
@@ -72,17 +72,17 @@ class ResponseOp {
       loggeRecvLdap.finer("Parse LDAP result: type=$o");
       // collect refs.... we dont really deal with these now...
       //var rs = s.elements[3] as ASN1Sequence;
-      //refURLs = new List.from(rs.elements);
+      //refURLs = List.from(rs.elements);
 
       /*
        *   case TYPE_REFERRAL_URLS:
-            final ArrayList<String> refList = new ArrayList<String>(1);
+            final ArrayList<String> refList = ArrayList<String>(1);
             final ASN1StreamReaderSequence refSequence = reader.beginSequence();
             while (refSequence.hasMoreElements())
             {
               refList.add(reader.readString());
             }
-            referralURLs = new String[refList.size()];
+            referralURLs = String[refList.size()];
             refList.toArray(referralURLs);
             break;
 
@@ -91,11 +91,11 @@ class ResponseOp {
             break;
 
           case TYPE_EXTENDED_RESPONSE_VALUE:
-            value = new ASN1OctetString(type, reader.readBytes());
+            value = ASN1OctetString(type, reader.readBytes());
             break;
        *
        */
     }
-    return new LdapResult(resultCode, matchedDN, diagnosticMessage, refURLs);
+    return LdapResult(resultCode, matchedDN, diagnosticMessage, refURLs);
   }
 }

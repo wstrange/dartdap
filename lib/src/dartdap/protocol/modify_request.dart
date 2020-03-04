@@ -25,12 +25,12 @@ class ModifyRequest extends RequestOp {
 
   ASN1Object toASN1() {
     var seq = _startSequence();
-    seq.add(new ASN1OctetString(_dn));
+    seq.add(ASN1OctetString(_dn));
 
-    var modSeq = new ASN1Sequence();
+    var modSeq = ASN1Sequence();
 
     _mods.forEach((Modification m) {
-      var s = new ASN1Sequence();
+      var s = ASN1Sequence();
       // Fix for #21 - this should be an enum.
       s.add(ASN1Enumerated(m.operation));
       s.add(_encodeAttrTypeAndValues(m.attributeName, m.values));
@@ -50,12 +50,12 @@ class ModifyRequest extends RequestOp {
   */
 
   ASN1Sequence _encodeAttrTypeAndValues(String attrName, List values) {
-    var s = new ASN1Sequence();
-    s.add(new ASN1OctetString(attrName));
+    var s = ASN1Sequence();
+    s.add(ASN1OctetString(attrName));
     // Fix for #21 - this should be a Set, not a Sequence
-    var ss = new ASN1Set();
+    var ss = ASN1Set();
     values.forEach((v) {
-      ss.add(new ASN1OctetString(v));
+      ss.add(ASN1OctetString(v));
     });
     s.add(ss);
     return s;

@@ -7,7 +7,7 @@
 
 class Attribute {
   String _name;
-  Set _values = new Set();
+  Set _values = Set();
 
   /// The name of the attribute.
   String get name => _name;
@@ -60,9 +60,9 @@ class Attribute {
   /// [Set] and LDAP [Attribute] objects.
 
   static Map<String, Attribute> newAttributeMap(Map<String, dynamic> m) {
-    var newmap = new Map<String, Attribute>();
+    var newmap = Map<String, Attribute>();
     m.forEach((k, v) {
-      newmap[k] = (v is Attribute ? v : new Attribute(k, v));
+      newmap[k] = (v is Attribute ? v : Attribute(k, v));
     });
     return newmap;
   }

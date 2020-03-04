@@ -19,7 +19,7 @@
  * SearchRequest request = ...;
  *
  * Comparator&lt;Entry> comparator = SortKey.comparator("cn");
- * Set&lt;SearchResultEntry>; results = new TreeSet&lt;SearchResultEntry>(comparator);
+ * Set&lt;SearchResultEntry>; results = TreeSet&lt;SearchResultEntry>(comparator);
  *
  * connection.search(request, results);
  * </pre>

@@ -15,8 +15,8 @@ import 'package:dartdap/dartdap.dart';
 
 const String testConfigFile = "test/TEST-config.yaml";
 
-var baseDN = new DN("dc=example,dc=com");
-//var baseDN = new DN("o=userstore");
+var baseDN = DN("dc=example,dc=com");
+//var baseDN = DN("o=userstore");
 var testDN = baseDN.concat("ou=People");
 var nosuchDN = baseDN.concat("ou=NoSuchEntry");
 
@@ -83,7 +83,7 @@ void doTest(String configName) {
 
   setUp(() async {
     var c = (util.loadConfig(testConfigFile))[configName];
-    ldap = new LdapConnection(
+    ldap = LdapConnection(
         host: c["host"],
         ssl: c["ssl"],
         port: c["port"],
@@ -278,14 +278,14 @@ void setupLogging([Level commonLevel = Level.OFF]) {
   // "FINEST" or "ALL".
 
   //Logger.root.level = Level.OFF;
-  //new Logger("ldap").level = Level.ALL;
-  //new Logger("ldap.connection").level = Level.OFF;
-  //new Logger("ldap.recv").level = Level.OFF;
-  //new Logger("ldap.recv.ldap").level = Level.OFF;
-  //new Logger("ldap.send").level = Level.OFF;
-  //new Logger("ldap.recv.ldap").level = Level.OFF;
-  //new Logger("ldap.recv.asn1").level = Level.OFF;
-  //new Logger("ldap.recv.bytes").level = Level.OFF;
+  //Logger("ldap").level = Level.ALL;
+  //Logger("ldap.connection").level = Level.OFF;
+  //Logger("ldap.recv").level = Level.OFF;
+  //Logger("ldap.recv.ldap").level = Level.OFF;
+  //Logger("ldap.send").level = Level.OFF;
+  //Logger("ldap.recv.ldap").level = Level.OFF;
+  //Logger("ldap.recv.asn1").level = Level.OFF;
+  //Logger("ldap.recv.bytes").level = Level.OFF;
 }
 
 //----------------------------------------------------------------

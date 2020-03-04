@@ -19,25 +19,25 @@ class ServerSideSortRequestControl extends Control {
   ASN1Sequence toASN1() {
     var seq = startSequence();
 
-    var sortKeyseq = new ASN1Sequence();
+    var sortKeyseq = ASN1Sequence();
 
     sortKeys.forEach((key) {
       //_clogger.finest("Adding sort key $key");
-      var s = new ASN1Sequence();
-      s.add(new ASN1OctetString(key.attributeDescription));
+      var s = ASN1Sequence();
+      s.add(ASN1OctetString(key.attributeDescription));
       if (key.orderMatchingRule != null) {
-        s.add(new ASN1OctetString(key.orderMatchingRule,
+        s.add(ASN1OctetString(key.orderMatchingRule,
             tag: TYPE_ORDERING_RULE_ID));
       }
       if (key.isReverseOrder) {
-        var b = new ASN1Boolean(true,
+        var b = ASN1Boolean(true,
             tag:
                 TYPE_REVERSE_ORDER); //todo: we should support tag override for asn1 bool
         s.add(b);
       }
       sortKeyseq.add(s);
     });
-    var os = new ASN1OctetString(sortKeyseq.encodedBytes);
+    var os = ASN1OctetString(sortKeyseq.encodedBytes);
     seq.add(os);
     //_clogger.finest("asn1 = $seq");
 

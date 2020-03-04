@@ -34,7 +34,7 @@ class Filter {
   String get attributeName => _attributeName;
 
   // nested filters
-  List<Filter> _subFilters = new List<Filter>();
+  List<Filter> _subFilters = List<Filter>();
   List<Filter> get subFilters => _subFilters;
 
   // BER Types
@@ -66,21 +66,21 @@ class Filter {
 
   /// Creates a [Filter] that matches an entry that has an attribute with the given value.
   static Filter equals(String attributeName, String attrValue) =>
-      new Filter(TYPE_EQUALITY, attributeName, attrValue);
+      Filter(TYPE_EQUALITY, attributeName, attrValue);
 
   /// Creates a [Filter] that matches entries that matches all of the [filters].
   static Filter and(List<Filter> filters) =>
-      new Filter(TYPE_AND, null, null, filters);
+      Filter(TYPE_AND, null, null, filters);
 
   /// Creates a [Filter] that matches entries that matches at least one of the [filters].
   static Filter or(List<Filter> filters) =>
-      new Filter(TYPE_OR, null, null, filters);
+      Filter(TYPE_OR, null, null, filters);
 
   /// Creates a [Filter] that matches entries that don't match on [f].
-  static Filter not(Filter f) => new Filter(TYPE_NOT, null, null, [f]);
+  static Filter not(Filter f) => Filter(TYPE_NOT, null, null, [f]);
 
   /// Creates a [Filter] that matches an entry contains an attribute.
-  static Filter present(String attrName) => new Filter(TYPE_PRESENCE, attrName);
+  static Filter present(String attrName) => Filter(TYPE_PRESENCE, attrName);
 
   /// Creates a [Filter] that matches on a substring.
   ///
@@ -93,22 +93,22 @@ class Filter {
   /// such a filter is required, use the [present] filter instead.
 
   static Filter substring(String attribute, String pattern) =>
-      new SubstringFilter.fromPattern(attribute, pattern);
+      SubstringFilter.fromPattern(attribute, pattern);
 
   /// Creates a [Filter] that matches an entry that contains the [attributeName]
   /// with a value that is greater than or equal to [attrValue].
   static Filter greaterOrEquals(String attributeName, String attrValue) =>
-      new Filter(TYPE_GREATER_OR_EQUAL, attributeName, attrValue);
+      Filter(TYPE_GREATER_OR_EQUAL, attributeName, attrValue);
 
   /// Creates a [Filter] that matches an entry that contains the [attributeName]
   /// with a value that is less than or equal to [attrValue].
   static Filter lessOrEquals(String attributeName, String attrValue) =>
-      new Filter(TYPE_LESS_OR_EQUAL, attributeName, attrValue);
+      Filter(TYPE_LESS_OR_EQUAL, attributeName, attrValue);
 
   /// Creates a [Filter] that matches an entry that contains the [attributeName]
   /// that approximately matches [attrValue].
   static Filter approx(String attributeName, String attrValue) =>
-      new Filter(TYPE_APPROXIMATE_MATCH, attributeName, attrValue);
+      Filter(TYPE_APPROXIMATE_MATCH, attributeName, attrValue);
 
   /// Operator version of the [and] filter factory method.
   Filter operator &(Filter other) => Filter.and([this, other]);
@@ -133,26 +133,26 @@ class Filter {
       case Filter.TYPE_GREATER_OR_EQUAL:
       case Filter.TYPE_LESS_OR_EQUAL:
       case Filter.TYPE_APPROXIMATE_MATCH:
-        var seq = new ASN1Sequence(tag: filterType);
-        seq.add(new ASN1OctetString(attributeName));
-        seq.add(new ASN1OctetString(LdapUtil.escapeString(assertionValue)));
+        var seq = ASN1Sequence(tag: filterType);
+        seq.add(ASN1OctetString(attributeName));
+        seq.add(ASN1OctetString(LdapUtil.escapeString(assertionValue)));
         return seq;
 
       case Filter.TYPE_AND:
       case Filter.TYPE_OR:
-        var aset = new ASN1Set(tag: filterType);
+        var aset = ASN1Set(tag: filterType);
         subFilters.forEach((Filter subf) {
           aset.add(subf.toASN1());
         });
         return aset;
 
       case Filter.TYPE_PRESENCE:
-        return new ASN1OctetString(attributeName, tag: filterType);
+        return ASN1OctetString(attributeName, tag: filterType);
 
       case Filter.TYPE_NOT:
         // like AND/OR but with only one subFilter.
         assert(subFilters != null);
-        var notObj = new ASN1Set(tag: filterType);
+        var notObj = ASN1Set(tag: filterType);
         notObj.add(subFilters[0].toASN1());
         return notObj;
 
@@ -160,7 +160,7 @@ class Filter {
         throw "Not Done yet. Fix me!!";
 
       default:
-        throw new LdapUsageException(
+        throw LdapUsageException(
             "Unexpected filter type = $filterType. This should never happen");
     }
   }
@@ -195,9 +195,9 @@ class SubstringFilter extends Filter {
   List<String> _any;
   String _final;
 
-  /** The initial substring filter component. Zero or one */
+  /// The initial substring filter component. Zero or one
   String get initial => _initial;
-  /** The list of "any" components. Zero or more */
+  /// The list of "any" components. Zero or more
   List<String> get any => _any;
   /** The final component. Zero or more */
   String get finalString => _final;
@@ -215,7 +215,7 @@ class SubstringFilter extends Filter {
       : super(Filter.TYPE_SUBSTRING) {
     // todo: We probaby need to properly escape special chars = and *
     if (pattern == null || pattern.length <= 2 || !pattern.contains("*")) {
-      throw new LdapUsageException(
+      throw LdapUsageException(
           "Invalid substring pattern: expecting attr=match: '$pattern'");
     }
 
@@ -225,12 +225,12 @@ class SubstringFilter extends Filter {
     var x = pattern.split("*");
 
     if (x.length == 1) {
-      throw new LdapUsageException(
+      throw LdapUsageException(
           "Invalid substring pattern: missing '*': '$pattern'");
     }
 
     if (!x.any((s) => s.isNotEmpty)) {
-      throw new LdapUsageException(
+      throw LdapUsageException(
           "Invalid substring pattern: use \"present\" filter instead: '$pattern'");
     }
 
@@ -255,22 +255,22 @@ class SubstringFilter extends Filter {
   }
 
   ASN1Object toASN1() {
-    var seq = new ASN1Sequence(tag: filterType);
-    seq.add(new ASN1OctetString(attributeName));
+    var seq = ASN1Sequence(tag: filterType);
+    seq.add(ASN1OctetString(attributeName));
     // sub sequence embeds init,any,final
-    var sSeq = new ASN1Sequence();
+    var sSeq = ASN1Sequence();
 
     if (initial != null) {
       sSeq.add(
-          new ASN1OctetString(initial, tag: SubstringFilter.TYPE_SUBINITIAL));
+          ASN1OctetString(initial, tag: SubstringFilter.TYPE_SUBINITIAL));
     }
     if (any != null) {
       any.forEach((v) =>
-          sSeq.add(new ASN1OctetString(v, tag: SubstringFilter.TYPE_SUBANY)));
+          sSeq.add(ASN1OctetString(v, tag: SubstringFilter.TYPE_SUBANY)));
     }
     if (finalString != null) {
       sSeq.add(
-          new ASN1OctetString(finalString, tag: SubstringFilter.TYPE_SUBFINAL));
+          ASN1OctetString(finalString, tag: SubstringFilter.TYPE_SUBFINAL));
     }
     seq.add(sSeq);
     return seq;

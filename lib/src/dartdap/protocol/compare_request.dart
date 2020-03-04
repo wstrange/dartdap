@@ -18,11 +18,11 @@ class CompareRequest extends RequestOp {
 
   ASN1Object toASN1() {
     var seq = _startSequence();
-    seq.add(new ASN1OctetString(_dn));
+    seq.add(ASN1OctetString(_dn));
 
-    var attrSeq = new ASN1Sequence();
-    attrSeq.add(new ASN1OctetString(_attrName));
-    attrSeq.add(new ASN1OctetString(_attrValue.toString()));
+    var attrSeq = ASN1Sequence();
+    attrSeq.add(ASN1OctetString(_attrName));
+    attrSeq.add(ASN1OctetString(_attrValue.toString()));
     seq.add(attrSeq);
     return seq;
   }

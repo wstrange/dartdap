@@ -4,7 +4,7 @@ class AddRequest extends RequestOp {
   String _dn; // dn of entry we are adding
   Map<String, Attribute> _attributes; // attribute of object
 
-  AddRequest(this._dn, Map<String, Attribute> this._attributes)
+  AddRequest(this._dn, this._attributes)
       : super(ADD_REQUEST);
 
   /*
@@ -25,16 +25,16 @@ class AddRequest extends RequestOp {
 
   ASN1Object toASN1() {
     var seq = _startSequence();
-    seq.add(new ASN1OctetString(_dn));
+    seq.add(ASN1OctetString(_dn));
 
-    var attrSeq = new ASN1Sequence();
+    var attrSeq = ASN1Sequence();
 
     _attributes.forEach((k, Attribute attr) {
-      var s = new ASN1Sequence();
-      s.add(new ASN1OctetString(attr.name));
-      var ss = new ASN1Set(); // fixes #21
+      var s = ASN1Sequence();
+      s.add(ASN1OctetString(attr.name));
+      var ss = ASN1Set(); // fixes #21
       attr.values.forEach((dynamic val) {
-        ss.add(new ASN1OctetString(val));
+        ss.add(ASN1OctetString(val));
       });
       s.add(ss);
       attrSeq.add(s);

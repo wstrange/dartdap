@@ -91,29 +91,29 @@ String _op2String(int op) {
 
 /// Logger for connection events
 ///
-Logger loggerConnection = new Logger("ldap.connection");
+Logger loggerConnection = Logger("ldap.connection");
 //----------------
 // Sending
 
 /// Logger for sent LDAP messages
 ///
-Logger loggerSendLdap = new Logger("ldap.send.ldap");
+Logger loggerSendLdap = Logger("ldap.send.ldap");
 
 /// Logger for sent bytes
 ///
-Logger loggerSendBytes = new Logger("ldap.send.bytes");
+Logger loggerSendBytes = Logger("ldap.send.bytes");
 
 //----------------
 // Receiving
 
 /// Logger for received LDAP messages
 ///
-Logger loggeRecvLdap = new Logger("ldap.recv.ldap");
+Logger loggeRecvLdap = Logger("ldap.recv.ldap");
 
 /// Logger for received ASN.1 objects
 ///
-Logger loggerRecvAsn1 = new Logger("ldap.recv.asn1");
+Logger loggerRecvAsn1 = Logger("ldap.recv.asn1");
 
 /// Logger for received bytes
 ///
-Logger loggerRecvBytes = new Logger("ldap.recv.bytes");
+Logger loggerRecvBytes = Logger("ldap.recv.bytes");

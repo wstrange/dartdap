@@ -15,7 +15,7 @@ import 'dart:typed_data';
 ///
 /// todo: Implement timeouts?
 abstract class _PendingOp {
-  Stopwatch _stopwatch = new Stopwatch()..start();
+  Stopwatch _stopwatch = Stopwatch()..start();
 
   // the message we are waiting for a response from
   LDAPMessage message;
@@ -39,12 +39,12 @@ abstract class _PendingOp {
 // Stream. Used for SearchResults.
 class _StreamPendingOp extends _PendingOp {
   StreamController<SearchEntry> _controller =
-      new StreamController<SearchEntry>();
+      StreamController<SearchEntry>();
   SearchResult _searchResult;
   SearchResult get searchResult => _searchResult;
 
   _StreamPendingOp(LDAPMessage m) : super(m) {
-    _searchResult = new SearchResult(_controller.stream);
+    _searchResult = SearchResult(_controller.stream);
   }
 
   // process the stream op - return false if we expect more data to come
@@ -70,7 +70,7 @@ class _StreamPendingOp extends _PendingOp {
     } else {
       // This is unexpected
       assert(false);
-      _controller.addError(new LdapResultUnknownCodeException(null));
+      _controller.addError(LdapResultUnknownCodeException(null));
       _controller.close(); // TODO: Is the correct way to handle this?
       done();
     }
@@ -123,13 +123,13 @@ typedef bool BadCertHandlerType(X509Certificate cert);
 
 class ConnectionManager {
   // Queue for all outbound messages.
-  Queue<_PendingOp> _outgoingMessageQueue = new Queue<_PendingOp>();
+  Queue<_PendingOp> _outgoingMessageQueue = Queue<_PendingOp>();
 
   // Messages that we are expecting a response back from the LDAP server
-  Map<int, _PendingOp> _pendingResponseMessages = new Map();
+  Map<int, _PendingOp> _pendingResponseMessages = Map();
 
   // TIMEOUT when waiting for a pending op to come back from the server.
-  static const PENDING_OP_TIMEOUT = const Duration(seconds: 3);
+  static const PENDING_OP_TIMEOUT = Duration(seconds: 3);
   //
   bool _bindPending = false; // true if a BIND is pending
   Socket _socket;
@@ -193,7 +193,7 @@ class ConnectionManager {
 
         _socket = await s;
 
-        _whenDone = new Completer();
+        _whenDone = Completer();
 
         // FIXME: I think the .cast causes bad performance...
         // https://www.dartlang.org/guides/language/effective-dart/usage#avoid-using-cast
@@ -211,10 +211,10 @@ class ConnectionManager {
       if (e.osError != null) {
         if (e.osError.errorCode == 61) {
           // errorCode 61 = "Connection refused"
-          throw new LdapSocketRefusedException(e, _host, _port);
+          throw LdapSocketRefusedException(e, _host, _port);
         } else if (e.osError.errorCode == 8) {
           // errorCode 8 = "nodename nor servname provided, or not known"
-          throw new LdapSocketServerNotFoundException(e, _host);
+          throw LdapSocketServerNotFoundException(e, _host);
         }
       }
       rethrow;
@@ -247,9 +247,10 @@ class ConnectionManager {
     // malformed LDAP. What should we do?? Not clear if
     // we should throw an exception or try to ignore the error bytes
     // and carry on....
-    if (pending_op == null)
-      throw new LdapParseException(
+    if (pending_op == null) {
+      throw LdapParseException(
           "Server sent us an unknown message id = ${m.messageId} opCode=${m.protocolTag}");
+    }
 
     if (pending_op.processResult(rop)) {
       // op is now complete. Remove it from pending q
@@ -272,13 +273,13 @@ class ConnectionManager {
       if (error.osError != null) {
         if (error.osError.errorCode == 61) {
           // errorCode 61 = "Connection refused"
-          throw new LdapSocketRefusedException(error, _host, _port);
+          throw LdapSocketRefusedException(error, _host, _port);
         } else if (error.osError.errorCode == 8) {
           // errorCode 8 = "nodename nor servname provided, or not known"
-          throw new LdapSocketServerNotFoundException(error, _host);
+          throw LdapSocketServerNotFoundException(error, _host);
         }
       }
-      throw new LdapSocketException(error);
+      throw LdapSocketException(error);
     } else {
       throw error;
     }
@@ -310,11 +311,11 @@ class ConnectionManager {
 
   SearchResult processSearch(SearchRequest rop, List<Control> controls) {
     if (isClosed()) {
-      throw new LdapUsageException("not connected");
+      throw LdapUsageException("not connected");
     }
 
-    var m = new LDAPMessage(++_nextMessageId, rop, controls);
-    var op = new _StreamPendingOp(m);
+    var m = LDAPMessage(++_nextMessageId, rop, controls);
+    var op = _StreamPendingOp(m);
     _queueOp(op);
     return op.searchResult;
   }
@@ -329,11 +330,11 @@ class ConnectionManager {
 
   Future<LdapResult> process(RequestOp rop) {
     if (isClosed()) {
-      throw new LdapUsageException("not connected");
+      throw LdapUsageException("not connected");
     }
 
-    var m = new LDAPMessage(++_nextMessageId, rop);
-    var op = new _FuturePendingOp(m);
+    var m = LDAPMessage(++_nextMessageId, rop);
+    var op = _FuturePendingOp(m);
     _queueOp(op);
     return op.completer.future;
   }
@@ -414,9 +415,9 @@ class ConnectionManager {
       loggerConnection.finer(
           "wait for queue to drain pendingResponse=$_pendingResponseMessages");
 
-      var c = new Completer();
+      var c = Completer();
       // todo: dont wait if there are no pending ops....
-      new Timer.periodic(PENDING_OP_TIMEOUT, (Timer t) {
+      Timer.periodic(PENDING_OP_TIMEOUT, (Timer t) {
         if (_canClose()) {
           t.cancel();
           _doClose().then((_) => c.complete());

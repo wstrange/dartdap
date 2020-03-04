@@ -7,7 +7,7 @@ import 'package:dartdap/dartdap.dart';
 main() {
   group('Sort Control', () {
     test('cn ascending', () {
-      var c = new ServerSideSortRequestControl([new SortKey('cn')]);
+      var c = ServerSideSortRequestControl([SortKey('cn')]);
       var b = c.toASN1().encodedBytes;
       expect(
           b,
@@ -52,7 +52,7 @@ main() {
     });
 
     test('cn descending', () {
-      var c = new ServerSideSortRequestControl([new SortKey('cn', null, true)]);
+      var c = ServerSideSortRequestControl([SortKey('cn', null, true)]);
       var b = c.toASN1().encodedBytes;
       // fails, waiting for asn1boolean tagging fix
       expect(
@@ -101,9 +101,9 @@ main() {
     });
 
     test('cn sn ascending', () {
-      var cn = new SortKey('cn');
-      var sn = new SortKey('sn');
-      var c = new ServerSideSortRequestControl([cn, sn]);
+      var cn = SortKey('cn');
+      var sn = SortKey('sn');
+      var c = ServerSideSortRequestControl([cn, sn]);
       var b = c.toASN1().encodedBytes;
       expect(
           b,
@@ -156,7 +156,7 @@ main() {
 
   group('VLV Control', () {
     test('assertion', () {
-      var c = new VLVRequestControl.assertionControl('example', 0, 19,
+      var c = VLVRequestControl.assertionControl('example', 0, 19,
           critical: true);
       var b = c.toASN1().encodedBytes;
       expect(
@@ -215,7 +215,7 @@ main() {
     });
 
     test('offset', () {
-      var c = new VLVRequestControl.offsetControl(1, 0, 0, 19, null,
+      var c = VLVRequestControl.offsetControl(1, 0, 0, 19, null,
           critical: true);
       var b = c.toASN1().encodedBytes;
       expect(

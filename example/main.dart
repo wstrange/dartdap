@@ -6,13 +6,12 @@ Future example() async {
   // Create an LDAP connection object
 
   var host = "localhost";
-  var ssl = false; // true = use LDAPS (i.e. LDAP over SSL/TLS)
-  var port;      // null = use standard LDAP/LDAPS port
   var bindDN = "cn=Manager,dc=example,dc=com"; // null=unauthenticated
   var password = "p@ssw0rd";
 
-  var connection = new LdapConnection(host: host);
-  connection.setProtocol(ssl, port);
+  var connection = LdapConnection(host: host, ssl: false, port: 1389);
+  // todo: Revamp this - get rid of nulls
+  // connection.setProtocol(ssl, port);
   await connection.setAuthentication(bindDN, password);
 
   try {

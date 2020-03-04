@@ -4,14 +4,14 @@ import "package:safe_config/safe_config.dart";
 
 
 class TestConfiguration extends Configuration {
-  TestConfiguration(String filename): super.fromFile(new File(filename));
+  TestConfiguration(String filename): super.fromFile(File(filename));
 
 
   Map<String,LDAPConnectionConfiguration> connections;
 
   LdapConnection getConnection(String configName) {
     var c = connections[configName];
-    return new LdapConnection(
+    return LdapConnection(
         host: c.host,
         ssl: c.ssl,
         port: c.port,

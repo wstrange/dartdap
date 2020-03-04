@@ -9,7 +9,7 @@ import '../protocol/ldap_protocol.dart';
 StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
   Uint8List leftover = null; // unused bytes from an earlier data event, or null
 
-  return new StreamTransformer.fromHandlers(
+  return StreamTransformer.fromHandlers(
       handleData: (Uint8List data, EventSink<LDAPMessage> sink) {
     if (data == null || data.length == 0) {
       loggerRecvBytes.fine("received: zero");
@@ -22,12 +22,12 @@ StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
     if (leftover == null) {
       // No left over bytes from before: new data only
       loggerRecvBytes.fine("received: ${data.length}");
-      buf = new Uint8List.view(data.buffer);
+      buf = Uint8List.view(data.buffer);
     } else {
       // There were left over bytes: leftover bytes + new data
       loggerRecvBytes
           .fine("received: ${data.length} (+${leftover.length} leftover)");
-      buf = new Uint8List(leftover.length + data.length);
+      buf = Uint8List(leftover.length + data.length);
       buf.setRange(0, leftover.length, leftover);
       buf.setRange(leftover.length, buf.length, data);
       leftover = null;
@@ -80,7 +80,7 @@ StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
         loggerRecvAsn1.fine(
             () => "ASN.1 object received: tag=${buf[0]}, length=${value_size}");
         loggerRecvAsn1.finest(() =>
-            "ASN.1 value: ${new Uint8List.view(buf.buffer, 1 + length_size, value_size)}");
+            "ASN.1 value: ${Uint8List.view(buf.buffer, 1 + length_size, value_size)}");
 
         if (buf[0] == 10) {
           // TODO: debug why this tag is not being parsed properly
@@ -90,7 +90,7 @@ StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
 
         // Create LDAPMessage from all the bytes of the complete ASN1 object.
 
-        var msg = new LDAPMessage.fromBytes(buf);
+        var msg = LDAPMessage.fromBytes(buf);
         assert(msg.messageLength == message_size);
 
         // Put on output stream
@@ -106,7 +106,7 @@ StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
         } else {
           // Still some bytes unprocessed: leave for next iteration of do-while loop
           buf =
-              new Uint8List.view(buf.buffer, buf.offsetInBytes + message_size);
+              Uint8List.view(buf.buffer, buf.offsetInBytes + message_size);
         }
       } else {
         // Insufficient data for a complete ASN1 object.

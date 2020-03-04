@@ -2,7 +2,7 @@ import 'control.dart';
 import 'package:asn1lib/asn1lib.dart';
 
 /// Virtual List View Controls
-/// See [http://www.ietf.org/archive/id/draft-ietf-ldapext-ldapv3-vlv-09.txt]
+/// See [https://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv-09]
 
 /// VLV Request Control. The client sends this to the server to request a VLV search
 class VLVRequestControl extends Control {
@@ -20,12 +20,11 @@ class VLVRequestControl extends Control {
   int beforeCount;
   int afterCount;
 
-  int offset = -1;
-  int contentCount = -1;
+  int offset = 0;
+  int contentCount = 100;
 
-  //List<int> assertionValue;
   String assertionValue;
-  List<int> contextId;
+  String contextId;
 
   VLVRequestControl(
       this.beforeCount, this.afterCount, this.offset, this.contentCount);
@@ -61,6 +60,11 @@ class VLVRequestControl extends Control {
     assertionValue = null;
   }
 
+  VLVRequestControl.newVLVSearch()
+      : this.offset = 0,
+        this.beforeCount = 0,
+        this.afterCount = 1000;
+
   //
   //  Creates a new virtual list view request control that will identify the
   //  target entry by an assertion value. The assertion value is encoded
@@ -83,22 +87,22 @@ class VLVRequestControl extends Control {
   ASN1Sequence toASN1() {
     var s = startSequence();
 
-    var seq = new ASN1Sequence();
-    seq.add(new ASN1Integer.fromInt(beforeCount));
+    var seq = ASN1Sequence();
+    seq.add(ASN1Integer.fromInt(beforeCount));
     seq.add(ASN1Integer.fromInt(afterCount));
     if (hasTargetOffset) {
-      var s = new ASN1Sequence(tag: TYPE_TARGET_BYOFFSET);
+      var s = ASN1Sequence(tag: TYPE_TARGET_BYOFFSET);
       s.add(ASN1Integer.fromInt(offset));
       s.add(ASN1Integer.fromInt(contentCount));
       seq.add(s);
     } else {
       clogger.finest("VLV request Assertion value = $assertionValue");
-      seq.add(new ASN1OctetString(assertionValue.codeUnits,
+      seq.add(ASN1OctetString(assertionValue.codeUnits,
           tag: TYPE_TARGET_GREATERTHANOREQUAL));
     }
-    if (contextId != null) seq.add(new ASN1OctetString(contextId));
+    if (contextId != null) seq.add(ASN1OctetString(contextId));
 
-    s.add(new ASN1OctetString(seq.encodedBytes));
+    s.add(ASN1OctetString(seq.encodedBytes));
     return s;
   }
 }
@@ -120,7 +124,7 @@ class VLVResponseControl extends Control {
     // sure why ldap does this. Consider moving this to
     // asn1 library.    octetString.unwrapSequence();
     bytes[0] = SEQUENCE_TYPE;
-    var seq = new ASN1Sequence.fromBytes(bytes);
+    var seq = ASN1Sequence.fromBytes(bytes);
     clogger.finest("Create control from $s  seq=${seq}");
 
     var x = (seq.elements.first as ASN1Sequence);

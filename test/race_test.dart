@@ -18,7 +18,7 @@ const bool doLogging = false;
 
 //----------------------------------------------------------------
 
-var testDN = new DN("dc=example,dc=com");
+var testDN = DN("dc=example,dc=com");
 
 /// Perform some LDAP operation.
 ///
@@ -58,10 +58,10 @@ var NUM_CYCLES = 4;
 main() async {
   // Create two connections from parameters in the config file
 
-  var p = new TestConfiguration(testConfigFile).connections["test-LDAP"];
+  var p = TestConfiguration(testConfigFile).connections["test-LDAP"];
   assert(p.ssl == false);
 
-  var s = new TestConfiguration(testConfigFile).connections["test-LDAPs"];
+  var s = TestConfiguration(testConfigFile).connections["test-LDAPs"];
   assert(s.ssl == true);
 
   if (doLogging) {
@@ -75,12 +75,12 @@ main() async {
 
     Logger.root.level = Level.OFF;
 
-    new Logger("ldap").level = Level.INFO;
-    new Logger("ldap.connection").level = Level.INFO;
-    new Logger("ldap.send.ldap").level = Level.INFO;
-    new Logger("ldap.send.bytes").level = Level.INFO;
-    new Logger("ldap.recv.bytes").level = Level.INFO;
-    new Logger("ldap.recv.asn1").level = Level.INFO;
+    Logger("ldap").level = Level.INFO;
+    Logger("ldap.connection").level = Level.INFO;
+    Logger("ldap.send.ldap").level = Level.INFO;
+    Logger("ldap.send.bytes").level = Level.INFO;
+    Logger("ldap.recv.bytes").level = Level.INFO;
+    Logger("ldap.recv.asn1").level = Level.INFO;
   }
 
   //================================================================
@@ -89,13 +89,13 @@ main() async {
     //----------------------------------------------------------------
 
     test("multiple opens", () async {
-      var ldap = new LdapConnection(
+      var ldap = LdapConnection(
           host: p.host, ssl: p.ssl, port: p.port);
 
       expect(ldap.state, equals(ConnectionState.closed));
       expect(ldap.isAuthenticated, isFalse);
 
-      var pending = new List<Future>();
+      var pending = List<Future>();
 
       for (var batch = 0; batch < NUM_CYCLES; batch++) {
         // Multiple asynchronous opens
@@ -127,7 +127,7 @@ main() async {
     //----------------
 
     test("multiple close", () async {
-      var ldap = new LdapConnection(
+      var ldap = LdapConnection(
           host: p.host, ssl: p.ssl, port: p.port);
 
       expect(ldap.state, equals(ConnectionState.closed));
@@ -144,7 +144,7 @@ main() async {
 
       // Close the connection
 
-      var pending = new List<Future>();
+      var pending = List<Future>();
 
       for (var batch = 0; batch < NUM_CYCLES; batch++) {
         // Multiple asynchronous opens

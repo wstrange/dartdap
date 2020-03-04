@@ -15,11 +15,12 @@ class QueryParser<Filter> extends GrammarParser {
   Filter getFilter(String input) {
     var result = this.parse(input);
 
-    if (result.isSuccess)
+    if (result.isSuccess) {
       return result.value;
-    else
-      throw new LdapParseException(
+    } else {
+      throw LdapParseException(
           "Can't parse filter '$input'. Error is ${result.message}");
+    }
   }
 }
 
@@ -75,9 +76,9 @@ class QueryParserDefinition extends QueryGrammarDefinition {
   List<String> _flatten(List each) {
     var s = List<String>();
     each.forEach((val) {
-      if (val is List)
+      if (val is List) {
         s.addAll(_flatten(val));
-      else if (val is String) s.add(val);
+      } else if (val is String) s.add(val);
     });
     return s;
   }
@@ -91,7 +92,7 @@ class QueryParserDefinition extends QueryGrammarDefinition {
         // There is a special case where the substring grammar also
         // matches the present filter. This can possibly
         // be fixed in the grammar spec - but this works:
-        if (init == null && finalVal == null && any.length == 0) {
+        if (init == null && finalVal == null && any.isEmpty) {
           return Filter.present(each[0]);
         }
 

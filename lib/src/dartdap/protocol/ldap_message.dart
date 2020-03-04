@@ -70,7 +70,7 @@ class LDAPMessage {
     _protocolTag = rop.protocolOpCode;
     _obj = rop.toASN1();
     if (controls != null && controls.isNotEmpty) {
-      _controls = new ASN1Sequence(tag: CONTROLS);
+      _controls = ASN1Sequence(tag: CONTROLS);
       controls.forEach((control) {
         _controls.add(control.toASN1());
         loggerSendLdap.finest("Adding control $control");
@@ -81,13 +81,13 @@ class LDAPMessage {
   /// Constructs an LDAP message from list of raw bytes.
   /// Bytes will be parsed as an ASN1Sequence
   LDAPMessage.fromBytes(Uint8List bytes) {
-    _obj = new ASN1Sequence.fromBytes(bytes);
+    _obj = ASN1Sequence.fromBytes(bytes);
 
     if (_obj == null) {
-      throw new LdapParseException("Parsing error on ${bytes}");
+      throw LdapParseException("Parsing error on ${bytes}");
     }
     if (elements.length != 2 && elements.length != 3) {
-      throw new LdapParseException(
+      throw LdapParseException(
           "Expecting 2 or 3 elements: got ${elements.length} obj=$_obj");
     }
 
@@ -101,8 +101,9 @@ class LDAPMessage {
     // Check if message has controls....
     if (elements.length == 3) {
       var c = elements[2].encodedBytes;
-      if (c[0] == Control.CONTROLS_TAG)
-        _controls = new ASN1Sequence.fromBytes(c);
+      if (c[0] == Control.CONTROLS_TAG) {
+        _controls = ASN1Sequence.fromBytes(c);
+      }
     }
     loggeRecvLdap.fine(() =>
         "LDAP message received: Id=${messageId} protocolOp=${protocolOp}");
@@ -111,7 +112,7 @@ class LDAPMessage {
   // Convert this LDAP message to a stream of ASN1 encoded bytes
   List<int> toBytes() {
     //logger.finest("Converting this object to bytes ${toString()}");
-    ASN1Sequence seq = new ASN1Sequence();
+    ASN1Sequence seq = ASN1Sequence();
 
     seq.add(ASN1Integer.fromInt(_messageId));
 

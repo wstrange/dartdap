@@ -32,7 +32,7 @@ class SearchResultEntry extends ResponseOp {
     // embedded sequence is attr list
     var seq = s.elements[1] as ASN1Sequence;
 
-    _searchEntry = new SearchEntry(dn);
+    _searchEntry = SearchEntry(dn);
 
     seq.elements.forEach((attr) {
       var a = attr as ASN1Sequence;
@@ -43,7 +43,7 @@ class SearchResultEntry extends ResponseOp {
           vals.elements.map((v) => (v as ASN1OctetString).stringValue).toSet();
 
       searchEntry.attributes[attrName.stringValue] =
-          new Attribute(attrName.stringValue, valSet);
+          Attribute(attrName.stringValue, valSet);
 
       loggeRecvLdap.finest("attribute: ${attrName.stringValue}=${valSet}");
     });

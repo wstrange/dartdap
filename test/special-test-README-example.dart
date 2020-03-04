@@ -16,7 +16,7 @@ Future example() async {
   var bindDN = "cn=Manager,dc=example,dc=com"; // null=unauthenticated
   var password = "p@ssw0rd";
 
-  var connection = new LdapConnection(host: host);
+  var connection = LdapConnection(host: host);
   connection.setProtocol(ssl, port);
   await connection.setAuthentication(bindDN, password);
 

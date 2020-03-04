@@ -6,7 +6,7 @@ class LdapUtil {
    *
    */
   static String escapeString(String s) {
-    StringBuffer buf = new StringBuffer();
+    StringBuffer buf = StringBuffer();
     s.codeUnits.forEach((c) {
       switch (c) {
         case 0x2a: // *
@@ -31,7 +31,7 @@ class LdapUtil {
    * each byte seperated by a space
    */
   static String toHexString(List<int> bytes) {
-    var buf = new StringBuffer();
+    var buf = StringBuffer();
 
     bytes.forEach((b) {
       buf.write(b.toRadixString(16));
@@ -49,7 +49,7 @@ class DN {
 
   DN(this._dn);
 
-  DN concat(String prefix) => new DN("$prefix,$_dn");
+  DN concat(String prefix) => DN("$prefix,$_dn");
 
   String get dn => _dn.toString();
 

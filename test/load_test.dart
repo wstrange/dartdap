@@ -18,7 +18,7 @@ const String testConfigFile = "test/TEST-config.yaml";
 
 // Base
 
-final baseDN = new DN("dc=example,dc=com");
+final baseDN = DN("dc=example,dc=com");
 
 // Test branch
 
@@ -83,9 +83,9 @@ void doTests(String configName) {
   //----------------
 
   setUp(() async {
-    var c = new TestConfiguration(testConfigFile).connections[configName];
+    var c = TestConfiguration(testConfigFile).connections[configName];
 
-    ldap = new LdapConnection(
+    ldap = LdapConnection(
         host: c.host,
         ssl: c.ssl,
         port: c.port,
@@ -123,7 +123,7 @@ void doTests(String configName) {
 
   test("add/search/delete under load with $NUM_ENTRIES entries", () async {
 
-    var loggerMain = new Logger("main");
+    var loggerMain = Logger("main");
 
     expect(NUM_ENTRIES, lessThanOrEqualTo(DIRECTORY_MIN_SIZE_LIMIT));
 
@@ -198,7 +198,7 @@ void doTests(String configName) {
     for (int x = 0; x < NUM_ENTRIES; x++) {
       await ldap.delete(branchDN.concat("cn=$cnPrefix$x").dn);
     }
-  }, timeout: new Timeout(new Duration(minutes: 5)));
+  }, timeout: Timeout(Duration(minutes: 5)));
 
   //----------------
 
@@ -264,7 +264,7 @@ void doTests(String configName) {
     for (int x = 0; x < numToCreate; x++) {
       await ldap.delete(branchDN.concat("cn=$cnPrefix$x").dn);
     }
-  }, timeout: new Timeout(new Duration(minutes: 5)));
+  }, timeout: Timeout(Duration(minutes: 5)));
   */
 }
 
@@ -284,13 +284,13 @@ void setupLogging() {
 
     Logger.root.level = Level.OFF;
 
-    new Logger("ldap").level = Level.INFO;
-    new Logger("ldap.connection").level = Level.ALL;
-    new Logger("ldap.send.ldap").level = Level.INFO;
-    new Logger("ldap.send.bytes").level = Level.INFO;
-    new Logger("ldap.recv.bytes").level = Level.INFO;
-    new Logger("ldap.recv.asn1").level = Level.INFO;
-    new Logger("main").level = Level.INFO;
+    Logger("ldap").level = Level.INFO;
+    Logger("ldap.connection").level = Level.ALL;
+    Logger("ldap.send.ldap").level = Level.INFO;
+    Logger("ldap.send.bytes").level = Level.INFO;
+    Logger("ldap.recv.bytes").level = Level.INFO;
+    Logger("ldap.recv.asn1").level = Level.INFO;
+    Logger("main").level = Level.INFO;
   }
 }
 

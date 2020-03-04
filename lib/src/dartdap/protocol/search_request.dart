@@ -46,18 +46,18 @@ class SearchRequest extends RequestOp {
   ASN1Object toASN1() {
     var seq = _startSequence();
 
-    var attrSet = new ASN1Sequence();
+    var attrSet = ASN1Sequence();
     _attributes.forEach((String attr) {
-      attrSet.add(new ASN1OctetString(attr));
+      attrSet.add(ASN1OctetString(attr));
     });
 
     seq
-      ..add(new ASN1OctetString(_baseDN))
-      ..add(new ASN1Enumerated(_scope))
-      ..add(new ASN1Enumerated(_derefPolicy))
+      ..add(ASN1OctetString(_baseDN))
+      ..add(ASN1Enumerated(_scope))
+      ..add(ASN1Enumerated(_derefPolicy))
       ..add(ASN1Integer.fromInt(_sizeLimit))
       ..add(ASN1Integer.fromInt(_timeLimit))
-      ..add(new ASN1Boolean(_typesOnly))
+      ..add(ASN1Boolean(_typesOnly))
       ..add(_filter.toASN1())
       ..add(attrSet);
 

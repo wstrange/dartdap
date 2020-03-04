@@ -32,10 +32,10 @@ class ModDNRequest extends RequestOp {
 
   ASN1Object toASN1() {
     var seq = _startSequence();
-    seq.add(new ASN1OctetString(_dn));
-    seq.add(new ASN1OctetString(_newRDN));
-    seq.add(new ASN1Boolean(_deleteOldRDN));
-    if (_newSuperiorDN != null) seq.add(new ASN1OctetString(_newSuperiorDN));
+    seq.add(ASN1OctetString(_dn));
+    seq.add(ASN1OctetString(_newRDN));
+    seq.add(ASN1Boolean(_deleteOldRDN));
+    if (_newSuperiorDN != null) seq.add(ASN1OctetString(_newSuperiorDN));
     return seq;
   }
 }

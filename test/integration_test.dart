@@ -36,9 +36,9 @@ void doTests(String configName) {
     if (configName != null) {
       // For testing purposes, load connection parameters from the
       // configName section of a config file.
-      var c = new TestConfiguration(testConfigFile).connections[configName];
+      var c = TestConfiguration(testConfigFile).connections[configName];
 
-      ldap = new LdapConnection(
+      ldap = LdapConnection(
           host: c.host,
           ssl: c.ssl,
           port: c.port,
@@ -50,7 +50,7 @@ void doTests(String configName) {
       //await ldap.bind();
     } else {
       // Or the connection parameters can be explicitly specified in code.
-      ldap = new LdapConnection(host: "localhost");
+      ldap = LdapConnection(host: "localhost");
       ldap.setProtocol(false, 10389);
       await ldap.setAuthentication("cn=Manager,dc=example,dc=com", "p@ssw0rd");
       //await ldap.open();
@@ -94,12 +94,12 @@ void doTests(String configName) {
     // Modify: change attribute values
 
     var mod1 =
-        new Modification.replace("description", ["Engineering department"]);
+        Modification.replace("description", ["Engineering department"]);
     result = await ldap.modify(engineeringDN, [mod1]);
     expect(result.resultCode, equals(0),
         reason: "could not change engineering description attribute");
 
-    var mod2 = new Modification.replace(
+    var mod2 = Modification.replace(
         "description", ["Sales department", "Business development department"]);
     result = await ldap.modify(salesDN, [mod2]);
     expect(result.resultCode, equals(0),
@@ -231,14 +231,14 @@ void setupLogging([Level commonLevel = Level.OFF]) {
   // "FINEST" or "ALL".
 
   //Logger.root.level = Level.OFF;
-  //new Logger("ldap").level = Level.OFF;
-  //new Logger("ldap.connection").level = Level.OFF;
-  //new Logger("ldap.recv").level = Level.OFF;
-  //new Logger("ldap.recv.ldap").level = Level.OFF;
-  //new Logger("ldap.send").level = Level.OFF;
-  //new Logger("ldap.recv.ldap").level = Level.OFF;
-  //new Logger("ldap.recv.asn1").level = Level.OFF;
-  //new Logger("ldap.recv.bytes").level = Level.OFF;
+  //Logger("ldap").level = Level.OFF;
+  //Logger("ldap.connection").level = Level.OFF;
+  //Logger("ldap.recv").level = Level.OFF;
+  //Logger("ldap.recv.ldap").level = Level.OFF;
+  //Logger("ldap.send").level = Level.OFF;
+  //Logger("ldap.recv.ldap").level = Level.OFF;
+  //Logger("ldap.recv.asn1").level = Level.OFF;
+  //Logger("ldap.recv.bytes").level = Level.OFF;
 }
 
 //----------------------------------------------------------------

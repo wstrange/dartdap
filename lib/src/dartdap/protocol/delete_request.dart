@@ -12,5 +12,5 @@ class DeleteRequest extends RequestOp {
 
   */
 
-  ASN1Object toASN1() => new ASN1OctetString(_dn, tag: DELETE_REQUEST);
+  ASN1Object toASN1() => ASN1OctetString(_dn, tag: DELETE_REQUEST);
 }

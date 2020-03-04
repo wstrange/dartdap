@@ -71,7 +71,7 @@ class ExtendedResponse extends ResponseOp {
   }
 
   String _elementAsString(ASN1Object _obj) {
-    var octets = new ASN1OctetString.fromBytes(_obj.encodedBytes);
+    var octets = ASN1OctetString.fromBytes(_obj.encodedBytes);
     return octets.stringValue;
   }
 }

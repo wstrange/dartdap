@@ -17,7 +17,7 @@ const String CONFIG_FILE = "test/TEST-config.yaml";
 void main() {
 
   test("simple configuration test", (){
-    var config = new TestConfiguration(CONFIG_FILE);
+    var config = TestConfiguration(CONFIG_FILE);
 
     var c = config.connections["opendj"];
 

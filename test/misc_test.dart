@@ -13,12 +13,12 @@ main() {
   test("LDAP Filter composition ", () {
     //var xx = Filter.substring("cn=foo");
 
-    var f1 = new SubstringFilter.fromPattern("cn","foo*");
+    var f1 = SubstringFilter.fromPattern("cn","foo*");
     expect(f1.any, isEmpty);
     expect(f1.initial, equals("foo"));
     expect(f1.finalString, isNull);
 
-    var f2 = new SubstringFilter.fromPattern("cn","*bar");
+    var f2 = SubstringFilter.fromPattern("cn","*bar");
     expect(f2.initial, isNull);
     expect(f2.any, isEmpty);
     expect(f2.finalString, equals("bar"));
@@ -35,8 +35,8 @@ main() {
   });
 
   test("Attribute equality", () {
-    var a1 = new Attribute("cn", "Foo");
-    var a2 = new Attribute("cn", "Foo");
+    var a1 = Attribute("cn", "Foo");
+    var a2 = Attribute("cn", "Foo");
 
     expect(a1, equals(a2));
   });
@@ -46,19 +46,19 @@ main() {
     var m = {
       "cn": "Foo",
       "sn": ["one", "two"],
-      "objectclass": new Attribute("objectclass", ["top", "inetorgperson"])
+      "objectclass": Attribute("objectclass", ["top", "inetorgperson"])
     };
 
     var m2 = Attribute.newAttributeMap(m);
 
     m2.forEach((k, v) => expect(v, const TypeMatcher<Attribute>()));
 
-    expect(m2, containsPair("cn", new Attribute("cn", "Foo")));
-    expect(m2, containsPair("sn", new Attribute("sn", ["two", "one"])));
+    expect(m2, containsPair("cn", Attribute("cn", "Foo")));
+    expect(m2, containsPair("sn", Attribute("sn", ["two", "one"])));
     expect(
         m2,
         containsPair("objectclass",
-            new Attribute("objectclass", ["top", "inetorgperson"])));
+            Attribute("objectclass", ["top", "inetorgperson"])));
   });
 /*
   test("Modifications",  () {

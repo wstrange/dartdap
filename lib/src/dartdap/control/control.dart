@@ -1,3 +1,4 @@
+import 'package:dartdap/src/dartdap/control/simple_paged_results.dart';
 import 'package:logging/logging.dart';
 import 'package:asn1lib/asn1lib.dart';
 import 'virtual_list_view.dart';
@@ -6,10 +7,11 @@ import 'server_side_sort.dart';
 export 'virtual_list_view.dart';
 export 'server_side_sort.dart';
 export 'sort_key.dart';
+export 'simple_paged_results.dart';
 
 /// Logger for the control section of dartdap.
 
-Logger clogger = new Logger("ldap.control");
+Logger clogger = Logger("ldap.control");
 
 /**
  * An LDAP Control
@@ -31,15 +33,15 @@ abstract class Control {
   // Control subclasses must override this to return their encoded representation
 
   ASN1Sequence toASN1() =>
-      throw new Exception("Not implemented. Subclass must implement");
+      throw Exception("Not implemented. Subclass must implement");
 
   /// Subclasses may want to call this to start the encoding sequence. All
   /// controls start with the OID and a critical flag, followed by the
   /// optional encoded control values
   ASN1Sequence startSequence() {
-    var seq = new ASN1Sequence();
-    seq.add(new ASN1OctetString(oid));
-    if (isCritical) seq.add(new ASN1Boolean(isCritical));
+    var seq = ASN1Sequence();
+    seq.add(ASN1OctetString(oid));
+    if (isCritical) seq.add(ASN1Boolean(isCritical));
     return seq;
   }
 
@@ -48,7 +50,7 @@ abstract class Control {
   static List<Control> parseControls(ASN1Sequence obj) {
     clogger.finest("Create Controls from $obj");
     // todo: Parse the object, return
-    var controls = [];
+    List<Control> controls = [];
 
     if (obj != null) {
       obj.elements.forEach((control) => controls.add(_parseControl(control)));
@@ -56,17 +58,27 @@ abstract class Control {
     return controls;
   }
 
-  static _parseControl(ASN1Sequence s) {
+  static Control _parseControl(ASN1Sequence s) {
     var oid = (s.elements.first as ASN1OctetString).stringValue;
     clogger.finest("Got control $oid");
     switch (oid) {
       case VLVResponseControl.OID:
-        return new VLVResponseControl.fromASN1(s.elements[1]);
+        return VLVResponseControl.fromASN1(s.elements[1]);
       case ServerSideSortResponseControl.OID:
-        return new ServerSideSortResponseControl.fromASN1(s.elements[1]);
+        return ServerSideSortResponseControl.fromASN1(s.elements[1]);
+      case SimplePagedResultsControl.OID:
+        return SimplePagedResultsControl.fromASN1(s.elements[1]);
       default:
-        throw new Exception("Control $oid not implemented");
+        throw Exception("Control $oid not implemented");
     }
+  }
+
+  // Some ldap controls wrap a sequence as an octet string.
+  // this unwraps those back to a sequence.
+  ASN1Sequence octetString2Sequence(ASN1OctetString s) {
+    var bytes = s.encodedBytes;
+    bytes[0] = SEQUENCE_TYPE;
+    return ASN1Sequence.fromBytes(bytes);
   }
 
   String toString() => "$oid ${this.runtimeType}, isCritical=$isCritical}";

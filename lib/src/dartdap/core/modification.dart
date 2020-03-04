@@ -16,7 +16,7 @@ class Modification {
   String _attrName;
 
   // attr values
-  List _values = new List();
+  List _values = List();
 
   int _operation;
 
@@ -56,7 +56,7 @@ class Modification {
    *
    */
   static List<Modification> modList(List modList) {
-    var list = new List<Modification>();
+    var list = List<Modification>();
     modList.forEach((x) {
       assert(x.length == 3);
       String op = x[0];
@@ -66,16 +66,16 @@ class Modification {
 
       switch (op) {
         case "a":
-          list.add(new Modification.add(attr, vals));
+          list.add(Modification.add(attr, vals));
           break;
         case "d":
-          list.add(new Modification.delete(attr, vals));
+          list.add(Modification.delete(attr, vals));
           break;
         case "r":
-          list.add(new Modification.replace(attr, vals));
+          list.add(Modification.replace(attr, vals));
           break;
         case "i":
-          list.add(new Modification.increment(attr, vals));
+          list.add(Modification.increment(attr, vals));
           break;
       }
     });

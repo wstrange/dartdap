@@ -102,158 +102,158 @@ class LdapResult {
   LdapException exceptionFromResultCode() {
     switch (resultCode) {
       case ResultCode.OPERATIONS_ERROR:
-        return new LdapResultOperationsErrorException(this);
+        return LdapResultOperationsErrorException(this);
         break;
 
       case ResultCode.PROTOCOL_ERROR:
-        return new LdapResultProtocolErrorException(this);
+        return LdapResultProtocolErrorException(this);
         break;
 
       case ResultCode.TIME_LIMIT_EXCEEDED:
-        return new LdapResultTimeLimitExceededException(this);
+        return LdapResultTimeLimitExceededException(this);
         break;
 
       case ResultCode.SIZE_LIMIT_EXCEEDED:
-        return new LdapResultSizeLimitExceededException(this);
+        return LdapResultSizeLimitExceededException(this);
         break;
 
       case ResultCode.AUTH_METHOD_NOT_SUPPORTED:
-        return new LdapResultAuthMethodNotSupportedException(this);
+        return LdapResultAuthMethodNotSupportedException(this);
         break;
 
       case ResultCode.STRONG_AUTH_REQUIRED:
-        return new LdapResultStrongAuthRequiredException(this);
+        return LdapResultStrongAuthRequiredException(this);
         break;
 
       case ResultCode.REFERRAL:
-        return new LdapResultReferralException(this);
+        return LdapResultReferralException(this);
         break;
 
       case ResultCode.ADMIN_LIMIT_EXCEEDED:
-        return new LdapResultAdminLimitExceededException(this);
+        return LdapResultAdminLimitExceededException(this);
         break;
 
       case ResultCode.UNAVAILABLE_CRITICAL_EXTENSION:
-        return new LdapResultUnavailableCriticalExtensionException(this);
+        return LdapResultUnavailableCriticalExtensionException(this);
         break;
 
       case ResultCode.CONFIDENTIALITY_REQUIRED:
-        return new LdapResultConfidentialityRequiredException(this);
+        return LdapResultConfidentialityRequiredException(this);
         break;
 
       case ResultCode.SASL_BIND_IN_PROGRESS:
-        return new LdapResultSaslBindInProgressException(this);
+        return LdapResultSaslBindInProgressException(this);
         break;
 
       case ResultCode.NO_SUCH_ATTRIBUTE:
-        return new LdapResultNoSuchAttributeException(this);
+        return LdapResultNoSuchAttributeException(this);
         break;
 
       case ResultCode.UNDEFINED_ATTRIBUTE_TYPE:
-        return new LdapResultUndefinedAttributeTypeException(this);
+        return LdapResultUndefinedAttributeTypeException(this);
         break;
 
       case ResultCode.INAPPROPRIATE_MATCHING:
-        return new LdapResultInappropriateMatchingException(this);
+        return LdapResultInappropriateMatchingException(this);
         break;
 
       case ResultCode.CONSTRAINT_VIOLATION:
-        return new LdapResultConstraintViolationException(this);
+        return LdapResultConstraintViolationException(this);
         break;
 
       case ResultCode.ATTRIBUTE_OR_VALUE_EXISTS:
-        return new LdapResultAttributeOrValueExistsException(this);
+        return LdapResultAttributeOrValueExistsException(this);
         break;
 
       case ResultCode.INVALID_ATTRIBUTE_SYNTAX:
-        return new LdapResultInvalidAttributeSyntaxException(this);
+        return LdapResultInvalidAttributeSyntaxException(this);
         break;
 
       case ResultCode.NO_SUCH_OBJECT:
-        return new LdapResultNoSuchObjectException(this);
+        return LdapResultNoSuchObjectException(this);
         break;
 
       case ResultCode.ALIAS_PROBLEM:
-        return new LdapResultAliasProblemException(this);
+        return LdapResultAliasProblemException(this);
         break;
 
       case ResultCode.INVALID_DN_SYNTAX:
-        return new LdapResultInvalidDnSyntaxException(this);
+        return LdapResultInvalidDnSyntaxException(this);
         break;
 
       case ResultCode.IS_LEAF:
-        return new LdapResultIsLeafException(this);
+        return LdapResultIsLeafException(this);
         break;
 
       case ResultCode.ALIAS_DEREFERENCING_PROBLEM:
-        return new LdapResultAliasDereferencingProblemException(this);
+        return LdapResultAliasDereferencingProblemException(this);
         break;
 
       case ResultCode.INAPPROPRIATE_AUTHENTICATION:
-        return new LdapResultInappropriateAuthenticationException(this);
+        return LdapResultInappropriateAuthenticationException(this);
         break;
 
       case ResultCode.INVALID_CREDENTIALS:
-        return new LdapResultInvalidCredentialsException(this);
+        return LdapResultInvalidCredentialsException(this);
         break;
 
       case ResultCode.INSUFFICIENT_ACCESS_RIGHTS:
-        return new LdapResultInsufficientAccessRightsException(this);
+        return LdapResultInsufficientAccessRightsException(this);
         break;
 
       case ResultCode.BUSY:
-        return new LdapResultBusyException(this);
+        return LdapResultBusyException(this);
         break;
 
       case ResultCode.UNAVAILABLE:
-        return new LdapResultUnavailableException(this);
+        return LdapResultUnavailableException(this);
         break;
 
       case ResultCode.UNWILLING_TO_PERFORM:
-        return new LdapResultUnwillingToPerformException(this);
+        return LdapResultUnwillingToPerformException(this);
         break;
 
       case ResultCode.LOOP_DETECT:
-        return new LdapResultLoopDetectException(this);
+        return LdapResultLoopDetectException(this);
         break;
 
       case ResultCode.NAMING_VIOLATION:
-        return new LdapResultNamingViolationException(this);
+        return LdapResultNamingViolationException(this);
         break;
 
       case ResultCode.OBJECT_CLASS_VIOLATION:
-        return new LdapResultObjectClassViolationException(this);
+        return LdapResultObjectClassViolationException(this);
         break;
 
       case ResultCode.NOT_ALLOWED_ON_NONLEAF:
-        return new LdapResultNotAllowedOnNonleafException(this);
+        return LdapResultNotAllowedOnNonleafException(this);
         break;
 
       case ResultCode.NOT_ALLOWED_ON_RDN:
-        return new LdapResultNotAllowedOnRdnException(this);
+        return LdapResultNotAllowedOnRdnException(this);
         break;
 
       case ResultCode.ENTRY_ALREADY_EXISTS:
-        return new LdapResultEntryAlreadyExistsException(this);
+        return LdapResultEntryAlreadyExistsException(this);
         break;
 
       case ResultCode.OBJECT_CLASS_MODS_PROHIBITED:
-        return new LdapResultObjectClassModsProhibitedException(this);
+        return LdapResultObjectClassModsProhibitedException(this);
         break;
 
       case ResultCode.AFFECTS_MULTIPLE_DSAS:
-        return new LdapResultAffectsMultipleDsasException(this);
+        return LdapResultAffectsMultipleDsasException(this);
         break;
 
       case ResultCode.OTHER:
-        return new LdapResultOtherException(this);
+        return LdapResultOtherException(this);
         break;
 
       default:
         assert(resultCode != ResultCode.OK);
         assert(resultCode != ResultCode.COMPARE_FALSE);
         assert(resultCode != ResultCode.COMPARE_TRUE);
-        return new LdapResultUnknownCodeException(this);
+        return LdapResultUnknownCodeException(this);
         break;
     }
   }
@@ -287,7 +287,7 @@ class SearchEntry {
   /// object.
 
   Map<String, Attribute> get attributes => _attributes;
-  Map<String, Attribute> _attributes = new Map<String, Attribute>();
+  Map<String, Attribute> _attributes = Map<String, Attribute>();
 
   /// Constructor
 

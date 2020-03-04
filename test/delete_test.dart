@@ -88,18 +88,18 @@ void doTest(String configName) {
 
   setUp(() async {
 //    var c = (await config_file.loadConfig(testConfigFile))[configName];
-//    ldap = new LdapConnection(
+//    ldap = LdapConnection(
 //        host: c["host"],
 //        ssl: c["ssl"],
 //        port: c["port"],
 //        bindDN: c["bindDN"],
 //        password: c["password"]);
 
-    var cfg = new TestConfiguration(testConfigFile);
+    var cfg = TestConfiguration(testConfigFile);
     ldap = cfg.getConnection(configName);
 
 
-    baseDN = new DN(cfg.connections[configName].baseDN);
+    baseDN = DN(cfg.connections[configName].baseDN);
     branchDN =baseDN.concat("ou=$branchOU");
     testPersonDN = branchDN.concat("cn=$testPersonCN");
 

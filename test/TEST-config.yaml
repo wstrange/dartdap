@@ -20,6 +20,6 @@ connections:
   opendj:
     port: 1389
     host: localhost
-    baseDN: "dc=example,dc=com"
-    bindDN: "cn=Directory Manager"
+    baseDN: "ou=people,ou=identities"
+    bindDN: "uid=admin"
     password: password
