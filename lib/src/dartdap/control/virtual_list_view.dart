@@ -63,7 +63,7 @@ class VLVRequestControl extends Control {
   VLVRequestControl.newVLVSearch()
       : this.offset = 0,
         this.beforeCount = 0,
-        this.afterCount = 1000;
+        this.afterCount = 100;
 
   //
   //  Creates a new virtual list view request control that will identify the
@@ -77,7 +77,7 @@ class VLVRequestControl extends Control {
 
   VLVRequestControl.assertionControl(
       this.assertionValue, this.beforeCount, this.afterCount,
-      {this.contextId: null, critical: false}) {
+      {this.contextId: null, critical: true}) {
     // todo: Sanity checking!!!
     isCritical = critical;
   }
