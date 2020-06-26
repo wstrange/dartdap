@@ -1,11 +1,25 @@
 # LDAP configuration file
 
+# Connection details for the test LDAP directories referenced by the
+# tests. The example values here assumes they are available on ports
+# 1389 and 1636 on localhost (e.g. these can be SSH tunnels to the
+# actual service). If the test LDAP directory is accessed directly,
+# the port values will usually be port 389 for unsecured LDAP and port
+# 636 for LDAP over TLS.
+
+# Since all the tests should pass with different types of LDAP
+# directories, if different connection settings are needed for
+# different LDAP directories, try to create a new file with the same
+# "test-LDAP" and "test-LDAPS" connection names and symlink
+# "TEST-config.yaml" to it. That will avoid editing the tests to make
+# them work with different LDAP directories.
+
 connections:
   test-LDAP:
     host: localhost
     baseDN: dc=example,dc=com
     port: 1389
-    bindDN: "cn=Directory Manager"
+    bindDN: "cn=Manager,dc=example,dc=com"
     password: password
     ssl: false
 
@@ -14,7 +28,7 @@ connections:
     ssl: true
     baseDN: dc=example,dc=com
     port: 1636
-    bindDN: "cn=Directory Manager"
+    bindDN: "cn=Manager,dc=example,dc=com"
     password: password
 
   opendj:
@@ -23,3 +37,12 @@ connections:
     baseDN: "ou=people,ou=identities"
     bindDN: "uid=admin"
     password: password
+
+  test-dj:
+    host: localhost
+    baseDN: dc=example,dc=com
+    port: 1389
+    bindDN: "cn=Manager,dc=example,dc=com"
+    password: password
+    ssl: false
+

@@ -18,9 +18,14 @@ const String testConfigFile = "test/TEST-config.yaml";
 var badHost = "doesNotExist.example.com";
 var badPort = 10999; // there must not be anything listing on this port
 
-// Not all ldap servers allow anonymous search
+/// Not all ldap servers allow anonymous search
+///
+/// If the LDAP directory used for testing does not allow anonymous searches,
+/// set this to false and the tests that perform an anonymous search will be
+/// skipped. Set it to true to include those tests.
 
-var allowAnonymousSearch = false;
+var allowAnonymousSearch = true;
+
 //----------------------------------------------------------------
 
 var testDN = DN("dc=example,dc=com");
@@ -31,10 +36,6 @@ var testDN = DN("dc=example,dc=com");
 /// (except for BIND) which will require the connection to be open.
 ///
 FutureOr<void> doLdapOperation(LdapConnection ldap) async {
-
-  if( ! allowAnonymousSearch ) {
-    return;
-  }
 
   var filter = Filter.present("cn");
   var searchAttrs = ["cn", "sn"];
@@ -235,7 +236,7 @@ main() async {
           expect(ldaps.state, equals(ConnectionState.closed));
           expect(ldaps.isAuthenticated, isFalse);
         });
-      });
+      }, skip: !allowAnonymousSearch);
 
       group("authenticated", () {
         test("using LDAP", () async {
@@ -428,8 +429,18 @@ main() async {
           await bad.open();
           expect(false, isTrue);
         } catch (e) {
-          expect(e, const TypeMatcher<LdapSocketRefusedException>());
-          // expect(e, const TypeMatcher<LdapSocketServerNotFoundException>());
+          // TODO: confirm behaviour and fix dartdap if necessary
+          //
+          // Previously, LdapSocketRefusedException was expected and
+          // LdapSocketServerNotFoundException was commented out.
+          //
+          // LdapSocketServerNotFoundException is thrown when connecting
+          // to an OpenLDAP server (from Dart 2.8.4 on macOS connecting to
+          // OpenLDAP running on CentOS 7.2). Does it throw
+          // LdapSocketRefusedException with a different setup?
+
+          // expect(e, const TypeMatcher<LdapSocketRefusedException>());
+          expect(e, const TypeMatcher<LdapSocketServerNotFoundException>());
 
           expect(e, hasProperty("remoteServer", badHost));
         }
@@ -443,8 +454,10 @@ main() async {
           await bad.open();
           expect(false, isTrue);
         } catch (e) {
-          //expect(e, const TypeMatcher<LdapSocketServerNotFoundException>());
-          expect(e, const TypeMatcher<LdapSocketRefusedException>());
+          // TODO:  confirm behaviour and fix dartdap if necessary (see above)
+
+          expect(e, const TypeMatcher<LdapSocketServerNotFoundException>());
+          //expect(e, const TypeMatcher<LdapSocketRefusedException>());
           expect(e, hasProperty("remoteServer", badHost));
         }
       });
@@ -716,7 +729,7 @@ main() async {
 
         expect(ldap.state, equals(ConnectionState.ready));
         expect(ldap.isAuthenticated, isFalse);
-      });
+      }, skip: !allowAnonymousSearch);
 
       test("authenticated", () async {
         var ldap = LdapConnection(

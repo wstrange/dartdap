@@ -55,14 +55,16 @@ Future doLdapOperation(LdapConnection ldap) async {
 var NUM_OPEN_CLOSE = 8;
 var NUM_CYCLES = 4;
 
-main() async {
+void main() async {
   // Create two connections from parameters in the config file
 
   var p = TestConfiguration(testConfigFile).connections["test-LDAP"];
-  assert(p.ssl == false);
+  assert(p != null, 'could not load LDAP connection config');
+  assert(p.ssl == false, 'LDAP configuration is secured LDAPS');
 
-  var s = TestConfiguration(testConfigFile).connections["test-LDAPs"];
-  assert(s.ssl == true);
+  var s = TestConfiguration(testConfigFile).connections["test-LDAPS"];
+  assert(s != null, 'could not load LDAPS connection config');
+  assert(s.ssl == true, 'LDAPS configuration is unsecured LDAP');
 
   if (doLogging) {
     //  startQuickLogging();

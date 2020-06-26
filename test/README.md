@@ -10,22 +10,28 @@ This document describes the unit tests for the _dartdap_ package.
    The supplied test configuration (in _test/TEST-config.yaml_)
    expects the LDAP directory to have an entry for "dc=example,dc=com"
    and can bind to "cn=Manager,dc=example,dc=com" with the password
-   "p@ssw0rd".
+   "password". See requirements section below.
 
-   A test LDAP directory can be deployed by running the supplied script on CentOS 7:
+   A test LDAP directory can be deployed by running the supplied
+   script on CentOS 7. Copy it to a CentOS machine and run it with
+   root privileges:
 
-       testVM$  sudo ./SETUP-dartdap-testing-openldap-centOS7.sh
+       testVM$  sudo ./SETUP-openldap-centos.sh
 
 2. Establish port forwarding to the LDAP directory.
 
    The supplied test configuration expects LDAP on localhost port
-   10389 and LDAPS on localhost port 10636.
+   1389 and LDAPS on localhost port 1636.
 
-       local$  ssh -L 10389:localhost:389 -L 10636:localhost:636 username@testVM
+       local$  ssh -L 1389:localhost:389 -L 1636:localhost:636 username@testVM
 
 3. Run the tests:
 
        local$  pub run test
+
+The tests should work with any LDAP directory, as long as it satisfies
+the requirements listed below.  Testing on CentOS using OpenLDAP is
+just one possible option.
 
 ## Known issues
 
@@ -46,7 +52,7 @@ The tests requires an LDAP directory that:
 3. Contains an entry for "dc=example,dc=com".
 
 4. Allows clients to bind to "cn=Manager,dc=example,dc=com" using the
-    password "p@ssw0rd".
+    password "password".
 
 There are many LDAP directories to choose from, and many ways to
 deploy them.  The package should work with any standard implementation
@@ -54,9 +60,9 @@ of LDAP, so the tests should work on other LDAP directories. If you
 can, please test it different implementations of LDAP.
 
 It is recommended to install the test LDAP directory in a virtual
-machine. That way there is no risk of damage to a production LDAP
-directory, and it can be easily deleted and recreated to run the tests
-from a known state.
+machine. That way there is no risk of damage or unwanted changes to a
+production LDAP directory, and it can be easily deleted and recreated
+to run the tests from a known state.
 
 The sections below describe installing and configuring OpenLDAP on
 CentOS 7. It describes two alternative ways: using the provided shell
@@ -68,10 +74,10 @@ This is one way to deploy a test LDAP directory server.
 
 These instructions have been tested with CentOS 7.
 
-1. Copy the _test/SETUP-dartdap-testing-openldap-centOS7.sh_ script to the CentOS 7 virtual
+1. Copy the _test/SETUP-openldap-centos.sh_ script to the CentOS 7 virtual
    machine.
 
-        local$ scp SETUP-dartdap-testing-openldap-centOS7.sh username@testVM:
+        local$ scp SETUP-openldap-centos.sh username@testVM:
 
 2. SSH to the virtual machine.
 
@@ -79,7 +85,7 @@ These instructions have been tested with CentOS 7.
 
 3. Run the script with root privileges:
 
-        testVM$ sudo ./SETUP-dartdap-testing-openldap-centOS7.sh
+        testVM$ sudo ./SETUP-openldap-centos.sh
 
 This will install and configure OpenLDAP with an automatically
 generated self-signed certificate with the domain of "localhost"
@@ -97,7 +103,7 @@ any firewalls running.
 The script writes the admin password "s3cr3t" into
 _/etc/openldap/password-admin.txt_.
 
-The script writes the manager password "p@ssw0rd" into
+The script writes the manager password "password" into
 _/etc/openldap/password-manager.txt_.
 
 Skip down to the "SSH tunnels to the LDAP directory section.
@@ -125,7 +131,7 @@ Create a digest of the password to use with the _slappasswd_ program.
 
     # slappasswd
 
-The tests expect the password to be "p@ssw0rd", which hashes to
+The tests expect the password to be "password", which hashes to
 `{SSHA}azrR84U0RhYICNLh5am74iMxnBBaDmN9`.
 
 Edit the configuration file:
@@ -172,26 +178,26 @@ Note: configure firewall or stop it.
 
 Load the other schemas:
 
-    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/core.ldif 
-    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/cosine.ldif 
-    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/inetorgperson.ldif 
-    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/nis.ldif 
-    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/misc.ldif 
-    
+    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/core.ldif
+    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/cosine.ldif
+    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/inetorgperson.ldif
+    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/nis.ldif
+    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/misc.ldif
+
 ## SSH tunnels to the LDAP directory
 
 The supplied test configuration (in _test/TEST-config.yaml_) expects
 to contact the test LDAP directory using:
 
-- Port 10389 for LDAP (without TLS)
-- Port 10636 for LDAPS (LDAP over TLS)
+- Port 1389 for LDAP (without TLS)
+- Port 1636 for LDAPS (LDAP over TLS)
 
 This can be done by creating SSH tunnels from local machine (where the
 tests will be run) to the machine running the LDAP directory for both
-unsecured LDAP (from local port 10389) and TLS secured LDAP (from
-local port 10636).
-   
-      ssh -L 10389:localhost:389 -L 10636:localhost:636 username@testVM
+unsecured LDAP (from local port 1389) and TLS secured LDAP (from
+local port 1636).
+
+      ssh -L 1389:localhost:389 -L 1636:localhost:636 username@testVM
 
 #### Checking the tunnels
 
@@ -199,8 +205,8 @@ local port 10636).
 
 The (non-TLS) LDAP service can be tested by running _ldapsearch_:
 
-    ldapsearch -H ldap://localhost:10389 \
-      -D cn=Manager,dc=example,dc=com -x -w p@ssw0rd -b dc=example,dc=com
+    ldapsearch -H ldap://localhost:1389 \
+      -D cn=Manager,dc=example,dc=com -x -w password -b dc=example,dc=com
 
 ##### Checking LDAPS
 
@@ -210,8 +216,8 @@ check fails.
 
 The LDAPS (LDAP over TLS) service can be tested by running _ldapsearch_:
 
-    ldapsearch -H ldaps://localhost:10636 \
-      -D cn=Manager,dc=example,dc=com -x -w p@ssw0rd -b dc=example,dc=com
+    ldapsearch -H ldaps://localhost:1636 \
+      -D cn=Manager,dc=example,dc=com -x -w password -b dc=example,dc=com
 
 This check usually fails because the self-signed server certificate is
 not trusted. Run it with "-d 1": if it prints out "SSLHandshake()

@@ -37,6 +37,7 @@ void doTests(String configName) {
       // For testing purposes, load connection parameters from the
       // configName section of a config file.
       var c = TestConfiguration(testConfigFile).connections[configName];
+      assert(c != null, 'config file "$testConfigFile": missing "$configName"');
 
       ldap = LdapConnection(
           host: c.host,
@@ -51,8 +52,8 @@ void doTests(String configName) {
     } else {
       // Or the connection parameters can be explicitly specified in code.
       ldap = LdapConnection(host: "localhost");
-      ldap.setProtocol(false, 10389);
-      await ldap.setAuthentication("cn=Manager,dc=example,dc=com", "p@ssw0rd");
+      ldap.setProtocol(false, 1389);
+      await ldap.setAuthentication("cn=Manager,dc=example,dc=com", "password");
       //await ldap.open();
       //await ldap.bind();
     }

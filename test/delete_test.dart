@@ -172,7 +172,10 @@ void doTest(String configName) {
 //================================================================
 
 main() {
-  group("LDAP", () => doTest("opendj"));
+  // group("LDAP", () => doTest("opendj"));
+
+  group("LDAP", () => doTest("test-LDAP"));
+
 
   // group("LDAPS", () => doTest("test-LDAPS")); // uncomment to test with LDAPS
 }

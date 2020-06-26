@@ -70,7 +70,12 @@ void doTests(String configName) {
   setUp(() async {
     var map = util.loadConfig(testConfigFile);
     var c = map[configName];
-    ldap = LdapConnection(host: c["host"],
+    if (c == null) {
+      throw ArgumentError('unknown connection: '
+          '"$configName" not found in "$testConfigFile"');
+    }
+    ldap = LdapConnection(
+        host: c["host"],
         ssl: c["ssl"],
         port: c["port"],
         bindDN: c["bindDN"],
@@ -242,7 +247,6 @@ void doTests(String configName) {
 main() {
   //group("LDAP", () => doTests("test-LDAP"));
   group("LDAP", () => doTests("test-dj"));
-
 
   // group("LDAPS", () => doTest("test-LDAPS")); // uncomment to test with LDAPS
 }

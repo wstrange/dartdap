@@ -4,13 +4,18 @@ import "package:safe_config/safe_config.dart";
 
 
 class TestConfiguration extends Configuration {
-  TestConfiguration(String filename): super.fromFile(File(filename));
+  TestConfiguration(this.filename): super.fromFile(File(filename));
 
-
+  final String filename;
   Map<String,LDAPConnectionConfiguration> connections;
 
   LdapConnection getConnection(String configName) {
     var c = connections[configName];
+    if (c == null) {
+      throw ArgumentError('unknown connection: '
+          '"$configName" not found in "$filename"');
+    }
+
     return LdapConnection(
         host: c.host,
         ssl: c.ssl,
