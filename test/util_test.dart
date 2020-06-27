@@ -15,7 +15,7 @@ import "util.dart" as util;
 /// Common tests that can be applied to any config file.
 /// Even the default config, which specifies no directories.
 
-void commonTestsOnAnyConfig(util.Config c) {
+void commonTestsOnAnyConfig(util.Config c, {bool ignoreDirectories}) {
   // Looking for a non-existent directory configuration
 
   test("missing directory behaviour", () {
@@ -24,24 +24,31 @@ void commonTestsOnAnyConfig(util.Config c) {
     expect(c.directory(_missingDirectoryName), isNull);
   });
 
-  // The secured LDAPS directory (if it is specified) must have TLS
-  // This test will always be skipped when using the default config file.
+  if (! ignoreDirectories) {
+    // Note: sometimes these tests may be skipped: and that is ok. That happens
+    // if there is no preferred config file (so the default is loaded) or there
+    // is a custom config file that does not specify one/both of these
+    // directories. It is only a problem if these directories are specified, but
+    // specified incorrectly - and that is exactly what these tests check for.
 
-  test("directory: ${util.ldapsDirectoryName}", () {
-    final directoryConfig = c.directory(util.ldapsDirectoryName);
+    // The secured LDAPS directory (if it is specified) must have TLS
 
-    expect(directoryConfig.ssl, equals(true),
-        reason: 'TLS expected but not set: "${util.noLdapsDirectoryName}"');
-  }, skip: c.skipIfMissingDirectory(util.ldapsDirectoryName));
+    test("directory: ${util.ldapsDirectoryName}", () {
+      final directoryConfig = c.directory(util.ldapsDirectoryName);
 
-  // The non-secured LDAP directory (if it is specified) must not have TLS
-  // This test will always be skipped when using the default config file.
+      expect(directoryConfig.ssl, equals(true),
+          reason: 'TLS expected but not set: "${util.noLdapsDirectoryName}"');
+    }, skip: c.skipIfMissingDirectory(util.ldapsDirectoryName));
 
-  test("directory: ${util.noLdapsDirectoryName}", () {
-    final directoryConfig = c.directory(util.noLdapsDirectoryName);
-    expect(directoryConfig.ssl, equals(false),
-        reason: 'TLS not expected but is set): "${util.noLdapsDirectoryName}"');
-  }, skip: c.skipIfMissingDirectory(util.noLdapsDirectoryName));
+    // The non-secured LDAP directory (if it is specified) must not have TLS
+
+    test("directory: ${util.noLdapsDirectoryName}", () {
+      final directoryConfig = c.directory(util.noLdapsDirectoryName);
+      expect(directoryConfig.ssl, equals(false),
+          reason: 'TLS not expected but is set): "${util
+              .noLdapsDirectoryName}"');
+    }, skip: c.skipIfMissingDirectory(util.noLdapsDirectoryName));
+  }
 }
 
 //----------------------------------------------------------------
@@ -63,7 +70,7 @@ void main() {
 
     final c = util.Config();
 
-    commonTestsOnAnyConfig(c);
+    commonTestsOnAnyConfig(c, ignoreDirectories: false);
 
     // Nothing else can be guaranteed, since the tester can create a preferred
     // config file that is customised to their special testing needs.
@@ -78,7 +85,7 @@ void main() {
 
     final c = util.Config(filename: util.Config.defaultConfigFilename);
 
-    commonTestsOnAnyConfig(c);
+    commonTestsOnAnyConfig(c, ignoreDirectories: true);
 
     test('does not specify any directories ', () {
       expect(c.hasDefaultDirectory, isFalse);
