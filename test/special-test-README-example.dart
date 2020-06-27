@@ -59,6 +59,6 @@ Future example() async {
   }
 }
 
-main() async {
+void main() async {
   await example();
 }

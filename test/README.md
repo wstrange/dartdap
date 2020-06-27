@@ -1,269 +1,252 @@
 Testing dartdap
 ===============
 
-This document describes the unit tests for the _dartdap_ package.
+## Running tests
 
-## Quick Start
+The _dartdap_ tests are implemented using the Dart
+[test](https://pub.dev/packages/test) package.
 
-1. Deploy a test LDAP directory server.
-
-   The supplied test configuration (in _test/TEST-config.yaml_)
-   expects the LDAP directory to have an entry for "dc=example,dc=com"
-   and can bind to "cn=Manager,dc=example,dc=com" with the password
-   "password". See requirements section below.
-
-   A test LDAP directory can be deployed by running the supplied
-   script on CentOS 7. Copy it to a CentOS machine and run it with
-   root privileges:
-
-       testVM$  sudo ./SETUP-openldap-centos.sh
-
-2. Establish port forwarding to the LDAP directory.
-
-   The supplied test configuration expects LDAP on localhost port
-   1389 and LDAPS on localhost port 1636.
-
-       local$  ssh -L 1389:localhost:389 -L 1636:localhost:636 username@testVM
-
-3. Run the tests:
-
-       local$  pub run test
-
-The tests should work with any LDAP directory, as long as it satisfies
-the requirements listed below.  Testing on CentOS using OpenLDAP is
-just one possible option.
-
-## Known issues
-
-The tests all run successfully from within the WebStorm IDE.  But when
-run from the command line, some of them fail with an "_OS Error: Too
-many open files_" error message.
-
-## Test LDAP directory server
-
-### Requirements
-
-The tests requires an LDAP directory that:
-
-1. Supports the unencrypted LDAP protocol.
-
-2. Supports the LDAP over TLS (LDAPS) protocol.
-
-3. Contains an entry for "dc=example,dc=com".
-
-4. Allows clients to bind to "cn=Manager,dc=example,dc=com" using the
-    password "password".
-
-There are many LDAP directories to choose from, and many ways to
-deploy them.  The package should work with any standard implementation
-of LDAP, so the tests should work on other LDAP directories. If you
-can, please test it different implementations of LDAP.
-
-It is recommended to install the test LDAP directory in a virtual
-machine. That way there is no risk of damage or unwanted changes to a
-production LDAP directory, and it can be easily deleted and recreated
-to run the tests from a known state.
-
-The sections below describe installing and configuring OpenLDAP on
-CentOS 7. It describes two alternative ways: using the provided shell
-script and doing it manually.
-
-### Automatically creating the test LDAP directory server
-
-This is one way to deploy a test LDAP directory server.
-
-These instructions have been tested with CentOS 7.
-
-1. Copy the _test/SETUP-openldap-centos.sh_ script to the CentOS 7 virtual
-   machine.
-
-        local$ scp SETUP-openldap-centos.sh username@testVM:
-
-2. SSH to the virtual machine.
-
-        local$ ssh username@testVM
-
-3. Run the script with root privileges:
-
-        testVM$ sudo ./SETUP-openldap-centos.sh
-
-This will install and configure OpenLDAP with an automatically
-generated self-signed certificate with the domain of "localhost"
-(which will work for the tests). A PKI certificate and private key can
-also be provided to the script: use "-h" to show the available
-options.
-
-The script will also run several test queries using _ldapsearch_.  If
-the installation and configuration was successful, the tests will run
-and "success" is printed out at the end.
-
-Note: if the LDAP directory cannot be contacted, check if SELinux or
-any firewalls running.
-
-The script writes the admin password "s3cr3t" into
-_/etc/openldap/password-admin.txt_.
-
-The script writes the manager password "password" into
-_/etc/openldap/password-manager.txt_.
-
-Skip down to the "SSH tunnels to the LDAP directory section.
-
-### Manually creating the test LDAP directory server
-
-This is another way to deploy a test LDAP directory server.
-
-Install the OpenLDAP client and server.
-
-On CentOS and Fedora:
-
-    # yum install openldap-clients openldap-servers
-
-On Ubuntu:
-
-    # apt-get install libldap-2.3-0 slapd ldap-utils
-
-Note: the new version of OpenLDAP no longer reads its configuration
-from a slapd.conf file. The configurations are now stored under
-/etc/openldap/slapd.d and should be managed using the OpenLDAP server
-utilities.
-
-Create a digest of the password to use with the _slappasswd_ program.
-
-    # slappasswd
-
-The tests expect the password to be "password", which hashes to
-`{SSHA}azrR84U0RhYICNLh5am74iMxnBBaDmN9`.
-
-Edit the configuration file:
-
-    # vi "/etc/openldap/slapd.d/cn=config/olcDatabase={2}hdb.ldif"
-
-Setting the values for `olcSuffix`, `olcRootDN` and adding the
-digested password as the `olcRootPW` attribute. Warning: do not add
-any blank lines to the file.
-
-    olcSuffix: dc=example,dc=com
-    olcRootDN: cn=Manager,dc=example,dc=com
-    olcRootPW: {SSHA}azrR84U0RhYICNLh5am74iMxnBBaDmN9
-
-Optionally, check the configuration files are correct by running
-`slaptest -u`. Ignore any checksum errors that might be reported.
-
-Start the LDAP server:
-
-    # systemctl start slapd.service
-
-If an error occurs, run `systemctl status -l slapd.service` to show
-what went wrong.
-
-Test the LDAP server with a simple search:
-
-    $ ldapsearch -x
-    $ ldapsearch -x -H ldap://localhost
-    $ ldapsearch -x -b "dc=example,dc=com"
-
-This should return "no such object", since initially that entry does
-not exist.
-
-    dn: dc=example,dc=com
-    objectClass: dcObject
-    objectClass: organization
-    o: Example Organisation
-
-    # ldapadd -x -W -D "cn=Manager,dc=example,dc=com" -f root-obj.ldif
-
-Note: configure firewall or stop it.
-
-    # systemctl stop firewalld.service
-
-Load the other schemas:
-
-    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/core.ldif
-    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/cosine.ldif
-    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/inetorgperson.ldif
-    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/nis.ldif
-    ldapadd -Y EXTERNAL -H ldapi:/// -f /etc/openldap/schema/misc.ldif
-
-## SSH tunnels to the LDAP directory
-
-The supplied test configuration (in _test/TEST-config.yaml_) expects
-to contact the test LDAP directory using:
-
-- Port 1389 for LDAP (without TLS)
-- Port 1636 for LDAPS (LDAP over TLS)
-
-This can be done by creating SSH tunnels from local machine (where the
-tests will be run) to the machine running the LDAP directory for both
-unsecured LDAP (from local port 1389) and TLS secured LDAP (from
-local port 1636).
-
-      ssh -L 1389:localhost:389 -L 1636:localhost:636 username@testVM
-
-#### Checking the tunnels
-
-##### Checking LDAP
-
-The (non-TLS) LDAP service can be tested by running _ldapsearch_:
-
-    ldapsearch -H ldap://localhost:1389 \
-      -D cn=Manager,dc=example,dc=com -x -w password -b dc=example,dc=com
-
-##### Checking LDAPS
-
-This check should be skipped, because it will most likely fail (see
-below for details) -- the unit tests will still work even though this
-check fails.
-
-The LDAPS (LDAP over TLS) service can be tested by running _ldapsearch_:
-
-    ldapsearch -H ldaps://localhost:1636 \
-      -D cn=Manager,dc=example,dc=com -x -w password -b dc=example,dc=com
-
-This check usually fails because the self-signed server certificate is
-not trusted. Run it with "-d 1": if it prints out "SSLHandshake()
-failed: misc. bad certificate" that is the reason.
-
-To trust the self-signed certificate, put "TLS_REQCERT allow" in your
-"~/.ldaprc" file (see "man ldap.conf" for details).
-
-Important: remember to remove that entry when finished testing,
-otherwise the security of your local machine could be compromised.
-
-## Running the tests
-
-### Running all the tests
-
-If you have not done so already, run:
-
-    pub get
-
-Run all the tests in the directory (tests are files ending in
-`_test.dart` in the default directory called `test`):
+To run all the tests:
 
     pub run test
 
-If the tests all run successfully, it will print out "All tests
-passed".
+To run tests from a particular test file, specifying the path to the
+test file:
 
-Note: The load test might take about 30 seconds to run.
+    pub run test test/util_test.dart
 
-### Running some of the tests
+To run a particular test in a particular test file, specify the path
+to the test file and the name of the test:
 
-Run a particular test file, by specifying the path to the test file:
+    pub run test test/util_test.dart --name 'config file: test/CONFIG-default.yaml missing directory behaviour'
 
-    pub run test test/integration_test.dart
+### No setup
 
-Run a particular test in a particular test file, but specifying the
-path to the test file and the name of the test:
+Initially, the tests will load the default configuration file from
+"test/CONFIG-default.yaml". Since that configuration does not specify
+any LDAP directories to use, it will skip all the tests that require
+an LDAP directory.
 
-    pub run test test/integration_test.dart --name "search with filter: equals attribute in DN"
+For more comprehensive testing, LDAP directories are required.
 
-The tests can also be run directly as a Dart program:
+## LDAP directories
 
-    dart test/integration_test.dart
+### Requirements
 
+To support tests with special needs, multiple test directories can be
+used.
+
+Use the default directory, whenever possible, to minimises the amount
+of setup work required to create a test environment. Reuse directory
+configurations whenever possible.
+
+#### Default
+
+Most of the tests require access to a default LDAP directory. A this
+is a LDAP directory that satisfies these requirements:
+
+- Allows BIND to a entry using a password.
+- Has an LDAP entry where the tests can create/delete child entries under.
+
+The default directory has the name "default", which is available as
+the constant `Config.defaultDirectoryName`. But there are convenience
+methods available, so that constant is rarely used in code. See
+the documentation in _test/util.dart_ for details.
+
+Note: the default directory can use either LDAP or LDAPS.
+
+#### LDAPS
+
+Some of the tests require access to an LDAPS directory. In addition to
+the requirements for the default directory, connections to this
+directory *must* use LDAPS (i.e. LDAP over TLS).
+
+The LDAPS directory has the name "ldaps", which is available via the
+constant `ldapsDirectoryName` from _util.dart_.
+
+#### LDAP
+
+The BIND tests require access to an LDAP directory. In addition to
+the requirements for the default directory, connections to this
+directory *must* use LDAP (i.e. LDAP without TLS).
+
+The LDAP directory has the name "ldap", which is available via the
+constant `noLdapsDirectoryName` from _util.dart_.
+
+#### Other specialized test directories
+
+Tests with special requirements can also be supported.
+
+Since tests will be skipped if the necessary directory configuration
+is not available, these will only run if the tester has setup a test
+environment for it. So they will not prevent the other tests from
+being run in a different environment.
+
+An extreme example is the default configuration file, which does
+not specify any test directories.
+
+Use directory configuration names that identify the behaviour of the
+LDAP directory, rather how it is implementation.  For example, use
+avoid names like "openldap" or "active-directory", unless the tests
+are designed for implementation specific features of those products.
+
+### Deploying test directories
+
+Since _dartdap_ implements standard LDAP, it should work with any
+implementation of an LDAP directory.
+
+It is outside the scope of this document to describe how to setup a
+test LDAP directory in your test environment. But, for example, the
+_test/SETUP-openldap-centos.sh_ script can be used to deploy a
+standard test LDAP directory on CentOS 7 using OpenLDAP. Please
+consider writing scripts and documentation to help others setup test
+environments with with different LDAP implementations.
+
+## Configuration
+
+### File selection
+
+The tests attempt to load the configuration from a file named
+"test/CONFIG.yaml".  If that file does not exist, it will load the
+"test/CONFIG-default.yaml" file. So to override the default
+configuration, create a "test/CONFIG.yaml" file.
+
+The recommended practice is to create a separate file and make
+"test/CONFIG.yaml" a symbolic link (or shortcut) to it. That allows
+different configuration files to exist, and to change between them by
+changing the symlink.  Do not check-in the "test/CONFIG.yaml" file,
+otherwise it will prevent the default config file from being used by
+other testers until they have setup an LDAP directory that matches
+your environment. The _.gitignore_ file has entries for
+"test/CONFIG.yaml" to prevent it from being accidentally included in the
+source code repository.
+
+For example, the example "test/CONFIG-standard.yaml" configuration
+file assumes SSH port forwarding is used to connect to the LDAP
+directory. So it can be used like this on the local machine:
+
+    $ ln -s CONFIG-standard.yaml CONFIG.yaml
+    $ ssh -L 1389:localhost:389 -L 1636:localhost:636 username@testVM
+
+And the tests run from a different session on the local machine:
+
+    $ pub run test
+
+### File contents
+
+The configuration files are YAML files with two items: directories and
+logging. Both of them are optional.
+
+#### Configuration of directories
+
+The "directories" item contains a map of directories. The key is the name of the directory, and is the value
+that is used in the test. The value is a map containing these keys:
+
+- `host` for the hostname
+- `port` optional port number (defaults to the standard LDAP port 389 or the standard LDAPS port 636)
+- `tls` true for LDAPS, false for LDAP (defaults to false)
+- `validate-certificate` false means to ignore bad server certificates (default is true)
+- `bindDN` distinguished name of the entry for BIND
+- `password` password to use in the BIND
+- `baseDN` distinguished name of the entry to use in the tests
+
+#### Configuration of logging
+
+The "logging" item contains a map of log levels. The key is the name
+of the logger and the value is the logging level. The value can either
+be a string value or an integer. See the
+[logging](https://pub.dev/packages/logging) package for more details.
+
+#### Example
+
+``` yaml
+# Example test configuration
+
+directories:
+  default:
+    host: server1.test.example.org
+	port: 636
+	tls: true
+	validate-certificate: true
+	bindDN: cn=tester,ou=testing,dc=example,dc=com
+	password: secretSoDoNotCheckThisFileIn
+	baseDN: ou=test,ou=dartdap,ou=testing,dc=example,dc=com
+  custom:
+    host: server2.test.example.org
+	port: 389
+	tls: false
+	bindDN: cn=tester,ou=testing,dc=example,dc=com
+	password: secretSoDoNotCheckThisFileIn
+	baseDN: ou=test,ou=dartdap,ou=testing,dc=example,dc=com
+
+logging:
+  ldap.recv.asn1: FINE
+  ldap.recv.bytes: INFO
+  ldap.recv.ldap: FINER
+  ldap.recv: FINEST
+  ldap.send.bytes: INFO
+  ldap.send.ldap: INFO
+  ldap.send: FINEST
+  ldap: INFO
+```
+
+## Writing tests
+
+The configuration file is loaded using the `Config` constructor. A
+filename can be provided, but normally it should not be provided so
+the normal behaviour of using either "test/CONFIG.yaml" or
+"tests/CONFIG-default.yaml" is used. See the documentation/comments in
+_test/util.dart_ for more details.
+
+All tests that require an LDAP directory should be skipped if that
+directory is not available in the test environment (i.e. not specified
+in the configuration file). The `skipIfMissingDirectory` or
+`skipIfMissingDefaultDirectory` is designed for use with the _skip_
+parameter of the _test_ or _group_ method.
+
+``` dart
+void main() {
+  final config = util.Config();
+
+  group('tests', () {
+    LdapConnection ldap;
+	
+    setup(() async {
+	  ldap = config.defaultDirectory.connect();
+	});
+
+    tearDown(() async {
+	  await ldap.close();
+    });
+
+    test("foobar", () async {
+      ... use ldap ...
+	});
+
+  }, skip: config.skipIfMissingDefaultDirectory);
+
+  group('special tests', () {
+    ...
+  }, skip: config.skipIfMissingDirectory('special-directory-name'));
+}
+```
+
+Warning: the group function is still executed, even if _skip_ tells it
+to be skipped! Therefore, statements that will fail when the directory
+is not available must be placed inside actual tests or in the group's
+_setup_ method.
+
+Before checking in your tests, please make sure they work with the
+default configuration. That is, they are correctly skipped if no test
+directories are available.
+
+The goal is for the tests to run in any test environment, and for the
+tests to run without needing to modify the code. All test environment
+specific details should be specified in the configuration files.
 
 ## See also
 
-For information on writing tests see
-<https://pub.dartlang.org/packages/test>
+
+- [test](https://pub.dartlang.org/packages/test) package
+
+- [logging](https://pub.dev/packages/logging) package

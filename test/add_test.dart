@@ -11,8 +11,6 @@ import "util.dart" as util;
 
 //----------------------------------------------------------------
 
-const String testConfigFile = "test/TEST-config.yaml";
-
 // Base
 
 final baseDN = DN("dc=example,dc=com");
@@ -62,25 +60,13 @@ Future purgeEntries(LdapConnection ldap) async {
 
 //----------------------------------------------------------------
 
-void doTests(String configName) {
-  var ldap;
+void runTests(util.ConfigDirectory configDirectory) {
+  LdapConnection ldap;
 
   //----------------
 
   setUp(() async {
-    var map = util.loadConfig(testConfigFile);
-    var c = map[configName];
-    if (c == null) {
-      throw ArgumentError('unknown connection: '
-          '"$configName" not found in "$testConfigFile"');
-    }
-    ldap = LdapConnection(
-        host: c["host"],
-        ssl: c["ssl"],
-        port: c["port"],
-        bindDN: c["bindDN"],
-        password: c["password"]);
-
+    ldap = configDirectory.connect();
     await purgeEntries(ldap);
     // Nothing to populate, since these tests exercise the "add" operation
   });
@@ -88,8 +74,8 @@ void doTests(String configName) {
   //----------------
 
   tearDown(() async {
-    await purgeEntries(ldap);
-    await ldap.close();
+      await purgeEntries(ldap);
+      await ldap.close();
   });
 
   //----------------
@@ -244,9 +230,14 @@ void doTests(String configName) {
 
 //================================================================
 
-main() {
-  //group("LDAP", () => doTests("test-LDAP"));
-  group("LDAP", () => doTests("test-dj"));
+void main() {
+  final config = util.Config();
 
-  // group("LDAPS", () => doTest("test-LDAPS")); // uncomment to test with LDAPS
+  group('tests', () {
+    runTests(config.defaultDirectory);
+  }, skip: config.skipIfMissingDefaultDirectory);
+
+  group('tests over LDAPS', () {
+    runTests(config.directory(util.ldapsDirectoryName));
+  }, skip: config.skipIfMissingDirectory(util.ldapsDirectoryName));
 }

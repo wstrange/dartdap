@@ -4,11 +4,11 @@
 
 import 'dart:io';
 
-import 'package:test/test.dart';
-import 'package:logging/logging.dart';
-
 import 'package:dartdap/dartdap.dart';
-import 'test_configuration.dart';
+import 'package:logging/logging.dart';
+import 'package:test/test.dart';
+
+import 'util.dart' as util;
 
 //----------------------------------------------------------------
 
@@ -20,40 +20,42 @@ const bool KEEP_ENTRIES_FOR_DEBUGGING = false;
 
 //----------------------------------------------------------------
 
-void doTests(String configName) {
+void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
   // Normally, unit tests open the LDAP connection in the [setUp]
   // and close the connection in the [tearDown] functions.
   // Since this integration test demonstrates how the LDAP package
   // is used in a real application, everything is done inside the
   // test instead of using setUp/tearDown functions.
 
-  test('add/modify/search/delete', () async {
+  final setup = useConstructor ? 'setup with constructor': 'setup with methods';
+  test('add/modify/search/delete ($setup)', () async {
     //----------------
     // Create the connection (at the start of the test)
 
     LdapConnection ldap;
 
-    if (configName != null) {
+    if (useConstructor) {
       // For testing purposes, load connection parameters from the
       // configName section of a config file.
-      var c = TestConfiguration(testConfigFile).connections[configName];
-      assert(c != null, 'config file "$testConfigFile": missing "$configName"');
 
       ldap = LdapConnection(
-          host: c.host,
-          ssl: c.ssl,
-          port: c.port,
-          bindDN: c.bindDN,
-          password: c.password,
-          badCertificateHandler: (X509Certificate _) => true);
+          host: directoryConfig.host,
+          ssl: directoryConfig.ssl,
+          port: directoryConfig.port,
+          bindDN: directoryConfig.bindDN,
+          password: directoryConfig.password,
+          badCertificateHandler: directoryConfig.validateCertificate ? null : (X509Certificate _) => true);
       // Note: setting badCertificateHandler to accept test certificate
       //await ldap.open();
       //await ldap.bind();
     } else {
       // Or the connection parameters can be explicitly specified in code.
-      ldap = LdapConnection(host: "localhost");
-      ldap.setProtocol(false, 1389);
-      await ldap.setAuthentication("cn=Manager,dc=example,dc=com", "password");
+      ldap = LdapConnection(host: directoryConfig.host);
+      ldap.setProtocol(directoryConfig.ssl, directoryConfig.port);
+      await ldap.setAuthentication(directoryConfig.bindDN, directoryConfig.password);
+      if (! directoryConfig.validateCertificate) {
+        ldap.badCertHandler = (X509Certificate _) => true;
+      }
       //await ldap.open();
       //await ldap.bind();
     }
@@ -151,7 +153,7 @@ void doTests(String configName) {
 
     // ou=Engineering
 
-    int numFound = 0;
+    var numFound = 0;
     var searchResult = await ldap.search(baseDN, filter, queryAttrs);
     await for (var entry in searchResult.stream) {
       expect(entry, const TypeMatcher<SearchEntry>());
@@ -247,7 +249,16 @@ void setupLogging([Level commonLevel = Level.OFF]) {
 void main() {
   //setupLogging();
 
-  group("LDAP", () => doTests("test-LDAP"));
-  group("LDAPS", () => doTests("test-LDAPS"));
-  group("LDAP (connection parameters in code)", () => doTests(null));
+  final config = util.Config();
+
+  group('tests', () {
+    runTests(config.defaultDirectory, useConstructor: true);
+    runTests(config.defaultDirectory, useConstructor: false);
+  }, skip: config.skipIfMissingDefaultDirectory);
+
+  group('tests over LDAPS', () {
+    final dc = config.directory(util.ldapsDirectoryName);
+    runTests(dc, useConstructor: true);
+    runTests(dc, useConstructor: false);
+  }, skip: config.skipIfMissingDirectory(util.ldapsDirectoryName));
 }

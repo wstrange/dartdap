@@ -3,12 +3,12 @@ import 'package:dartdap/dartdap.dart';
 // if you want to use the parser trace() method to wrap the
 // import 'package:petitparser/debug.dart';
 
-main() {
+void main() {
   test("Basic Parser test", () {
     var babs = Filter.equals("cn", "Babs");
     var foo = Filter.equals("sn", "Foo");
 
-    Map<String, Filter> m = {
+    final m = <String, Filter>{
       '(cn=Babs)': babs,
       '(&(cn=Babs)(sn=Foo))': Filter.and([babs, foo]),
       '(|(cn=Babs)(sn=Foo))': Filter.or([babs, foo]),
@@ -19,7 +19,7 @@ main() {
         "sn",
         initial: "Foo",
       )),
-      '(|(cn=Babs)(sn=Foo))': Filter.or([babs, foo]),
+      // '(|(cn=Babs)(sn=Foo))': Filter.or([babs, foo]),
       '(sn~=Foo)': Filter.approx("sn", "Foo"),
       // A complex compound filter
       '(&(cn=Babs)(|(cn=Babs)(sn=Foo)))': Filter.and([
@@ -33,7 +33,7 @@ main() {
     };
 
     m.forEach((query, filter) {
-      print("eval: $query");
+      // print("eval: $query");
       var f = queryParser.getFilter(query);
       expect(f, equals(filter));
     });

@@ -7,7 +7,7 @@ import 'package:dartdap/dartdap.dart';
 // One test for the Filter(), one to see if the Filter() created by the parser
 // also produces the same encoding.
 //
-main() {
+void main() {
   group('Filter Encoding', () {
     test('(foo=bar)', () {
       var f = Filter.equals("foo", "bar");

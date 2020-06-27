@@ -3,14 +3,11 @@
 //----------------------------------------------------------------
 
 import 'dart:async';
-import 'dart:io';
-
-import 'package:logging/logging.dart';
-import 'package:test/test.dart';
 
 import 'package:dartdap/dartdap.dart';
+import 'package:test/test.dart';
 
-import 'test_configuration.dart';
+import 'util.dart' as util;
 
 //----------------------------------------------------------------
 
@@ -58,7 +55,7 @@ Future populateEntries(LdapConnection ldap) async {
 Future purgeEntries(LdapConnection ldap) async {
   // Purge the bulk person entries
 
-  for (int j = NUM_ENTRIES - 1; 0 <= j; j--) {
+  for (var j = NUM_ENTRIES - 1; 0 <= j; j--) {
     try {
       await ldap.delete(branchDN.concat("cn=$cnPrefix$j").dn);
     } catch (e) {
@@ -77,27 +74,17 @@ Future purgeEntries(LdapConnection ldap) async {
 
 //----------------------------------------------------------------
 
-void doTests(String configName) {
-  var ldap;
+void runTests(util.ConfigDirectory configDirectory) {
+  LdapConnection ldap;
 
   //----------------
 
   setUp(() async {
-    var c = TestConfiguration(testConfigFile).connections[configName];
-
-    ldap = LdapConnection(
-        host: c.host,
-        ssl: c.ssl,
-        port: c.port,
-        bindDN: c.bindDN,
-        password: c.password,
-        badCertificateHandler: (X509Certificate _) => true);
-    // Note: setting badCertificateHandler to accept test certificate
-
-    //await ldap.open();
-    //await ldap.bind();
+    ldap = configDirectory.connect();
 
     await ldap.open(); // optional step: makes log entries more sensible
+    //await ldap.bind();
+
     await purgeEntries(ldap);
     await populateEntries(ldap);
   });
@@ -268,38 +255,18 @@ void doTests(String configName) {
   */
 }
 
-//================================================================
-
-void setupLogging() {
-  const bool doLogging = false; // Enable logging by setting to true.
-
-  if (doLogging) {
-    //  startQuickLogging();
-    hierarchicalLoggingEnabled = true;
-
-    Logger.root.onRecord.listen((LogRecord rec) {
-      print(
-          '${rec.time}: ${rec.loggerName}: ${rec.level.name}: ${rec.message}');
-    });
-
-    Logger.root.level = Level.OFF;
-
-    Logger("ldap").level = Level.INFO;
-    Logger("ldap.connection").level = Level.ALL;
-    Logger("ldap.send.ldap").level = Level.INFO;
-    Logger("ldap.send.bytes").level = Level.INFO;
-    Logger("ldap.recv.bytes").level = Level.INFO;
-    Logger("ldap.recv.asn1").level = Level.INFO;
-    Logger("main").level = Level.INFO;
-  }
-}
 
 //----------------------------------------------------------------
 
-main() {
-  setupLogging();
+void main() {
+  final config = util.Config();
 
-  group("LDAP", () => doTests("test-LDAP"));
+  group('tests', () {
+    runTests(config.defaultDirectory);
+  }, skip: config.skipIfMissingDefaultDirectory);
 
-  group("LDAPS", () => doTests("test-LDAPS"));
+  group('tests over LDAPS', () {
+    runTests(config.directory(util.ldapsDirectoryName));
+  }, skip: config.skipIfMissingDirectory(util.ldapsDirectoryName));
+
 }

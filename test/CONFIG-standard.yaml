@@ -1,0 +1,48 @@
+# Standard test config file
+#
+# To run tests using this configuration, create a "CONFIG.yaml" symlink to it.
+# See README.md for details.
+#
+# DO NOT CHANGE THIS FILE. To customize for a local test environment, create
+# a new configuration file and a "CONFIG.yaml" symlink to it.
+
+directories:
+  # Directory for tests with no special requirements
+  default:
+    host: localhost
+    port: 1389
+    tls: false
+    bindDN: "cn=Manager,dc=example,dc=com"
+    password: password
+    baseDN: dc=example,dc=com
+
+  # Directory for tests that require LDAP (must not use LDAPS, i.e. no TLS)
+  ldap:
+    host: localhost
+    port: 1389  # use a SSH tunnel to port 389 on the server
+    tls: false
+    bindDN: "cn=Manager,dc=example,dc=com"
+    password: password
+    baseDN: dc=example,dc=com
+
+  # Directory for tests that require LDAPS (must use LDAP over TLS)
+  ldaps:
+    host: localhost
+    port: 1636  # use a SSH tunnel to port 636 on the server
+    tls: true
+    bindDN: "cn=Manager,dc=example,dc=com"
+    password: password
+    validate-certificate: false  # accepts self-signed certificates
+    baseDN: dc=example,dc=com
+
+# logging:
+#   ldap.connection: INFO
+#   ldap.control: INFO
+#   ldap.recv.asn1: INFO
+#   ldap.recv.bytes: INFO
+#   ldap.recv.ldap: INFO
+#   ldap.recv: INFO
+#   ldap.send.bytes: INFO
+#   ldap.send.ldap: INFO
+#   ldap.send: INFO
+#   ldap: INFO

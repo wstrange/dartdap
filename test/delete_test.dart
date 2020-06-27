@@ -7,10 +7,9 @@
 import 'dart:async';
 
 import 'package:test/test.dart';
-
 import 'package:dartdap/dartdap.dart';
 
-import 'test_configuration.dart';
+import 'util.dart' as util;
 
 //----------------------------------------------------------------
 
@@ -77,32 +76,17 @@ Future purgeEntries(LdapConnection ldap) async {
 
 //----------------------------------------------------------------
 
-void doTest(String configName) {
-
-// Base
-;
-
+void runTests(util.ConfigDirectory connection) {
   LdapConnection ldap;
 
   //----------------
 
   setUp(() async {
-//    var c = (await config_file.loadConfig(testConfigFile))[configName];
-//    ldap = LdapConnection(
-//        host: c["host"],
-//        ssl: c["ssl"],
-//        port: c["port"],
-//        bindDN: c["bindDN"],
-//        password: c["password"]);
-
-    var cfg = TestConfiguration(testConfigFile);
-    ldap = cfg.getConnection(configName);
-
-
-    baseDN = DN(cfg.connections[configName].baseDN);
-    branchDN =baseDN.concat("ou=$branchOU");
+    baseDN = DN(connection.baseDN);
+    branchDN = baseDN.concat("ou=$branchOU");
     testPersonDN = branchDN.concat("cn=$testPersonCN");
 
+    ldap = connection.connect();
 
     await purgeEntries(ldap);
     await populateEntries(ldap);
@@ -171,11 +155,14 @@ void doTest(String configName) {
 
 //================================================================
 
-main() {
-  // group("LDAP", () => doTest("opendj"));
+void main() {
+  final config = util.Config();
 
-  group("LDAP", () => doTest("test-LDAP"));
+  group('tests', () {
+    runTests(config.defaultDirectory);
+  }, skip: config.skipIfMissingDefaultDirectory);
 
-
-  // group("LDAPS", () => doTest("test-LDAPS")); // uncomment to test with LDAPS
+  group('tests over LDAPS', () {
+    runTests(config.directory(util.ldapsDirectoryName));
+  }, skip: config.skipIfMissingDirectory(util.ldapsDirectoryName));
 }

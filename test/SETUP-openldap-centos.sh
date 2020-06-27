@@ -1,15 +1,12 @@
 #!/bin/sh
 #
-# This script sets up OpenLDAP on a host for testing dartdap.
+# Setup a standard dartdap test directory using OpenLDAP on CentOS.
+# See README.md for what a "standard" test directory is.
 #
 # IMPORTANT: currently only works on CentOS 7 (using default mode).
 # It works on CentOS 8, but only with the "--tls-none" option.
-# That is, the tests requiring secured LDAPS won't work.
-#
-# This is used to install and configure an LDAP directory that is
-# suitable for the dartdap unit tests. This is just one option for
-# testing: the unit tests should work with any LDAP directory that is
-# configured with the credentials and entries expected by the tests.
+# So the "ldaps" directory configuration cannot use it, and
+# therefore tests that require it will be skipped.
 #
 # Usage:
 # 1. Create a new CentOS 7 or CentOS 8 machine (e.g. on a virtual machine).
@@ -17,13 +14,13 @@
 # 3. Run it with root privileges: sudo ./SETUP-openldap-centos.sh
 #
 # Run with -h to see the available options for setting up TLS
-# (i.e. LDAPS).  The default option (using the generated self-signed
-# certificate) is recommended.  Some of the tests require a LDAPS
-# secured directory (so it won't work with the "none" option), and
-# changes in recent versions of OpenLDAP means the "tls" option (where
-# you provide the private key and certificates) doesn't work anymore!
-# The "none" option is for testing this script works without setting
-# up LDAPS.
+# (i.e. LDAPS).  The default option is recommended (it uses the
+# generated self-signed certificate that CentOS 7's openlda-servers
+# package automatically creates).  Some of the tests require an LDAPS
+# directory (so they must be skipped if the "--tls-none" option is
+# used), and changes in recent versions of OpenLDAP means the "tls"
+# option (where you provide the private key and certificates) doesn't
+# work anymore!
 #
 # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/7/html/System_Administrators_Guide/ch-Directory_Servers.html#s1-OpenLDAP
 # https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSS

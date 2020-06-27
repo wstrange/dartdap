@@ -8,4 +8,7 @@ tags
 .project
 *~
 .dart_tool/
-
+test/CONFIG.yaml
+test/CONFIG.YAML
+test/config.yaml
+test/Config.yaml

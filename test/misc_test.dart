@@ -1,7 +1,7 @@
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 
-main() {
+void main() {
   /*
   test("Escape ldap search string test", () {
     expect(_LdapUtil.escapeString("F*F"), equals('F\\2aF'));
