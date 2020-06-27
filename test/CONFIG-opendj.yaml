@@ -7,20 +7,20 @@ directories:
   populated-with-2000-users:
     host: localhost
     port: 1389
-    tls: false
+    ssl: false
     validate-certificate: false
-    bindDN: "uid=admin"
+    bindDN: uid=admin
     password: password
-    baseDN: "ou=people,ou=identities"
+    testDN: ou=people,ou=identities
 
   directory-with-valid-certificates:
     host: test-ldap.example.com
     port: 636
-    tls: true
+    ssl: true
     validate-certificate: true  # perform normal X.509 validation
-    bindDN: "uid=admin"
+    bindDN: uid=admin
     password: password
-    baseDN: "ou=people,ou=identities"
+    testDN: ou=people,ou=identities
 
 # Note: this file needs a better name, since the tests can work with any
 # suitably configured LDAP directory, not just the OpenDJ implementation.

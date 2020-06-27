@@ -45,8 +45,8 @@ configurations whenever possible.
 Most of the tests require access to a default LDAP directory. A this
 is a LDAP directory that satisfies these requirements:
 
-- Allows BIND to a entry using a password.
-- Has an LDAP entry where the tests can create/delete child entries under.
+- Allows BIND to a DN using a password.
+- Has an LDAP entry where the tests can create/delete child entries.
 
 The default directory has the name "default", which is available as
 the constant `Config.defaultDirectoryName`. But there are convenience
@@ -142,13 +142,13 @@ logging. Both of them are optional.
 The "directories" item contains a map of directories. The key is the name of the directory, and is the value
 that is used in the test. The value is a map containing these keys:
 
-- `host` for the hostname
-- `port` optional port number (defaults to the standard LDAP port 389 or the standard LDAPS port 636)
-- `tls` true for LDAPS, false for LDAP (defaults to false)
-- `validate-certificate` false means to ignore bad server certificates (default is true)
-- `bindDN` distinguished name of the entry for BIND
-- `password` password to use in the BIND
-- `baseDN` distinguished name of the entry to use in the tests
+- `host` for the hostname (mandatory)
+- `port` port number (defaults to the standard LDAP port 389 or the standard LDAPS port 636)
+- `ssl` true for LDAPS, false for LDAP (defaults to false)
+- `validate-certificate` false means to ignore bad server certificates (defaults to true)
+- `bindDN` distinguished name of the entry for BIND (optional)
+- `password` password to use in the BIND (mandatory if there is a _bindDN_)
+- `testDN` distinguished name of the branch to use in the tests (mandatory)
 
 #### Configuration of logging
 
@@ -166,18 +166,18 @@ directories:
   default:
     host: server1.test.example.org
 	port: 636
-	tls: true
+	ssl: true
 	validate-certificate: true
 	bindDN: cn=tester,ou=testing,dc=example,dc=com
 	password: secretSoDoNotCheckThisFileIn
-	baseDN: ou=test,ou=dartdap,ou=testing,dc=example,dc=com
+	testDN: ou=test,ou=dartdap,ou=testing,dc=example,dc=com
   custom:
     host: server2.test.example.org
 	port: 389
-	tls: false
+	ssl: false
 	bindDN: cn=tester,ou=testing,dc=example,dc=com
 	password: secretSoDoNotCheckThisFileIn
-	baseDN: ou=test,ou=dartdap,ou=testing,dc=example,dc=com
+	testDN: ou=test,ou=dartdap,ou=testing,dc=example,dc=com
 
 logging:
   ldap.recv.asn1: FINE

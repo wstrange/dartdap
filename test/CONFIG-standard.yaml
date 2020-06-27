@@ -9,31 +9,31 @@
 directories:
   # Directory for tests with no special requirements
   default:
-    host: localhost
+    host: "localhost"
     port: 1389
-    tls: false
+    ssl: false
     bindDN: "cn=Manager,dc=example,dc=com"
-    password: password
-    baseDN: dc=example,dc=com
+    password: "password"
+    testDN: "ou=testing,dc=example,dc=com"
 
   # Directory for tests that require LDAP (must not use LDAPS, i.e. no TLS)
   ldap:
-    host: localhost
+    host: "localhost"
     port: 1389  # use a SSH tunnel to port 389 on the server
-    tls: false
+    ssl: false
     bindDN: "cn=Manager,dc=example,dc=com"
-    password: password
-    baseDN: dc=example,dc=com
+    password: "password"
+    testDN: "ou=testing,dc=example,dc=com"
 
   # Directory for tests that require LDAPS (must use LDAP over TLS)
   ldaps:
-    host: localhost
+    host: "localhost"
     port: 1636  # use a SSH tunnel to port 636 on the server
-    tls: true
+    ssl: true
     bindDN: "cn=Manager,dc=example,dc=com"
-    password: password
+    password: "password"
     validate-certificate: false  # accepts self-signed certificates
-    baseDN: dc=example,dc=com
+    testDN: "ou=testing,dc=example,dc=com"
 
 # logging:
 #   ldap.connection: INFO

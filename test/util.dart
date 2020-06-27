@@ -228,11 +228,11 @@ class Config {
 
         const _itemHost = 'host';
         const _itemPort = 'port';
-        const _itemTls = 'tls';
+        const _itemSsl = 'ssl';
         const _itemValidateCertificate = 'validate-certificate';
         const _itemBindDn = 'bindDN';
         const _itemPassword = 'password';
-        const _itemBaseDn = 'baseDN';
+        const _itemTestDn = 'testDN';
 
         if (strict) {
           // Check for unexpected items in the directory configuration
@@ -240,20 +240,20 @@ class Config {
             if (![
               _itemHost,
               _itemPort,
-              _itemTls,
+              _itemSsl,
               _itemValidateCertificate,
               _itemBindDn,
               _itemPassword,
-              _itemBaseDn,
+              _itemTestDn,
             ].contains(key)) {
               // key is not one of the expected items
 
               final correctKey = {
                 'hostname': _itemHost,
                 'address': _itemHost,
-                'ssl': _itemTls,
-                'SSL': _itemTls,
-                'TLS': _itemTls,
+                'SSL': _itemSsl,
+                'TLS': _itemSsl,
+                'tls': _itemSsl,
                 'validate': _itemValidateCertificate,
                 'validatecert': _itemValidateCertificate,
                 'validateCert': _itemValidateCertificate,
@@ -272,36 +272,39 @@ class Config {
                 'bindDn': _itemBindDn,
                 'passwd': _itemPassword,
                 'secret': _itemPassword,
-                'basedn': _itemBaseDn,
-                'baseDn': _itemBaseDn,
-                'basedN': _itemBaseDn,
+                'testdn': _itemTestDn,
+                'testDn': _itemTestDn,
+                'testdN': _itemTestDn,
+                'basedn': _itemTestDn, // Calling this item "testDN", because
+                'baseDn': _itemTestDn, // "baseDN" easily mistaken for "bindDN".
+                'basedN': _itemTestDn,
               }[key];
 
               final suggestion =
-              (correctKey != null) ? ' (use "$correctKey")' : '';
+                  (correctKey != null) ? ' (use "$correctKey")' : '';
               throw ConfigFileException(_filename,
                   'unexpected item: "$_directoriesItem/$name/$key"$suggestion');
             }
           }
         }
 
-        // Note: the name "tls" is used because it is shorter than "ssl/tls" and is
-        // more correct than "ssl". SSL and TLS are technically different protocols.
-        // Ever since Heartbleed and other vulnerabilities were found in SSL 3.0,
-        // SSL has been deprecated and should not be in active used -- only TLS
-        // should be used.
-
         final dir = ConfigDirectory();
 
         dir.host = _getString(d, name, _itemHost);
-        dir.ssl = _getBool(d, name, _itemTls, defaultValue: false);
+        dir.ssl = _getBool(d, name, _itemSsl, defaultValue: false);
         dir.port =
             _getInt(d, name, _itemPort, defaultValue: dir.ssl ? 636 : 389);
         dir.bindDN = _getString(d, name, _itemBindDn);
         dir.password = _getString(d, name, _itemPassword);
         dir.validateCertificate =
             _getBool(d, name, _itemValidateCertificate, defaultValue: true);
-        dir.baseDN = _getString(d, name, _itemBaseDn);
+
+        final _base = _getString(d, name, _itemTestDn);
+        if (_base == null) {
+          throw ConfigFileException(
+              _filename, 'missing: "$_directoriesItem/$name/$_itemTestDn"');
+        }
+        dir.testDN = DN(_base);
 
         if (dir.host == null) {
           throw ConfigFileException(
@@ -490,12 +493,16 @@ class Config {
 class ConfigDirectory {
   String host;
   int port;
-  bool ssl;
+  bool ssl; // should be "tls", but using ssl for consistency with dartdap
   String bindDN;
   String password;
 
+  /// Perform certificate validation or not.
+  /// Self-signed certificates can be used for testing, if this is set to false.
   bool validateCertificate;
-  String baseDN;
+
+  /// Tests should confine themselves to this branch
+  DN testDN;
 
   //----------------------------------------------------------------
   /// Creates a connection using the settings.

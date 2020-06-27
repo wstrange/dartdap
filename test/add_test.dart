@@ -13,14 +13,11 @@ import "util.dart" as util;
 
 // Base
 
-final baseDN = DN("dc=example,dc=com");
-
 // Test branch
 
 const branchOU = "entry_add_test";
 const branchDescription = "Branch for $branchOU";
 
-final branchDN = baseDN.concat("ou=$branchOU");
 final branchAttrs = {
   "objectclass": ["organizationalUnit"],
   "description": branchDescription
@@ -28,7 +25,6 @@ final branchAttrs = {
 
 // Test person
 
-var testPersonDN = branchDN.concat("cn=John Citizen");
 var testPersonSurname = "Citizen";
 final testPersonAttrs = {
   "objectclass": ["person"],
@@ -40,7 +36,7 @@ final testPersonAttrs = {
 
 /// Purge entries from the test to clean up
 
-Future purgeEntries(LdapConnection ldap) async {
+Future purgeEntries(LdapConnection ldap, DN testPersonDN, DN branchDN) async {
   // Purge test person
 
   try {
@@ -62,20 +58,25 @@ Future purgeEntries(LdapConnection ldap) async {
 
 void runTests(util.ConfigDirectory configDirectory) {
   LdapConnection ldap;
+  DN branchDN;
+  DN testPersonDN;
 
   //----------------
 
   setUp(() async {
+    branchDN = configDirectory.testDN.concat('ou=$branchOU');
+    testPersonDN = branchDN.concat('cn=John Citizen');
+
     ldap = configDirectory.connect();
-    await purgeEntries(ldap);
+    await purgeEntries(ldap, testPersonDN, branchDN);
     // Nothing to populate, since these tests exercise the "add" operation
   });
 
   //----------------
 
   tearDown(() async {
-      await purgeEntries(ldap);
-      await ldap.close();
+    await purgeEntries(ldap, testPersonDN, branchDN);
+    await ldap.close();
   });
 
   //----------------
@@ -94,7 +95,8 @@ void runTests(util.ConfigDirectory configDirectory) {
 
     var count = 0;
 
-    var searchResult = await ldap.search(baseDN.dn, filter, searchAttrs);
+    var searchResult =
+        await ldap.search(configDirectory.testDN.dn, filter, searchAttrs);
     await for (SearchEntry entry in searchResult.stream) {
       expect(entry, isNotNull);
 
@@ -151,7 +153,8 @@ void runTests(util.ConfigDirectory configDirectory) {
 
     var count = 0;
 
-    var searchResults = await ldap.search(baseDN.dn, filter, searchAttrs);
+    var searchResults =
+        await ldap.search(configDirectory.testDN.dn, filter, searchAttrs);
     await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 

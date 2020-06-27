@@ -26,14 +26,12 @@ var allowAnonymousSearch = true;
 
 //----------------------------------------------------------------
 
-var testDN = DN("dc=example,dc=com");
-
 /// Perform some LDAP operation.
 ///
 /// For the purpose of the tests in this file, this can be any operation
 /// (except for BIND) which will require the connection to be open.
 ///
-FutureOr<void> doLdapOperation(LdapConnection ldap) async {
+FutureOr<void> doLdapOperation(LdapConnection ldap, DN testDN) async {
   var filter = Filter.present("cn");
   var searchAttrs = ["cn", "sn"];
 
@@ -93,7 +91,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
           expect(ldap.state, equals(ConnectionState.ready));
           expect(ldap.isAuthenticated, isFalse);
 
-          await doLdapOperation(ldap);
+          await doLdapOperation(ldap, normal.testDN);
 
           // Close the connection
 
@@ -153,7 +151,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
           // Trying to perform an LDAP operation on a closed connection fails.
 
           try {
-            await doLdapOperation(ldap);
+            await doLdapOperation(ldap, normal.testDN);
             // todo: this fails on dj because the search is not allowed
             //expect(false, isTrue);
           } catch (e) {
@@ -182,7 +180,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
 
           // LDAP operations can be performed on an open connection
 
-          await doLdapOperation(ldap);
+          await doLdapOperation(ldap, normal.testDN);
 
           // Close the connection
 
@@ -216,7 +214,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
 
           // LDAP operations can be performed on an open connection
 
-          await doLdapOperation(ldaps);
+          await doLdapOperation(ldaps, normal.testDN);
 
           // Close connection
 
@@ -251,7 +249,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
 
           expect(ldap.state, equals(ConnectionState.ready));
 
-          await doLdapOperation(ldap);
+          await doLdapOperation(ldap, normal.testDN);
 
           await ldap.close();
 
@@ -261,7 +259,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
           // manual mode fails.
 
           try {
-            await doLdapOperation(ldap);
+            await doLdapOperation(ldap, normal.testDN);
             // todo: fixme
             //expect(false, isTrue);
           } catch (e) {
@@ -279,7 +277,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
           expect(ldap.state, equals(ConnectionState.bindRequired));
 
           try {
-            await doLdapOperation(ldap);
+            await doLdapOperation(ldap, normal.testDN);
             // todo: fix me
             // expect(false, isTrue);
           } catch (e) {
@@ -294,7 +292,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
 
           expect(ldap.state, equals(ConnectionState.ready));
 
-          await doLdapOperation(ldap);
+          await doLdapOperation(ldap, normal.testDN);
 
           await ldap.close();
 
@@ -607,7 +605,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
         // Set invalid credentials
 
         await ldap.setAuthentication(
-            "cn=unknown,dc=example,dc=com", normal.password);
+            normal.testDN.concat('cn=unknown').dn, normal.password);
 
         expect(ldap.isAuthenticated, isTrue);
         expect(ldap.state, equals(ConnectionState.bindRequired));
@@ -674,7 +672,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
         // Perform an LDAP operation to automatically open the connection.
         // Since this is an anonymous connection, no BIND request is sent.
 
-        await doLdapOperation(ldap);
+        await doLdapOperation(ldap, normal.testDN);
 
         expect(ldap.state, equals(ConnectionState.ready));
         expect(ldap.isAuthenticated, isFalse);
@@ -735,7 +733,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
         // Perform an LDAP operation: should automaticall open and bind
         // the connection.
 
-        await doLdapOperation(ldap);
+        await doLdapOperation(ldap, normal.testDN);
 
         expect(ldap.isAuthenticated, isTrue);
         expect(ldap.state, equals(ConnectionState.ready));
@@ -833,7 +831,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
         expect(ldap.state, equals(ConnectionState.closed));
 
         try {
-          await doLdapOperation(ldap);
+          await doLdapOperation(ldap, normal.testDN);
           fail("LDAP operation succeeded when it should have failed");
         } catch (e) {
           expect(e, const TypeMatcher<LdapResultInvalidCredentialsException>());

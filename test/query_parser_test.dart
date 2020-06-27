@@ -29,7 +29,7 @@ void main() {
       '(cn=*)': Filter.present("cn"),
       // Test for some special chars in the attribute value
       // the encoding \2a is the escaped * character.
-      '(cn=uid-.2_\\2a*)' : SubstringFilter.rfc224("cn", initial: "uid-.2_\\2a"),
+      '(cn=uid-.2_\\2a*)': SubstringFilter.rfc224("cn", initial: "uid-.2_\\2a"),
     };
 
     m.forEach((query, filter) {

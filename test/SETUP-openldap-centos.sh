@@ -34,6 +34,8 @@ trap "echo $PROG: error: aborted; exit 3" ERR
 # Constants
 
 BRANCH_DN="dc=example,dc=com"
+BIND_DN="cn=Manager,${BRANCH_DN}"
+TEST_DN="ou=testing,${BRANCH_DN}"
 
 ADMIN_PASSWORD=s3cr3t
 MANAGER_PASSWORD=password
@@ -253,7 +255,7 @@ replace: olcAccess
 olcAccess:{0}
   to
     * by dn.base="gidNumber=0+uidNumber=0,cn=peercred,cn=external,cn=auth"
-    read by dn.base="cn=Manager,${BRANCH_DN}"
+    read by dn.base="${BIND_DN}"
     read by * none
 
 dn: olcDatabase={2}$BACKEND,cn=config
@@ -264,7 +266,7 @@ olcSuffix: ${BRANCH_DN}
 dn: olcDatabase={2}$BACKEND,cn=config
 changetype: modify
 replace: olcRootDN
-olcRootDN: cn=Manager,${BRANCH_DN}
+olcRootDN: ${BIND_DN}
 
 dn: olcDatabase={2}$BACKEND,cn=config
 changetype: modify
@@ -278,7 +280,7 @@ changetype: modify
 replace: olcAccess
 olcAccess:{0}
   to
-    attrs=userPassword,shadowLastChange by dn="cn=Manager,${BRANCH_DN}"
+    attrs=userPassword,shadowLastChange by dn="${BIND_DN}"
     write by anonymous
     auth by self
     write by * none
@@ -287,7 +289,7 @@ olcAccess:{1}
    dn.base="" by * read
 olcAccess:{2}
   to
-    * by dn="cn=Manager,${BRANCH_DN}"
+    * by dn="${BIND_DN}"
     write by * read
 EOF
 
@@ -296,26 +298,29 @@ EOF
 
 echo "$PROG: populating test branch: ${BRANCH_DN}"
 
-if ldapdelete -x -D cn=Manager,${BRANCH_DN} -y ${MANAGER_PASSWORD_FILE} \
+if ldapdelete -x -D ${BIND_DN} -y ${MANAGER_PASSWORD_FILE} \
 	      -r ${BRANCH_DN} >/dev/null 2>&1; then
   echo "$PROG: deleted existing entries from ${BRANCH_DN}"
 fi
 
-ldapadd -x -D cn=Manager,${BRANCH_DN} -y ${MANAGER_PASSWORD_FILE} <<EOF
+ldapadd -x -D ${BIND_DN} -y ${MANAGER_PASSWORD_FILE} <<EOF
 dn: ${BRANCH_DN}
-o: Test server
+o: Example Organization
 objectClass: top
 objectClass: dcObject
 objectclass: organization
 
-#dn: cn=Manager,${BRANCH_DN}
+dn: ${TEST_DN}
+objectClass: organizationalUnit
+
+#dn: ${BIND_DN}
 #description: Directory Manager
 #objectClass: organizationalRole
 #
-#dn: ou=Users,${BRANCH_DN}
+#dn: ou=Users,${TEST_DN}
 #objectClass: organizationalUnit
 #
-#dn: ou=Groups,${BRANCH_DN}
+#dn: ou=Groups,${TEST_DN}
 #objectClass: organizationalUnit
 EOF
 
@@ -470,7 +475,7 @@ sleep 3  # give slapd time to start up
 echo "$PROG: ldap://localhost (no TLS)"
 ldapsearch \
   -H ldap://localhost \
-  -D cn=Manager,${BRANCH_DN} -x -y ${MANAGER_PASSWORD_FILE} \
+  -D ${BIND_DN} -x -y ${MANAGER_PASSWORD_FILE} \
   -LLL \
   -b ${BRANCH_DN} '(dc=*)'
 
@@ -479,29 +484,34 @@ if [ "$TLS_SETUP" != 'none' ]; then
   echo "$PROG: ldap://${TLS_DOMAIN} + optional StartTLS"
   ldapsearch -Z \
 	     -H ldap://"${TLS_DOMAIN}" \
-	     -D cn=Manager,${BRANCH_DN} -x -y ${MANAGER_PASSWORD_FILE} \
+	     -D ${BIND_DN} -x -y ${MANAGER_PASSWORD_FILE} \
 	     -LLL \
 	     -b ${BRANCH_DN} '(dc=*)'
 
   echo "$PROG: ldap://${TLS_DOMAIN} + mandatory StartTLS"
   ldapsearch -ZZ \
 	     -H ldap://"${TLS_DOMAIN}" \
-	     -D cn=Manager,${BRANCH_DN} -x -y ${MANAGER_PASSWORD_FILE} \
+	     -D ${BIND_DN} -x -y ${MANAGER_PASSWORD_FILE} \
 	     -LLL \
 	     -b ${BRANCH_DN} '(dc=*)'
 
   echo "$PROG: ldaps://${TLS_DOMAIN} (LDAP over TLS)"
   ldapsearch \
     -H ldaps://"${TLS_DOMAIN}" \
-    -D cn=Manager,${BRANCH_DN} -x -y ${MANAGER_PASSWORD_FILE} \
+    -D ${BIND_DN} -x -y ${MANAGER_PASSWORD_FILE} \
     -LLL \
-    -b ${BRANCH_DN} '(dc=*)'
+    -b ${BRANCH_DN} '(ou=*)'
 else
   echo "$PROG: warning: LDAPS (LDAP over TLS) is not available"
 fi
 
-echo
-echo "$PROG: success"
+cat <<EOF
+--
+Success: LDAP directory deployed:
+  bindDN: "${BIND_DN}"
+  password: "$MANAGER_PASSWORD"
+  testDN: "${TEST_DN}"
+EOF
 
 exit 0
 

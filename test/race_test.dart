@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 
@@ -12,22 +11,12 @@ import 'util.dart' as util;
 
 //----------------------------------------------------------------
 
-const String testConfigFile = "test/TEST-config.yaml";
-
-// Enable logging by setting to true.
-
-const bool doLogging = false;
-
-//----------------------------------------------------------------
-
-var testDN = DN("dc=example,dc=com");
-
 /// Perform some LDAP operation.
 ///
 /// For the purpose of the tests in this file, this can be any operation
 /// (except for BIND) which will require the connection to be open.
 ///
-Future doLdapOperation(LdapConnection ldap) async {
+Future doLdapOperation(LdapConnection ldap, DN testDN) async {
   var filter = Filter.present("cn");
   var searchAttrs = ["cn", "sn"];
 
@@ -60,29 +49,8 @@ var NUM_CYCLES = 4;
 void main() async {
   final config = util.Config();
 
-  group('race', ()
-  {
+  group('race', () {
     final directoryConfig = config.defaultDirectory;
-
-    if (doLogging) {
-      //  startQuickLogging();
-      hierarchicalLoggingEnabled = true;
-
-      Logger.root.onRecord.listen((LogRecord rec) {
-        print(
-            '${rec.time}: ${rec.loggerName}: ${rec.level.name}: ${rec
-                .message}');
-      });
-
-      Logger.root.level = Level.OFF;
-
-      Logger("ldap").level = Level.INFO;
-      Logger("ldap.connection").level = Level.INFO;
-      Logger("ldap.send.ldap").level = Level.INFO;
-      Logger("ldap.send.bytes").level = Level.INFO;
-      Logger("ldap.recv.bytes").level = Level.INFO;
-      Logger("ldap.recv.asn1").level = Level.INFO;
-    }
 
     //================================================================
 
@@ -116,7 +84,7 @@ void main() async {
 
         // LDAP operations can be performed on an open connection
 
-        await doLdapOperation(ldap);
+        await doLdapOperation(ldap, directoryConfig.testDN);
 
         // Close the connection
 
@@ -144,7 +112,7 @@ void main() async {
 
         // LDAP operations can be performed on an open connection
 
-        await doLdapOperation(ldap);
+        await doLdapOperation(ldap, directoryConfig.testDN);
 
         // Close the connection
 

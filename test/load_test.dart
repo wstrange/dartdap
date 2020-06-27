@@ -11,18 +11,11 @@ import 'util.dart' as util;
 
 //----------------------------------------------------------------
 
-const String testConfigFile = "test/TEST-config.yaml";
-
-// Base
-
-final baseDN = DN("dc=example,dc=com");
-
 // Test branch
 
 const branchOU = "load_test";
 const branchDescription = "Branch for $branchOU";
 
-final branchDN = baseDN.concat("ou=$branchOU");
 final branchAttrs = {
   "objectclass": ["organizationalUnit"],
   "description": branchDescription,
@@ -42,7 +35,7 @@ const String cnPrefix = "user";
 //----------------------------------------------------------------
 // Create entries needed for testing.
 
-Future populateEntries(LdapConnection ldap) async {
+Future populateEntries(LdapConnection ldap, DN branchDN) async {
   var addResult = await ldap.add(branchDN.dn, branchAttrs);
   assert(addResult is LdapResult);
   assert(addResult.resultCode == 0);
@@ -52,7 +45,7 @@ Future populateEntries(LdapConnection ldap) async {
 
 /// Purge entries from the test to clean up
 
-Future purgeEntries(LdapConnection ldap) async {
+Future purgeEntries(LdapConnection ldap, DN branchDN) async {
   // Purge the bulk person entries
 
   for (var j = NUM_ENTRIES - 1; 0 <= j; j--) {
@@ -76,23 +69,26 @@ Future purgeEntries(LdapConnection ldap) async {
 
 void runTests(util.ConfigDirectory configDirectory) {
   LdapConnection ldap;
+  DN branchDN;
 
   //----------------
 
   setUp(() async {
+    branchDN = configDirectory.testDN.concat("ou=$branchOU");
+
     ldap = configDirectory.connect();
 
     await ldap.open(); // optional step: makes log entries more sensible
     //await ldap.bind();
 
-    await purgeEntries(ldap);
-    await populateEntries(ldap);
+    await purgeEntries(ldap, branchDN);
+    await populateEntries(ldap, branchDN);
   });
 
   //----------------
 
   tearDown(() async {
-    await purgeEntries(ldap);
+    await purgeEntries(ldap, branchDN);
     await ldap.close();
   });
 
@@ -255,7 +251,6 @@ void runTests(util.ConfigDirectory configDirectory) {
   */
 }
 
-
 //----------------------------------------------------------------
 
 void main() {
@@ -268,5 +263,4 @@ void main() {
   group('tests over LDAPS', () {
     runTests(config.directory(util.ldapsDirectoryName));
   }, skip: config.skipIfMissingDirectory(util.ldapsDirectoryName));
-
 }

@@ -11,13 +11,6 @@ import 'util.dart' as util;
 
 //----------------------------------------------------------------
 
-const String testConfigFile = "test/TEST-config.yaml";
-
-var baseDN = DN("dc=example,dc=com");
-//var baseDN = DN("o=userstore");
-var testDN = baseDN.concat("ou=People");
-var nosuchDN = baseDN.concat("ou=NoSuchEntry");
-
 const String descriptionStr = "Test people branch";
 
 const int NUM_ENTRIES = 3;
@@ -25,7 +18,7 @@ const int NUM_ENTRIES = 3;
 //----------------------------------------------------------------
 // Create entries needed for testing.
 
-Future populateEntries(LdapConnection ldap) async {
+Future populateEntries(LdapConnection ldap, DN testDN) async {
   // Create entry
 
   var addResult = await ldap.add(testDN.dn, {
@@ -51,7 +44,7 @@ Future populateEntries(LdapConnection ldap) async {
 //----------------------------------------------------------------
 /// Clean up before/after testing.
 
-Future purgeEntries(LdapConnection ldap) async {
+Future purgeEntries(LdapConnection ldap, DN testDN) async {
   // Delete subentries
 
   for (var j = 0; j < NUM_ENTRIES; ++j) {
@@ -76,19 +69,22 @@ Future purgeEntries(LdapConnection ldap) async {
 
 void runTests(util.ConfigDirectory configDirectory) {
   LdapConnection ldap;
+  DN testDN;
 
   //----------------
 
   setUp(() async {
+    testDN = configDirectory.testDN.concat("ou=People");
+
     ldap = configDirectory.connect();
-    await purgeEntries(ldap);
-    await populateEntries(ldap);
+    await purgeEntries(ldap, testDN);
+    await populateEntries(ldap, testDN);
   });
 
   //----------------
 
   tearDown(() async {
-    await purgeEntries(ldap);
+    await purgeEntries(ldap, testDN);
     await ldap.close();
   });
 
@@ -124,7 +120,7 @@ void runTests(util.ConfigDirectory configDirectory) {
   });
 
   //----------------
-  // Searches for sn="User 1" under ou=People,dc=example,dc=com
+  // Searches for sn="User 1" under ou=People under the testDN
 
   test("search with filter: equals attribute not in DN", () async {
     var filter = Filter.equals("sN", "uSeR 1"); // Note: sn is case-insensitve
@@ -155,7 +151,7 @@ void runTests(util.ConfigDirectory configDirectory) {
   });
 
   //----------------
-  // Searches for cn is present under ou=People,dc=example,dc=com
+  // Searches for cn is present under ou=People under testDN
 
   test("search with filter: present", () async {
     var filter = Filter.present("cn");
@@ -214,7 +210,7 @@ void runTests(util.ConfigDirectory configDirectory) {
 
   //----------------
 
-  test("search from non-existant entry", () async {
+  test("search from non-existent entry", () async {
     var filter = Filter.equals("ou", "People");
     var searchAttrs = ["ou", "description"];
 
@@ -223,7 +219,9 @@ void runTests(util.ConfigDirectory configDirectory) {
 
     try {
       var searchResults = await ldap.search(
-          "ou=NoSuchEntry,dc=example,dc=com", filter, searchAttrs);
+          configDirectory.testDN.concat('ou=NoSuchEntry').dn,
+          filter,
+          searchAttrs);
       // ignore: unused_local_variable
       await for (SearchEntry entry in searchResults.stream) {
         fail("Unexpected result from search under non-existant entry");
@@ -231,7 +229,7 @@ void runTests(util.ConfigDirectory configDirectory) {
     } on LdapResultNoSuchObjectException catch (e) {
       // todo: WS Update
       print(e);
-      //expect(e.result.matchedDN, equals(baseDN.dn)); // part that did match
+      //expect(e.result.matchedDN, equals(testDN.dn)); // part that did match
       gotException = true;
     } catch (e) {
       expect(e, const TypeMatcher<LdapException>());

@@ -5,14 +5,11 @@
 import 'dart:io';
 
 import 'package:dartdap/dartdap.dart';
-import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 import 'util.dart' as util;
 
 //----------------------------------------------------------------
-
-const String testConfigFile = "test/TEST-config.yaml";
 
 /// Set to true to not clean up LDAP directory after test runs.
 ///
@@ -27,7 +24,8 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
   // is used in a real application, everything is done inside the
   // test instead of using setUp/tearDown functions.
 
-  final setup = useConstructor ? 'setup with constructor': 'setup with methods';
+  final setup =
+      useConstructor ? 'setup with constructor' : 'setup with methods';
   test('add/modify/search/delete ($setup)', () async {
     //----------------
     // Create the connection (at the start of the test)
@@ -44,7 +42,9 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
           port: directoryConfig.port,
           bindDN: directoryConfig.bindDN,
           password: directoryConfig.password,
-          badCertificateHandler: directoryConfig.validateCertificate ? null : (X509Certificate _) => true);
+          badCertificateHandler: directoryConfig.validateCertificate
+              ? null
+              : (X509Certificate _) => true);
       // Note: setting badCertificateHandler to accept test certificate
       //await ldap.open();
       //await ldap.bind();
@@ -52,8 +52,9 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
       // Or the connection parameters can be explicitly specified in code.
       ldap = LdapConnection(host: directoryConfig.host);
       ldap.setProtocol(directoryConfig.ssl, directoryConfig.port);
-      await ldap.setAuthentication(directoryConfig.bindDN, directoryConfig.password);
-      if (! directoryConfig.validateCertificate) {
+      await ldap.setAuthentication(
+          directoryConfig.bindDN, directoryConfig.password);
+      if (!directoryConfig.validateCertificate) {
         ldap.badCertHandler = (X509Certificate _) => true;
       }
       //await ldap.open();
@@ -63,14 +64,14 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
     //----------------
     // The distinguished name is a String value
 
-    var engineeringDN = "ou=Engineering,dc=example,dc=com";
-    var salesDN = "ou=Sales,dc=example,dc=com";
-    var businessDevelopmentDN = "ou=Business Development,dc=example,dc=com";
-    var supportDN = "ou=Support,ou=Engineering,dc=example,dc=com";
+    var engineeringDN = directoryConfig.testDN.concat('ou=Engineering').dn;
+    var salesDN = directoryConfig.testDN.concat('ou=Sales').dn;
+    var bisDevDN = directoryConfig.testDN.concat('ou=Business Development').dn;
+    var supportDN = DN(engineeringDN).concat('ou=Support').dn;
 
     // For testing purposes, make sure entries do not exist before proceeding.
 
-    for (var dn in [engineeringDN, salesDN, businessDevelopmentDN, supportDN]) {
+    for (var dn in [engineeringDN, salesDN, bisDevDN, supportDN]) {
       try {
         await ldap.delete(dn);
       } on LdapResultNoSuchObjectException catch (_) {
@@ -96,8 +97,7 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
     //----
     // Modify: change attribute values
 
-    var mod1 =
-        Modification.replace("description", ["Engineering department"]);
+    var mod1 = Modification.replace("description", ["Engineering department"]);
     result = await ldap.modify(engineeringDN, [mod1]);
     expect(result.resultCode, equals(0),
         reason: "could not change engineering description attribute");
@@ -145,7 +145,6 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
     //----------------
     // Search
 
-    var baseDN = "dc=example,dc=com";
     var queryAttrs = ["ou", "objectClass"];
     var filter = Filter.equals("ou", "Engineering");
 
@@ -154,7 +153,8 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
     // ou=Engineering
 
     var numFound = 0;
-    var searchResult = await ldap.search(baseDN, filter, queryAttrs);
+    var searchResult =
+        await ldap.search(directoryConfig.testDN.dn, filter, queryAttrs);
     await for (var entry in searchResult.stream) {
       expect(entry, const TypeMatcher<SearchEntry>());
       numFound++;
@@ -169,7 +169,7 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
 
     numFound = 0;
     await for (var entry
-        in ldap.search("dc=example,dc=com", notFilter, queryAttrs).stream) {
+        in ldap.search(directoryConfig.testDN.dn, notFilter, queryAttrs).stream) {
       expect(entry, const TypeMatcher<SearchEntry>());
       numFound++;
     }
@@ -182,7 +182,7 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
     // Delete the entries
 
     if (!KEEP_ENTRIES_FOR_DEBUGGING) {
-      result = await ldap.delete(businessDevelopmentDN);
+      result = await ldap.delete(bisDevDN);
       expect(result.resultCode, equals(0),
           reason: "Could not delete business development entry");
 
@@ -211,44 +211,8 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
 }
 
 //----------------------------------------------------------------
-/// Setup logging
-///
-/// Change the values in this function to change the level of logging
-/// that is done during debugging.
-///
-/// Note: the default for the root level logger is Level.INFO, so if
-/// no levels are set shout/severe/warning/info are logged, but
-/// config/fine/finer/finest are not.
-///
-void setupLogging([Level commonLevel = Level.OFF]) {
-  Logger.root.onRecord.listen((LogRecord rec) {
-    print('${rec.time}: ${rec.loggerName}: ${rec.level.name}: ${rec.message}');
-  });
-
-  hierarchicalLoggingEnabled = true;
-
-  // Normally, only change the values below:
-
-  // Log level: an integer between 0 (ALL) and 2000 (OFF) or a string value:
-  // "OFF", "SHOUT", "SEVERE", "WARNING", "INFO", "CONFIG", "FINE" "FINER",
-  // "FINEST" or "ALL".
-
-  //Logger.root.level = Level.OFF;
-  //Logger("ldap").level = Level.OFF;
-  //Logger("ldap.connection").level = Level.OFF;
-  //Logger("ldap.recv").level = Level.OFF;
-  //Logger("ldap.recv.ldap").level = Level.OFF;
-  //Logger("ldap.send").level = Level.OFF;
-  //Logger("ldap.recv.ldap").level = Level.OFF;
-  //Logger("ldap.recv.asn1").level = Level.OFF;
-  //Logger("ldap.recv.bytes").level = Level.OFF;
-}
-
-//----------------------------------------------------------------
 
 void main() {
-  //setupLogging();
-
   final config = util.Config();
 
   group('tests', () {
