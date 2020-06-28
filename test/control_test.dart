@@ -1,10 +1,10 @@
 /// Unit tests for control encodings
-@Skip("currently failing")
+//@Skip("currently failing")
 
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 
-main() {
+void main() {
   group('Sort Control', () {
     test('cn ascending', () {
       var c = ServerSideSortRequestControl([SortKey('cn')]);
@@ -156,8 +156,8 @@ main() {
 
   group('VLV Control', () {
     test('assertion', () {
-      var c = VLVRequestControl.assertionControl('example', 0, 19,
-          critical: true);
+      var c =
+          VLVRequestControl.assertionControl('example', 0, 19, critical: true);
       var b = c.toASN1().encodedBytes;
       expect(
           b,
@@ -215,8 +215,8 @@ main() {
     });
 
     test('offset', () {
-      var c = VLVRequestControl.offsetControl(1, 0, 0, 19, null,
-          critical: true);
+      var c =
+          VLVRequestControl.offsetControl(1, 0, 0, 19, null, critical: true);
       var b = c.toASN1().encodedBytes;
       expect(
           b,

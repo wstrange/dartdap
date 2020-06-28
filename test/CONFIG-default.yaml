@@ -1,0 +1,12 @@
+# Default test configuration file
+#
+# To run tests using this configuration, make sure there is no file or symlink
+# called "CONFIG.yaml". See README.md for details.
+#
+# DO NOT CHANGE THIS FILE. To customize for a local test environment, create
+# a new configuration file and a "CONFIG.yaml" symlink to it.
+
+
+# This file deliberately does not define any directory configurations.
+# Tests that don't require an LDAP directory will still run, so it can
+# be used without requiring the tester to setup a test environment.

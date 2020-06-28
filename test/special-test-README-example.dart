@@ -5,16 +5,13 @@
 import 'dart:async';
 
 import 'package:dartdap/dartdap.dart';
+import 'package:test/test.dart';
 
-Future example() async {
+import 'util.dart' as util;
 
-  // Create an LDAP connection object
-
-  var host = "localhost";
-  var ssl = false; // true = use LDAPS (i.e. LDAP over SSL/TLS)
-  var port = 10389; // null = use standard LDAP/LDAPS port
-  var bindDN = "cn=Manager,dc=example,dc=com"; // null=unauthenticated
-  var password = "p@ssw0rd";
+Future<void> example(String host, int port, bool ssl, String bindDN,
+    String password, DN testDN) async {
+  // Create connection
 
   var connection = LdapConnection(host: host);
   connection.setProtocol(ssl, port);
@@ -23,7 +20,7 @@ Future example() async {
   try {
     // Perform search operation
 
-    var base = "dc=example,dc=com";
+    var base = testDN.dn;
     var filter = Filter.present("objectClass");
     var attrs = ["dc", "objectClass"];
 
@@ -36,9 +33,10 @@ Future example() async {
       print("dn: ${entry.dn}");
 
       // Getting all attributes returned
- 
+
       for (var attr in entry.attributes.values) {
-        for (var value in attr.values) { // attr.values is a Set
+        for (var value in attr.values) {
+          // attr.values is a Set
           print("  ${attr.name}: $value");
         }
       }
@@ -59,6 +57,12 @@ Future example() async {
   }
 }
 
-main() async {
-  await example();
+void main() async {
+  final config = util.Config();
+
+  group('tests', () async {
+    final d = config.defaultDirectory;
+
+    await example(d.host, d.port, d.ssl, d.bindDN, d.password, d.testDN);
+  }, skip: config.skipIfMissingDefaultDirectory);
 }

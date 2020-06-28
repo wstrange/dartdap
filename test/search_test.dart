@@ -6,19 +6,10 @@
 
 import 'dart:async';
 import 'package:test/test.dart';
-import 'package:logging/logging.dart';
+import 'package:dartdap/dartdap.dart';
 import 'util.dart' as util;
 
-import 'package:dartdap/dartdap.dart';
-
 //----------------------------------------------------------------
-
-const String testConfigFile = "test/TEST-config.yaml";
-
-var baseDN = DN("dc=example,dc=com");
-//var baseDN = DN("o=userstore");
-var testDN = baseDN.concat("ou=People");
-var nosuchDN = baseDN.concat("ou=NoSuchEntry");
 
 const String descriptionStr = "Test people branch";
 
@@ -27,7 +18,7 @@ const int NUM_ENTRIES = 3;
 //----------------------------------------------------------------
 // Create entries needed for testing.
 
-Future populateEntries(LdapConnection ldap) async {
+Future populateEntries(LdapConnection ldap, DN testDN) async {
   // Create entry
 
   var addResult = await ldap.add(testDN.dn, {
@@ -39,7 +30,7 @@ Future populateEntries(LdapConnection ldap) async {
 
   // Create subentries
 
-  for (int j = 0; j < NUM_ENTRIES; ++j) {
+  for (var j = 0; j < NUM_ENTRIES; ++j) {
     var attrs = {
       "objectclass": ["inetorgperson"],
       "sn": "User $j"
@@ -53,10 +44,10 @@ Future populateEntries(LdapConnection ldap) async {
 //----------------------------------------------------------------
 /// Clean up before/after testing.
 
-Future purgeEntries(LdapConnection ldap) async {
+Future purgeEntries(LdapConnection ldap, DN testDN) async {
   // Delete subentries
 
-  for (int j = 0; j < NUM_ENTRIES; ++j) {
+  for (var j = 0; j < NUM_ENTRIES; ++j) {
     try {
       await ldap.delete(testDN.concat("cn=user$j").dn);
     } catch (e) {
@@ -76,28 +67,24 @@ Future purgeEntries(LdapConnection ldap) async {
 
 //----------------------------------------------------------------
 
-void doTest(String configName) {
-  var ldap;
+void runTests(util.ConfigDirectory configDirectory) {
+  LdapConnection ldap;
+  DN testDN;
 
   //----------------
 
   setUp(() async {
-    var c = (util.loadConfig(testConfigFile))[configName];
-    ldap = LdapConnection(
-        host: c["host"],
-        ssl: c["ssl"],
-        port: c["port"],
-        bindDN: c["bindDN"],
-        password: c["password"]);
+    testDN = configDirectory.testDN.concat("ou=People");
 
-    await purgeEntries(ldap);
-    await populateEntries(ldap);
+    ldap = configDirectory.connect();
+    await purgeEntries(ldap, testDN);
+    await populateEntries(ldap, testDN);
   });
 
   //----------------
 
   tearDown(() async {
-    await purgeEntries(ldap);
+    await purgeEntries(ldap, testDN);
     await ldap.close();
   });
 
@@ -133,7 +120,7 @@ void doTest(String configName) {
   });
 
   //----------------
-  // Searches for sn="User 1" under ou=People,dc=example,dc=com
+  // Searches for sn="User 1" under ou=People under the testDN
 
   test("search with filter: equals attribute not in DN", () async {
     var filter = Filter.equals("sN", "uSeR 1"); // Note: sn is case-insensitve
@@ -164,7 +151,7 @@ void doTest(String configName) {
   });
 
   //----------------
-  // Searches for cn is present under ou=People,dc=example,dc=com
+  // Searches for cn is present under ou=People under testDN
 
   test("search with filter: present", () async {
     var filter = Filter.present("cn");
@@ -198,7 +185,7 @@ void doTest(String configName) {
   //----------------
 
   test("search with filter: substring", () async {
-    var filter = Filter.substring("cn","uS*"); // note: cn is case-insensitive
+    var filter = Filter.substring("cn", "uS*"); // note: cn is case-insensitive
     var searchAttrs = ["cn"];
 
     var count = 0;
@@ -223,7 +210,7 @@ void doTest(String configName) {
 
   //----------------
 
-  test("search from non-existant entry", () async {
+  test("search from non-existent entry", () async {
     var filter = Filter.equals("ou", "People");
     var searchAttrs = ["ou", "description"];
 
@@ -232,17 +219,18 @@ void doTest(String configName) {
 
     try {
       var searchResults = await ldap.search(
-          "ou=NoSuchEntry,dc=example,dc=com", filter, searchAttrs);
+          configDirectory.testDN.concat('ou=NoSuchEntry').dn,
+          filter,
+          searchAttrs);
       // ignore: unused_local_variable
       await for (SearchEntry entry in searchResults.stream) {
         fail("Unexpected result from search under non-existant entry");
       }
-    } on LdapResultNoSuchObjectException catch(e) {
+    } on LdapResultNoSuchObjectException catch (e) {
       // todo: WS Update
       print(e);
-      //expect(e.result.matchedDN, equals(baseDN.dn)); // part that did match
+      //expect(e.result.matchedDN, equals(testDN.dn)); // part that did match
       gotException = true;
-
     } catch (e) {
       expect(e, const TypeMatcher<LdapException>());
       fail("Unexpected exception: $e");
@@ -253,47 +241,16 @@ void doTest(String configName) {
   });
 }
 
-//================================================================
-
-/// Setup logging
-///
-/// Change the values in this function to change the level of logging
-/// that is done during debugging.
-///
-/// Note: the default for the root level logger is Level.INFO, so if
-/// no levels are set shout/severe/warning/info are logged, but
-/// config/fine/finer/finest are not.
-///
-void setupLogging([Level commonLevel = Level.OFF]) {
-  Logger.root.onRecord.listen((LogRecord rec) {
-    print('${rec.time}: ${rec.loggerName}: ${rec.level.name}: ${rec.message}');
-  });
-
-  hierarchicalLoggingEnabled = true;
-
-  // Normally, only change the values below:
-
-  // Log level: an integer between 0 (ALL) and 2000 (OFF) or a string value:
-  // "OFF", "SHOUT", "SEVERE", "WARNING", "INFO", "CONFIG", "FINE" "FINER",
-  // "FINEST" or "ALL".
-
-  //Logger.root.level = Level.OFF;
-  //Logger("ldap").level = Level.ALL;
-  //Logger("ldap.connection").level = Level.OFF;
-  //Logger("ldap.recv").level = Level.OFF;
-  //Logger("ldap.recv.ldap").level = Level.OFF;
-  //Logger("ldap.send").level = Level.OFF;
-  //Logger("ldap.recv.ldap").level = Level.OFF;
-  //Logger("ldap.recv.asn1").level = Level.OFF;
-  //Logger("ldap.recv.bytes").level = Level.OFF;
-}
-
 //----------------------------------------------------------------
 
-main() {
-  setupLogging();
+void main() {
+  final config = util.Config();
 
-  group("LDAP", () => doTest("test-LDAP"));
+  group('tests', () {
+    runTests(config.defaultDirectory);
+  }, skip: config.skipIfMissingDefaultDirectory);
 
-  // group("LDAPS", () => doTest("test-LDAPS")); // uncomment to test with LDAPS
+  group('tests over LDAPS', () {
+    runTests(config.directory(util.ldapsDirectoryName));
+  }, skip: config.skipIfMissingDirectory(util.ldapsDirectoryName));
 }

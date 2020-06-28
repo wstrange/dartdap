@@ -1012,7 +1012,7 @@ class LdapConnection {
 
       var result = await c.future;
 
-      if (_bindException) {
+      if (_bindException ?? false) {
         assert(result == null);
         throw _bindException;
       }

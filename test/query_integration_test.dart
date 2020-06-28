@@ -2,26 +2,38 @@ import "package:test/test.dart";
 import "util.dart" as util;
 import "package:dartdap/dartdap.dart";
 
-// Integration test against OpenDJ, populated with 2000 sample users under dc=example,dc=com
-// TODO: Refactor test suites to better accomodate AD, OpenDJ, OpenLDAP, etc.
+// Integration test against OpenDJ, populated with 2000 sample users under testDN
+// TODO: Refactor test suites to better accommodate AD, OpenDJ, OpenLDAP, etc.
 
-var baseDN = "ou=People,dc=example,dc=com";
+/// Name of the directory configuration to use.
+///
+/// This is a special test that does not work with the default test directory.
+/// It requires a directory that has been pre-populated with sample users.
+///
+/// This test should work with ANY LDAP DIRECTORY that has the 2000 sample users
+/// under the "testDN". The directory implementation does not matter. What
+/// matters is the contents of the directory. Hence, the name of the directory
+/// should not describe the implementation of the directory (i.e. not "opendj"),
+/// but describes the contents or behaviour of the directory.
 
-main() {
+const specialDirectoryName = 'populated-with-2000-users';
+
+void main() {
+  final config = util.Config();
+
   test("Query Search test", () async {
-    var ldap = util.getConnection("test/Test-config.yaml", "test-LDAP");
+    final dirConfig = config.directory(specialDirectoryName);
+    final ldap = dirConfig.connect();
 
-    var results = await ldap.query(baseDN, "(uid=user*21*)", ["dn", "email"],
+    var results = await ldap.query(
+        dirConfig.testDN.dn, '(uid=user*21*)', ['dn', 'email'],
         scope: SearchScope.SUB_LEVEL);
 
     await results.stream.forEach((r) => print("R = $r"));
 
-
     await ldap.close();
+  }, skip: config.skipIfMissingDirectory(specialDirectoryName));
 
-  });
+  // TODO: modify test so it creates the 2000 people entries before the query.
+  // That way it can work with any default test directory.
 }
-
-
-
-

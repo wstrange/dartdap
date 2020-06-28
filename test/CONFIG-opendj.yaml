@@ -1,0 +1,26 @@
+# Example custom config file for special tests
+#
+# To run tests using this configuration, create a "CONFIG.yaml" symlink to it.
+# See README.md for details.
+
+directories:
+  populated-with-2000-users:
+    host: localhost
+    port: 1389
+    ssl: false
+    validate-certificate: false
+    bindDN: uid=admin
+    password: password
+    testDN: ou=people,ou=identities
+
+  directory-with-valid-certificates:
+    host: test-ldap.example.com
+    port: 636
+    ssl: true
+    validate-certificate: true  # perform normal X.509 validation
+    bindDN: uid=admin
+    password: password
+    testDN: ou=people,ou=identities
+
+# Note: this file needs a better name, since the tests can work with any
+# suitably configured LDAP directory, not just the OpenDJ implementation.

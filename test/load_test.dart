@@ -3,29 +3,19 @@
 //----------------------------------------------------------------
 
 import 'dart:async';
-import 'dart:io';
-
-import 'package:logging/logging.dart';
-import 'package:test/test.dart';
 
 import 'package:dartdap/dartdap.dart';
+import 'package:test/test.dart';
 
-import 'test_configuration.dart';
+import 'util.dart' as util;
 
 //----------------------------------------------------------------
-
-const String testConfigFile = "test/TEST-config.yaml";
-
-// Base
-
-final baseDN = DN("dc=example,dc=com");
 
 // Test branch
 
 const branchOU = "load_test";
 const branchDescription = "Branch for $branchOU";
 
-final branchDN = baseDN.concat("ou=$branchOU");
 final branchAttrs = {
   "objectclass": ["organizationalUnit"],
   "description": branchDescription,
@@ -45,7 +35,7 @@ const String cnPrefix = "user";
 //----------------------------------------------------------------
 // Create entries needed for testing.
 
-Future populateEntries(LdapConnection ldap) async {
+Future populateEntries(LdapConnection ldap, DN branchDN) async {
   var addResult = await ldap.add(branchDN.dn, branchAttrs);
   assert(addResult is LdapResult);
   assert(addResult.resultCode == 0);
@@ -55,10 +45,10 @@ Future populateEntries(LdapConnection ldap) async {
 
 /// Purge entries from the test to clean up
 
-Future purgeEntries(LdapConnection ldap) async {
+Future purgeEntries(LdapConnection ldap, DN branchDN) async {
   // Purge the bulk person entries
 
-  for (int j = NUM_ENTRIES - 1; 0 <= j; j--) {
+  for (var j = NUM_ENTRIES - 1; 0 <= j; j--) {
     try {
       await ldap.delete(branchDN.concat("cn=$cnPrefix$j").dn);
     } catch (e) {
@@ -77,35 +67,28 @@ Future purgeEntries(LdapConnection ldap) async {
 
 //----------------------------------------------------------------
 
-void doTests(String configName) {
-  var ldap;
+void runTests(util.ConfigDirectory configDirectory) {
+  LdapConnection ldap;
+  DN branchDN;
 
   //----------------
 
   setUp(() async {
-    var c = TestConfiguration(testConfigFile).connections[configName];
+    branchDN = configDirectory.testDN.concat("ou=$branchOU");
 
-    ldap = LdapConnection(
-        host: c.host,
-        ssl: c.ssl,
-        port: c.port,
-        bindDN: c.bindDN,
-        password: c.password,
-        badCertificateHandler: (X509Certificate _) => true);
-    // Note: setting badCertificateHandler to accept test certificate
-
-    //await ldap.open();
-    //await ldap.bind();
+    ldap = configDirectory.connect();
 
     await ldap.open(); // optional step: makes log entries more sensible
-    await purgeEntries(ldap);
-    await populateEntries(ldap);
+    //await ldap.bind();
+
+    await purgeEntries(ldap, branchDN);
+    await populateEntries(ldap, branchDN);
   });
 
   //----------------
 
   tearDown(() async {
-    await purgeEntries(ldap);
+    await purgeEntries(ldap, branchDN);
     await ldap.close();
   });
 
@@ -268,38 +251,16 @@ void doTests(String configName) {
   */
 }
 
-//================================================================
-
-void setupLogging() {
-  const bool doLogging = false; // Enable logging by setting to true.
-
-  if (doLogging) {
-    //  startQuickLogging();
-    hierarchicalLoggingEnabled = true;
-
-    Logger.root.onRecord.listen((LogRecord rec) {
-      print(
-          '${rec.time}: ${rec.loggerName}: ${rec.level.name}: ${rec.message}');
-    });
-
-    Logger.root.level = Level.OFF;
-
-    Logger("ldap").level = Level.INFO;
-    Logger("ldap.connection").level = Level.ALL;
-    Logger("ldap.send.ldap").level = Level.INFO;
-    Logger("ldap.send.bytes").level = Level.INFO;
-    Logger("ldap.recv.bytes").level = Level.INFO;
-    Logger("ldap.recv.asn1").level = Level.INFO;
-    Logger("main").level = Level.INFO;
-  }
-}
-
 //----------------------------------------------------------------
 
-main() {
-  setupLogging();
+void main() {
+  final config = util.Config();
 
-  group("LDAP", () => doTests("test-LDAP"));
+  group('tests', () {
+    runTests(config.defaultDirectory);
+  }, skip: config.skipIfMissingDefaultDirectory);
 
-  group("LDAPS", () => doTests("test-LDAPS"));
+  group('tests over LDAPS', () {
+    runTests(config.directory(util.ldapsDirectoryName));
+  }, skip: config.skipIfMissingDirectory(util.ldapsDirectoryName));
 }

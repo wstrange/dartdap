@@ -1,7 +1,7 @@
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 
-main() {
+void main() {
   /*
   test("Escape ldap search string test", () {
     expect(_LdapUtil.escapeString("F*F"), equals('F\\2aF'));
@@ -13,12 +13,12 @@ main() {
   test("LDAP Filter composition ", () {
     //var xx = Filter.substring("cn=foo");
 
-    var f1 = SubstringFilter.fromPattern("cn","foo*");
+    var f1 = SubstringFilter.fromPattern("cn", "foo*");
     expect(f1.any, isEmpty);
     expect(f1.initial, equals("foo"));
     expect(f1.finalString, isNull);
 
-    var f2 = SubstringFilter.fromPattern("cn","*bar");
+    var f2 = SubstringFilter.fromPattern("cn", "*bar");
     expect(f2.initial, isNull);
     expect(f2.any, isEmpty);
     expect(f2.finalString, equals("bar"));
@@ -27,8 +27,8 @@ main() {
 
     //print(c1.toString());
 
-    var f3 = Filter
-        .or([Filter.equals("givenName", "A"), Filter.equals("sn", "Annas")]);
+    var f3 = Filter.or(
+        [Filter.equals("givenName", "A"), Filter.equals("sn", "Annas")]);
     //print("f3 = $f3 asn1=${f3.toASN1()}");
     // make sure this encodes without throwing exception.
     f3.toASN1().encodedBytes;
@@ -57,8 +57,8 @@ main() {
     expect(m2, containsPair("sn", Attribute("sn", ["two", "one"])));
     expect(
         m2,
-        containsPair("objectclass",
-            Attribute("objectclass", ["top", "inetorgperson"])));
+        containsPair(
+            "objectclass", Attribute("objectclass", ["top", "inetorgperson"])));
   });
 /*
   test("Modifications",  () {

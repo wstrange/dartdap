@@ -11,18 +11,13 @@ import "util.dart" as util;
 
 //----------------------------------------------------------------
 
-const String testConfigFile = "test/TEST-config.yaml";
-
 // Base
-
-final baseDN = DN("dc=example,dc=com");
 
 // Test branch
 
 const branchOU = "entry_add_test";
 const branchDescription = "Branch for $branchOU";
 
-final branchDN = baseDN.concat("ou=$branchOU");
 final branchAttrs = {
   "objectclass": ["organizationalUnit"],
   "description": branchDescription
@@ -30,7 +25,6 @@ final branchAttrs = {
 
 // Test person
 
-var testPersonDN = branchDN.concat("cn=John Citizen");
 var testPersonSurname = "Citizen";
 final testPersonAttrs = {
   "objectclass": ["person"],
@@ -42,7 +36,7 @@ final testPersonAttrs = {
 
 /// Purge entries from the test to clean up
 
-Future purgeEntries(LdapConnection ldap) async {
+Future purgeEntries(LdapConnection ldap, DN testPersonDN, DN branchDN) async {
   // Purge test person
 
   try {
@@ -62,28 +56,26 @@ Future purgeEntries(LdapConnection ldap) async {
 
 //----------------------------------------------------------------
 
-void doTests(String configName) {
-  var ldap;
+void runTests(util.ConfigDirectory configDirectory) {
+  LdapConnection ldap;
+  DN branchDN;
+  DN testPersonDN;
 
   //----------------
 
   setUp(() async {
-    var map = util.loadConfig(testConfigFile);
-    var c = map[configName];
-    ldap = LdapConnection(host: c["host"],
-        ssl: c["ssl"],
-        port: c["port"],
-        bindDN: c["bindDN"],
-        password: c["password"]);
+    branchDN = configDirectory.testDN.concat('ou=$branchOU');
+    testPersonDN = branchDN.concat('cn=John Citizen');
 
-    await purgeEntries(ldap);
+    ldap = configDirectory.connect();
+    await purgeEntries(ldap, testPersonDN, branchDN);
     // Nothing to populate, since these tests exercise the "add" operation
   });
 
   //----------------
 
   tearDown(() async {
-    await purgeEntries(ldap);
+    await purgeEntries(ldap, testPersonDN, branchDN);
     await ldap.close();
   });
 
@@ -103,7 +95,8 @@ void doTests(String configName) {
 
     var count = 0;
 
-    var searchResult = await ldap.search(baseDN.dn, filter, searchAttrs);
+    var searchResult =
+        await ldap.search(configDirectory.testDN.dn, filter, searchAttrs);
     await for (SearchEntry entry in searchResult.stream) {
       expect(entry, isNotNull);
 
@@ -160,7 +153,8 @@ void doTests(String configName) {
 
     var count = 0;
 
-    var searchResults = await ldap.search(baseDN.dn, filter, searchAttrs);
+    var searchResults =
+        await ldap.search(configDirectory.testDN.dn, filter, searchAttrs);
     await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 
@@ -239,10 +233,14 @@ void doTests(String configName) {
 
 //================================================================
 
-main() {
-  //group("LDAP", () => doTests("test-LDAP"));
-  group("LDAP", () => doTests("test-dj"));
+void main() {
+  final config = util.Config();
 
+  group('tests', () {
+    runTests(config.defaultDirectory);
+  }, skip: config.skipIfMissingDefaultDirectory);
 
-  // group("LDAPS", () => doTest("test-LDAPS")); // uncomment to test with LDAPS
+  group('tests over LDAPS', () {
+    runTests(config.directory(util.ldapsDirectoryName));
+  }, skip: config.skipIfMissingDirectory(util.ldapsDirectoryName));
 }

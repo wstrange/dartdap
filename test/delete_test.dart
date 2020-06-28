@@ -7,14 +7,12 @@
 import 'dart:async';
 
 import 'package:test/test.dart';
-
 import 'package:dartdap/dartdap.dart';
 
-import 'test_configuration.dart';
+import 'util.dart' as util;
 
 //----------------------------------------------------------------
 
-const String testConfigFile = "test/TEST-config.yaml";
 const branchOU = "entry_delete_test";
 const branchDescription = "Branch for $branchOU";
 
@@ -29,12 +27,6 @@ const testPersonCN = "John Citizen"; // mandatory attribute (in person schema)
 const testPersonSurname = "Citizen"; // mandatory attribute
 const testPersonDescription = "Test person"; // optional attribute
 
-// todo: WS refactor to get rid of these globals
-
-DN testPersonDN;
-DN branchDN;
-DN baseDN;
-
 final testPersonAttrs = {
   "objectclass": ["person"],
   "sn": testPersonSurname,
@@ -44,7 +36,8 @@ final testPersonAttrs = {
 //----------------------------------------------------------------
 // Create entries needed for testing.
 
-Future populateEntries(LdapConnection ldap) async {
+Future populateEntries(
+    LdapConnection ldap, DN branchDN, DN testPersonDN) async {
   var addResult = await ldap.add(branchDN.dn, branchAttrs);
   assert(addResult is LdapResult);
   assert(addResult.resultCode == 0);
@@ -57,7 +50,7 @@ Future populateEntries(LdapConnection ldap) async {
 //----------------------------------------------------------------
 /// Clean up before/after testing.
 
-Future purgeEntries(LdapConnection ldap) async {
+Future purgeEntries(LdapConnection ldap, DN branchDN, DN testPersonDN) async {
   // Purge test person
 
   try {
@@ -77,41 +70,27 @@ Future purgeEntries(LdapConnection ldap) async {
 
 //----------------------------------------------------------------
 
-void doTest(String configName) {
-
-// Base
-;
-
+void runTests(util.ConfigDirectory connection) {
   LdapConnection ldap;
+  DN testPersonDN;
+  DN branchDN;
 
   //----------------
 
   setUp(() async {
-//    var c = (await config_file.loadConfig(testConfigFile))[configName];
-//    ldap = LdapConnection(
-//        host: c["host"],
-//        ssl: c["ssl"],
-//        port: c["port"],
-//        bindDN: c["bindDN"],
-//        password: c["password"]);
-
-    var cfg = TestConfiguration(testConfigFile);
-    ldap = cfg.getConnection(configName);
-
-
-    baseDN = DN(cfg.connections[configName].baseDN);
-    branchDN =baseDN.concat("ou=$branchOU");
+    branchDN = connection.testDN.concat("ou=$branchOU");
     testPersonDN = branchDN.concat("cn=$testPersonCN");
 
+    ldap = connection.connect();
 
-    await purgeEntries(ldap);
-    await populateEntries(ldap);
+    await purgeEntries(ldap, branchDN, testPersonDN);
+    await populateEntries(ldap, branchDN, testPersonDN);
   });
 
   //----------------
 
   tearDown(() async {
-    await purgeEntries(ldap);
+    await purgeEntries(ldap, branchDN, testPersonDN);
     await ldap.close();
   });
 
@@ -131,7 +110,8 @@ void doTest(String configName) {
 
     var count = 0;
 
-    var searchResults = await ldap.search(baseDN.dn, filter, searchAttrs);
+    var searchResults =
+        await ldap.search(connection.testDN.dn, filter, searchAttrs);
     await for (SearchEntry _ in searchResults.stream) {
       fail("Entry still exists after delete");
       // dead code
@@ -171,8 +151,14 @@ void doTest(String configName) {
 
 //================================================================
 
-main() {
-  group("LDAP", () => doTest("opendj"));
+void main() {
+  final config = util.Config();
 
-  // group("LDAPS", () => doTest("test-LDAPS")); // uncomment to test with LDAPS
+  group('tests', () {
+    runTests(config.defaultDirectory);
+  }, skip: config.skipIfMissingDefaultDirectory);
+
+  group('tests over LDAPS', () {
+    runTests(config.directory(util.ldapsDirectoryName));
+  }, skip: config.skipIfMissingDirectory(util.ldapsDirectoryName));
 }
