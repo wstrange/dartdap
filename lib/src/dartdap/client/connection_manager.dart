@@ -6,7 +6,6 @@ import '../protocol/ldap_protocol.dart';
 import '../control/control.dart';
 import 'ldap_transformer.dart';
 import 'dart:async';
-import 'dart:typed_data';
 
 /// Holds a pending LDAP operation that we have issued to the server. We
 /// expect to get a response back from the server for this op. We match
@@ -15,21 +14,22 @@ import 'dart:typed_data';
 ///
 /// todo: Implement timeouts?
 abstract class _PendingOp {
-  Stopwatch _stopwatch = Stopwatch()..start();
+  final Stopwatch _stopwatch = Stopwatch()..start();
 
   // the message we are waiting for a response from
   LDAPMessage message;
 
   _PendingOp(this.message);
 
-  String toString() => "PendingOp m=${message}";
+  @override
+  String toString() => 'PendingOp m=${message}';
 
   // Process an LDAP result. Return true if this operation is now complete
   bool processResult(ResponseOp op);
 
-  done() {
+  void done() {
     var ms = _stopwatch.elapsedMilliseconds;
-    loggerSendLdap.fine("LDAP request serviced: $message ($ms ms)");
+    loggerSendLdap.fine('LDAP request serviced: $message ($ms ms)');
   }
 }
 
@@ -38,9 +38,9 @@ abstract class _PendingOp {
 // A pending operation that has multiple values returned via a
 // Stream. Used for SearchResults.
 class _StreamPendingOp extends _PendingOp {
-  StreamController<SearchEntry> _controller =
+  final StreamController<SearchEntry> _controller =
       StreamController<SearchEntry>();
-  SearchResult _searchResult;
+  late SearchResult _searchResult;
   SearchResult get searchResult => _searchResult;
 
   _StreamPendingOp(LDAPMessage m) : super(m) {
@@ -49,6 +49,7 @@ class _StreamPendingOp extends _PendingOp {
 
   // process the stream op - return false if we expect more data to come
   // or true if the search is complete
+  @override
   bool processResult(ResponseOp op) {
     // op is Search Entry. Add it to our stream and keep
     if (op is SearchResultEntry) {
@@ -58,20 +59,25 @@ class _StreamPendingOp extends _PendingOp {
       // we should be done now
       // if this is not a done message we are in trouble...
 
-      if (op.ldapResult.resultCode != ResultCode.OK) {
+      // SizeLimit Exceeded is not a true error. The partial
+      // results from the server will be returned
+      if (op.ldapResult.resultCode != ResultCode.OK &&
+          op.ldapResult.resultCode != ResultCode.SIZE_LIMIT_EXCEEDED) {
         // Error result: convert to an exception class and add to controller
         _controller.addError(op.ldapResult.exceptionFromResultCode());
       }
 
       _searchResult.controls = op.controls;
-      _searchResult.ldapResult = op.ldapResult;
+      _searchResult.completeLdapResult(op.ldapResult);
+
       _controller.close();
       done();
     } else {
       // This is unexpected
-      assert(false);
-      _controller.addError(LdapResultUnknownCodeException(null));
+      // TODO; Review. Can we recover better from this condition?
+      _controller.addError(op.ldapResult.exceptionFromResultCode());
       _controller.close(); // TODO: Is the correct way to handle this?
+      loggerConnection.severe('Unexpected op code = $op');
       done();
     }
     return true; // op complete
@@ -87,6 +93,7 @@ class _FuturePendingOp extends _PendingOp {
 
   _FuturePendingOp(LDAPMessage m) : super(m);
 
+  @override
   bool processResult(ResponseOp op) {
     var ldapResult = op.ldapResult;
 
@@ -113,7 +120,7 @@ class _FuturePendingOp extends _PendingOp {
 /// (and the security consequences of doing so) or false to
 /// reject it (and not establish the SSL/TLS connection).
 
-typedef bool BadCertHandlerType(X509Certificate cert);
+typedef BadCertHandlerType = bool Function(X509Certificate cert);
 
 //================================================================
 
@@ -123,16 +130,16 @@ typedef bool BadCertHandlerType(X509Certificate cert);
 
 class ConnectionManager {
   // Queue for all outbound messages.
-  Queue<_PendingOp> _outgoingMessageQueue = Queue<_PendingOp>();
+  final Queue<_PendingOp> _outgoingMessageQueue = Queue<_PendingOp>();
 
   // Messages that we are expecting a response back from the LDAP server
-  Map<int, _PendingOp> _pendingResponseMessages = Map();
+  final Map<int, _PendingOp> _pendingResponseMessages = {};
 
   // TIMEOUT when waiting for a pending op to come back from the server.
-  static const PENDING_OP_TIMEOUT = Duration(seconds: 3);
+  static const PENDING_OP_TIMEOUT = Duration(seconds: 10);
   //
   bool _bindPending = false; // true if a BIND is pending
-  Socket _socket;
+  Socket? _socket;
 
   //----------------------------------------------------------------
   /// Indicates if the connection is closed.
@@ -144,17 +151,17 @@ class ConnectionManager {
 
   int _nextMessageId = 1; // message counter for this connection
 
-  int _port;
-  String _host;
-  bool _ssl;
-  SecurityContext _context;
+  final int _port;
+  final String _host;
+  final SecurityContext? _context;
+  final bool _ssl;
 
-  BadCertHandlerType _badCertHandler;
+  final BadCertHandlerType? _badCertHandler;
 
   /// Completes when the stream transformer is done.
   /// Indicates the connection is completely closed.
   ///
-  Completer _whenDone;
+  Completer? _whenDone;
 
   //----------------------------------------------------------------
   /// Constructor
@@ -164,8 +171,13 @@ class ConnectionManager {
   /// The actual TCP/IP connection is not established.
   ///
 
-  ConnectionManager(this._host, this._port, this._ssl, this._badCertHandler,
-      [this._context]);
+  ConnectionManager(this._host, this._port,
+      {bool ssl = false,
+      SecurityContext? tlsSecurityContext,
+      BadCertHandlerType? badCertHandler})
+      : _ssl = ssl,
+        _context = tlsSecurityContext,
+        _badCertHandler = badCertHandler;
 
   //================================================================
   // Connecting
@@ -186,7 +198,7 @@ class ConnectionManager {
   Future<ConnectionManager> connect() async {
     try {
       if (isClosed()) {
-        var s = (_ssl)
+        var s = _ssl
             ? SecureSocket.connect(_host, _port,
                 onBadCertificate: _badCertHandler, context: _context)
             : Socket.connect(_host, _port);
@@ -194,10 +206,7 @@ class ConnectionManager {
         _socket = await s;
 
         _whenDone = Completer();
-
-        // FIXME: I think the .cast causes bad performance...
-        // https://www.dartlang.org/guides/language/effective-dart/usage#avoid-using-cast
-        _socket.cast<Uint8List>().transform(createLdapTransformer()).listen(
+        _socket?.transform(createLdapTransformer()).listen(
             (m) => _handleLDAPMessage(m),
             onError: _ldapListenerOnError,
             onDone: _ldapListenerOnDone);
@@ -209,11 +218,11 @@ class ConnectionManager {
       // throw a more meaningful exception. Otherwise, just rethrow it.
 
       if (e.osError != null) {
-        if (e.osError.errorCode == 61) {
-          // errorCode 61 = "Connection refused"
+        if (e.osError?.errorCode == 61) {
+          // errorCode 61 = 'Connection refused'
           throw LdapSocketRefusedException(e, _host, _port);
-        } else if (e.osError.errorCode == 8) {
-          // errorCode 8 = "nodename nor servname provided, or not known"
+        } else if (e.osError?.errorCode == 8) {
+          // errorCode 8 = 'nodename nor servname provided, or not known'
           throw LdapSocketServerNotFoundException(e, _host);
         }
       }
@@ -229,6 +238,8 @@ class ConnectionManager {
   /// transformer on the socket.
 
   void _handleLDAPMessage(LDAPMessage m) {
+    loggeRecvLdap.finest(
+        'pendign = $_pendingResponseMessages, outgoing = $_outgoingMessageQueue');
     // call response handler to figure out what kind of resposnse
     // the message contains.
     var rop = ResponseHandler.handleResponse(m);
@@ -238,7 +249,7 @@ class ConnectionManager {
 
     if (rop is ExtendedResponse) {
       loggeRecvLdap.fine(
-          "Got extended response ${rop.responseName} code=${rop.ldapResult.resultCode}");
+          'Got extended response ${rop.responseName} code=${rop.ldapResult.resultCode}');
     }
 
     var pending_op = _pendingResponseMessages[m.messageId];
@@ -249,7 +260,7 @@ class ConnectionManager {
     // and carry on....
     if (pending_op == null) {
       throw LdapParseException(
-          "Server sent us an unknown message id = ${m.messageId} opCode=${m.protocolTag}");
+          'Server sent us an unknown message id = ${m.messageId} opCode=${m.protocolTag}');
     }
 
     if (pending_op.processResult(rop)) {
@@ -264,18 +275,18 @@ class ConnectionManager {
   /// The onError callback for the listener for LDAP messages.
 
   void _ldapListenerOnError(error, StackTrace stacktrace) {
-    loggerConnection.finer("listen: onError", error, stacktrace);
+    loggerConnection.finer('listen: onError', error, stacktrace);
 
     if (error is SocketException) {
       // Thrown a specific subclass of LdapSocketException if possible,
       // otherwise throw it as a generic LdapSocketException.
 
       if (error.osError != null) {
-        if (error.osError.errorCode == 61) {
-          // errorCode 61 = "Connection refused"
+        if (error.osError?.errorCode == 61) {
+          // errorCode 61 = 'Connection refused'
           throw LdapSocketRefusedException(error, _host, _port);
-        } else if (error.osError.errorCode == 8) {
-          // errorCode 8 = "nodename nor servname provided, or not known"
+        } else if (error.osError?.errorCode == 8) {
+          // errorCode 8 = 'nodename nor servname provided, or not known'
           throw LdapSocketServerNotFoundException(error, _host);
         }
       }
@@ -293,10 +304,9 @@ class ConnectionManager {
   /// This can happen if the TCP/IP connect is broken.
 
   void _ldapListenerOnDone() {
-    loggerConnection.finest("message stream done");
+    loggerConnection.finest('message stream done');
 
-    assert(_whenDone != null);
-    _whenDone.complete();
+    _whenDone?.complete();
 
     _doClose();
   }
@@ -311,7 +321,7 @@ class ConnectionManager {
 
   SearchResult processSearch(SearchRequest rop, List<Control> controls) {
     if (isClosed()) {
-      throw LdapUsageException("not connected");
+      throw LdapUsageException('not connected');
     }
 
     var m = LDAPMessage(++_nextMessageId, rop, controls);
@@ -330,7 +340,7 @@ class ConnectionManager {
 
   Future<LdapResult> process(RequestOp rop) {
     if (isClosed()) {
-      throw LdapUsageException("not connected");
+      throw LdapUsageException('not connected');
     }
 
     var m = LDAPMessage(++_nextMessageId, rop);
@@ -339,13 +349,13 @@ class ConnectionManager {
     return op.completer.future;
   }
 
-  _queueOp(_PendingOp op) {
+  void _queueOp(_PendingOp op) {
     _outgoingMessageQueue.add(op);
     _sendPendingMessage();
   }
 
-  _sendPendingMessage() {
-    //logger.finest("Send pending message()");
+  void _sendPendingMessage() {
+    //logger.finest('Send pending message()');
     while (_messagesToSend()) {
       var op = _outgoingMessageQueue.removeFirst();
       _sendMessage(op);
@@ -365,15 +375,15 @@ class ConnectionManager {
   //----------------------------------------------------------------
   // Send a single message to the server
 
-  _sendMessage(_PendingOp op) {
+  void _sendMessage(_PendingOp op) {
     loggerSendLdap
-        .fine("[${op.message.messageId}] Sending LDAP message: ${op.message}");
+        .fine('[${op.message.messageId}] Sending LDAP message: ${op.message}');
 
     var l = op.message.toBytes();
 
-    loggerSendBytes.finest("[${op.message.messageId}] Bytes sending: $l");
+    loggerSendBytes.finest('[${op.message.messageId}] Bytes sending: $l');
 
-    _socket.add(l);
+    _socket?.add(l);
     _pendingResponseMessages[op.message.messageId] = op;
     if (op.message.protocolTag == BIND_REQUEST) {
       _bindPending = true;
@@ -381,19 +391,19 @@ class ConnectionManager {
 
     // Call the [flush] method so we can use [catchError] to detect errors
     // Note: this is experimental. So far no errors/exceptions have been seen.
-
-    try {
-      _socket.flush().then((v) {
-        loggerSendBytes
-            .finer("[${op.message.messageId}] Sent ${l.length} bytes");
-      }).catchError((e) {
-        loggerSendBytes.severe("[${op.message.messageId}] $e");
-        throw e;
-      });
-    } catch (e) {
-      loggerSendBytes.severe("[${op.message.messageId}] caught: $e");
-      rethrow;
-    }
+    // TODO: Expiriment with non flush
+    // try {
+    //   _socket?.flush().then((v) {
+    //     loggerSendBytes
+    //         .finer('[${op.message.messageId}] Sent ${l.length} bytes');
+    //   }).catchError((e) {
+    //     loggerSendBytes.severe('[${op.message.messageId}] $e');
+    //     throw e;
+    //   });
+    // } catch (e) {
+    //   loggerSendBytes.severe('[${op.message.messageId}] caught: $e');
+    //   rethrow;
+    // }
   }
 
   //================================================================
@@ -413,7 +423,7 @@ class ConnectionManager {
       await _doClose();
     } else {
       loggerConnection.finer(
-          "wait for queue to drain pendingResponse=$_pendingResponseMessages");
+          'wait for queue to drain pendingResponse=$_pendingResponseMessages');
 
       var c = Completer();
       // todo: dont wait if there are no pending ops....
@@ -427,8 +437,8 @@ class ConnectionManager {
     }
 
     if (_whenDone != null) {
-      loggerConnection.finest("wait for message stream to be done");
-      await _whenDone.future; // wait for stream to be done
+      loggerConnection.finest('wait for message stream to be done');
+      await _whenDone?.future; // wait for stream to be done
     }
   }
 
@@ -445,10 +455,11 @@ class ConnectionManager {
   //----------------------------------------------------------------
   /// Closes the connection.
 
-  Future _doClose() async {
+  Future<void> _doClose() async {
     if (!isClosed()) {
-      await _socket.destroy();
-      _socket = null; // this marks the connection as being closed
+      loggerConnection.fine('Closing socket');
+      await _socket?.close();
+      _socket = null;
     }
   }
 }

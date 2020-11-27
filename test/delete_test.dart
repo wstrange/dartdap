@@ -13,24 +13,24 @@ import 'util.dart' as util;
 
 //----------------------------------------------------------------
 
-const branchOU = "entry_delete_test";
-const branchDescription = "Branch for $branchOU";
+const branchOU = 'entry_delete_test';
+const branchDescription = 'Branch for $branchOU';
 
 final branchAttrs = {
-  "objectclass": ["organizationalUnit"],
-  "description": branchDescription
+  'objectclass': ['organizationalUnit'],
+  'description': branchDescription
 };
 
 // Test person
 
-const testPersonCN = "John Citizen"; // mandatory attribute (in person schema)
-const testPersonSurname = "Citizen"; // mandatory attribute
-const testPersonDescription = "Test person"; // optional attribute
+const testPersonCN = 'John Citizen'; // mandatory attribute (in person schema)
+const testPersonSurname = 'Citizen'; // mandatory attribute
+const testPersonDescription = 'Test person'; // optional attribute
 
 final testPersonAttrs = {
-  "objectclass": ["person"],
-  "sn": testPersonSurname,
-  "description": testPersonDescription
+  'objectclass': ['person'],
+  'sn': testPersonSurname,
+  'description': testPersonDescription
 };
 
 //----------------------------------------------------------------
@@ -71,17 +71,19 @@ Future purgeEntries(LdapConnection ldap, DN branchDN, DN testPersonDN) async {
 //----------------------------------------------------------------
 
 void runTests(util.ConfigDirectory connection) {
-  LdapConnection ldap;
-  DN testPersonDN;
-  DN branchDN;
+  late LdapConnection ldap;
+  late DN testPersonDN;
+  late DN branchDN;
 
   //----------------
 
   setUp(() async {
-    branchDN = connection.testDN.concat("ou=$branchOU");
-    testPersonDN = branchDN.concat("cn=$testPersonCN");
+    branchDN = connection.testDN.concat('ou=$branchOU');
+    testPersonDN = branchDN.concat('cn=$testPersonCN');
 
-    ldap = connection.connect();
+    ldap = connection.getConnection();
+    await ldap.open();
+    await ldap.bind();
 
     await purgeEntries(ldap, branchDN, testPersonDN);
     await populateEntries(ldap, branchDN, testPersonDN);
@@ -96,7 +98,7 @@ void runTests(util.ConfigDirectory connection) {
 
   //----------------
 
-  test("deleting an entry", () async {
+  test('deleting an entry', () async {
     // Delete the entry
 
     var delResult = await ldap.delete(testPersonDN.dn);
@@ -105,15 +107,15 @@ void runTests(util.ConfigDirectory connection) {
 
     // Search to check the entry is gone
 
-    var filter = Filter.equals("cn", testPersonCN);
-    var searchAttrs = ["ou"];
+    var filter = Filter.equals('cn', testPersonCN);
+    var searchAttrs = ['ou'];
 
     var count = 0;
 
     var searchResults =
         await ldap.search(connection.testDN.dn, filter, searchAttrs);
     await for (SearchEntry _ in searchResults.stream) {
-      fail("Entry still exists after delete");
+      fail('Entry still exists after delete');
       // dead code
       //count++;
     }
@@ -123,12 +125,12 @@ void runTests(util.ConfigDirectory connection) {
 
   //----------------
 
-  test("deleting a non-existant entry raises an exception", () async {
-    var nosuchDN = branchDN.concat("cn=NoSuchPerson");
+  test('deleting a non-existant entry raises an exception', () async {
+    var nosuchDN = branchDN.concat('cn=NoSuchPerson');
 
     try {
       await ldap.delete(nosuchDN.dn);
-      fail("exception not thrown");
+      fail('exception not thrown');
     } catch (e) {
       expect(e, const TypeMatcher<LdapResultNoSuchObjectException>());
     }
@@ -136,13 +138,13 @@ void runTests(util.ConfigDirectory connection) {
 
   //----------------
 
-  test("deleting an entry with children raises an exception", () async {
+  test('deleting an entry with children raises an exception', () async {
     // Note: the test person entry is a child of the branch entry, so
     // the branch entry cannot be deleted.
 
     try {
       await ldap.delete(branchDN.dn);
-      fail("exception not thrown");
+      fail('exception not thrown');
     } catch (e) {
       expect(e, const TypeMatcher<LdapResultNotAllowedOnNonleafException>());
     }
@@ -153,10 +155,6 @@ void runTests(util.ConfigDirectory connection) {
 
 void main() {
   final config = util.Config();
-
-  group('tests', () {
-    runTests(config.defaultDirectory);
-  }, skip: config.skipIfMissingDefaultDirectory);
 
   group('tests over LDAPS', () {
     runTests(config.directory(util.ldapsDirectoryName));

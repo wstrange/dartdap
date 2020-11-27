@@ -1,28 +1,23 @@
 part of ldap_protocol;
 
-/**
- * LDAP Modify Request
- */
+/// LDAP Modify Request
 class ModifyRequest extends RequestOp {
-  String _dn; // dn of entry we are adding
-  List<Modification> _mods; // modifications to make
+  final String _dn; // dn of entry we are adding
+  final List<Modification> _mods; // modifications to make
 
   ModifyRequest(this._dn, this._mods) : super(MODIFY_REQUEST);
 
-  /*
-
-  ModifyRequest ::= [APPLICATION 6] SEQUENCE {
-  object          LDAPDN,
-  modification    SEQUENCE OF SEQUENCE {
-  operation       ENUMERATED {
-  add     (0),
-  delete  (1),
-  replace (2) },
-  modification    AttributeTypeAndValues } }
+  // ModifyRequest ::= [APPLICATION 6] SEQUENCE {
+  // object          LDAPDN,
+  // modification    SEQUENCE OF SEQUENCE {
+  // operation       ENUMERATED {
+  // add     (0),
+  // delete  (1),
+  // replace (2) },
+  // modification    AttributeTypeAndValues } }
 
 
-   */
-
+  @override
   ASN1Object toASN1() {
     var seq = _startSequence();
     seq.add(ASN1OctetString(_dn));

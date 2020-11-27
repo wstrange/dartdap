@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'control.dart';
 import 'package:asn1lib/asn1lib.dart';
 
@@ -9,25 +8,25 @@ import 'package:asn1lib/asn1lib.dart';
 /// value returned in the control should be used to fetch the next page
 /// of results. See example/paged_search.dart for usage.
 class SimplePagedResultsControl extends Control {
-  @override
   static const OID = '1.2.840.113556.1.4.319';
+  @override
   String get oid => OID;
 
-  int size;
-  List<int> _cookie;
+  late int size;
+  late List<int> _cookie;
   List<int> get cookie => _cookie;
 
-  SimplePagedResultsControl({bool isCritical = false, this.size, List<int> cookie}) {
+  SimplePagedResultsControl({bool isCritical = false, this.size = 100, List<int> cookie = const <int>[]}):
+    _cookie = cookie {
     if (isCritical) {
       // todo: refactor superclass - this should be immutable
       this.isCritical = isCritical;
     }
-    _cookie = cookie == null ? Uint8List(0) : cookie;
   }
 
   // Return true if the cookie is empty. An empty cookie from the
   // server indicates there are no more paged results.
-  bool get isEmptyCookie => _cookie == null || _cookie.isEmpty;
+  bool get isEmptyCookie => _cookie.isEmpty;
 
   /// pagedResultsControl ::= SEQUENCE {
   //        controlType     1.2.840.113556.1.4.319,
@@ -44,9 +43,9 @@ class SimplePagedResultsControl extends Control {
   //                                -- result set size estimate from server
   //        cookie          OCTET STRING
   //}
+  @override
   ASN1Sequence toASN1() {
     var seq = startSequence();
-    assert(_cookie != null);
     var s2 = ASN1Sequence();
     s2.add(ASN1Integer.fromInt(size));
     s2.add(ASN1OctetString(_cookie));
@@ -69,5 +68,6 @@ class SimplePagedResultsControl extends Control {
     _cookie = _c.valueBytes();
   }
 
-  String toString() => 'SimplePagedResultControl(size=$size, cookie="${_cookie}")';
+  @override
+  String toString() => 'SimplePagedResultControl(size=$size, cookie=${_cookie})';
 }

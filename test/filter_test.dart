@@ -10,7 +10,7 @@ import 'package:dartdap/dartdap.dart';
 void main() {
   group('Filter Encoding', () {
     test('(foo=bar)', () {
-      var f = Filter.equals("foo", "bar");
+      var f = Filter.equals('foo', 'bar');
       var b = f.toASN1().encodedBytes;
       expect(
           b,
@@ -31,7 +31,7 @@ void main() {
     });
 
     test('(foo<=bar)', () {
-      var f = Filter.lessOrEquals("foo", "bar");
+      var f = Filter.lessOrEquals('foo', 'bar');
       var b = f.toASN1().encodedBytes;
       expect(
           b,
@@ -52,7 +52,7 @@ void main() {
     });
 
     test('(foo>=bar)', () {
-      var f = Filter.greaterOrEquals("foo", "bar");
+      var f = Filter.greaterOrEquals('foo', 'bar');
       var b = f.toASN1().encodedBytes;
       expect(
           b,
@@ -73,7 +73,7 @@ void main() {
     });
 
     test('(foo~=bar)', () {
-      var f = Filter.approx("foo", "bar");
+      var f = Filter.approx('foo', 'bar');
       var b = f.toASN1().encodedBytes;
       expect(
           b,
@@ -94,7 +94,7 @@ void main() {
     });
 
     test('(foo=bar*)', () {
-      var f = Filter.substring("foo", "bar*");
+      var f = Filter.substring('foo', 'bar*');
       var b = f.toASN1().encodedBytes;
       expect(
           b,
@@ -117,13 +117,13 @@ void main() {
     });
 
     test('(foo=*)', () {
-      var f = Filter.present("foo");
+      var f = Filter.present('foo');
       var b = f.toASN1().encodedBytes;
       expect(b, equals([0x87, 0x03, 0x66, 0x6f, 0x6f]));
     });
 
     test('(!(foo=bar))', () {
-      var f = Filter.not(Filter.equals("foo", "bar"));
+      var f = Filter.not(Filter.equals('foo', 'bar'));
       var b = f.toASN1().encodedBytes;
       expect(
           b,
@@ -146,7 +146,7 @@ void main() {
     });
 
     test('(!(foo<=bar))', () {
-      var f = Filter.not(Filter.lessOrEquals("foo", "bar"));
+      var f = Filter.not(Filter.lessOrEquals('foo', 'bar'));
       var b = f.toASN1().encodedBytes;
       expect(
           b,
@@ -169,7 +169,7 @@ void main() {
     });
 
     test('(!(foo>=bar))', () {
-      var f = Filter.not(Filter.greaterOrEquals("foo", "bar"));
+      var f = Filter.not(Filter.greaterOrEquals('foo', 'bar'));
       var b = f.toASN1().encodedBytes;
       expect(
           b,
@@ -192,7 +192,7 @@ void main() {
     });
 
     test('(!(foo~=bar))', () {
-      var f = Filter.not(Filter.approx("foo", "bar"));
+      var f = Filter.not(Filter.approx('foo', 'bar'));
       var b = f.toASN1().encodedBytes;
       expect(
           b,
@@ -215,14 +215,14 @@ void main() {
     });
 
     test('(!(foo=*))', () {
-      var f = Filter.not(Filter.present("foo"));
+      var f = Filter.not(Filter.present('foo'));
       var b = f.toASN1().encodedBytes;
       expect(b, equals([0xa2, 0x05, 0x87, 0x03, 0x66, 0x6f, 0x6f]));
     });
 
     test('(&(foo=bar)(baz=banana))', () {
       var f = Filter.and(
-          [Filter.equals("foo", "bar"), Filter.equals("baz", "banana")]);
+          [Filter.equals('foo', 'bar'), Filter.equals('baz', 'banana')]);
       var b = f.toASN1().encodedBytes;
       expect(
           b,

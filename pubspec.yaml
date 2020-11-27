@@ -1,24 +1,18 @@
 name: dartdap
-version: 0.4.5
-authors:
-- Warren Strange <warren.strange@gmail.com>
-- Chris Ridd <chrisridd@mac.com>
-- Hoylen Sue <hoylen@hoylen.com>
-- Matthew Butler <butler.matthew@gmail.com>
+version: 0.5.0
 description: >
     LDAP v3 client library for Dart. Supports basic LDAP operations, add, delete, search, modify against
     any LDAP v3 compliant server.
 homepage: https://github.com/wstrange/dartdap
 environment:
-  sdk: '>=2.4.0  <3.0.0'
+  sdk: '>=2.12.0-0  <3.0.0'
+
 dependencies:
-  asn1lib: "^0.6.4"
-  logging: "^0.11.2"
-  petitparser: "^2.4.0"
-  quiver_hashcode: "^2.0.0"
-  collection: "^1.14.11"
+  asn1lib: "^0.9.0-nullsafety"
+  logging: "^1.0.0"
+  petitparser: "^4.0.0-nullsafety.1"
+  collection: "^1.15.0"
 dev_dependencies:
-  safe_config: "^2.0.0"
-  test: any
-  yaml: "^2.1.14"
-  pedantic: ^1.0.0
+  test: "^1.16.2"
+  yaml: "^3.0.0"
+  pedantic: "^1.10.0"

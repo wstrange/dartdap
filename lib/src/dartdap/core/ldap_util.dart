@@ -1,12 +1,10 @@
 // todo: why a class? Make a top level functions?
 class LdapUtil {
-  /**
-   * Escape an ldap string used in a search filter.
-   * The LDAP spec requires *,),(,\ and null to be escaped.
-   *
-   */
+  /// Escape an ldap string used in a search filter.
+  /// The LDAP spec requires *,),(,\ and null to be escaped.
+  ///
   static String escapeString(String s) {
-    StringBuffer buf = StringBuffer();
+    var buf = StringBuffer();
     s.codeUnits.forEach((c) {
       switch (c) {
         case 0x2a: // *
@@ -26,10 +24,8 @@ class LdapUtil {
     return buf.toString();
   }
 
-  /**
-   * Convert a list of bytes to a hex string with
-   * each byte seperated by a space
-   */
+  /// Convert a list of bytes to a hex string with
+  /// each byte seperated by a space
   static String toHexString(List<int> bytes) {
     var buf = StringBuffer();
 
@@ -41,17 +37,16 @@ class LdapUtil {
   }
 }
 
-/**
- * Utility for building DN's
- */
+/// Utility for building DN's
 class DN {
-  String _dn;
+  final String _dn;
 
   DN(this._dn);
 
-  DN concat(String prefix) => DN("$prefix,$_dn");
+  DN concat(String prefix) => DN('$prefix,$_dn');
 
   String get dn => _dn.toString();
 
+  @override
   String toString() => _dn;
 }

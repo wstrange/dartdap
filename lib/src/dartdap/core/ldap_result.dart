@@ -68,19 +68,17 @@ import 'attribute.dart';
  */
 
 //===============================================================
-/**
- * Generic LDAP Result
- */
+/// Generic LDAP Result
 
 class LdapResult {
-  int _resultCode;
-  String _diagnosticMessage;
-  String _matchedDN;
-  List<String> _referralURLs;
+  final int _resultCode;
+  final String _diagnosticMessage;
+  final String? _matchedDN;
+  final List<String> _referralURLs;
 
   int get resultCode => _resultCode;
   String get diagnosticMessage => _diagnosticMessage;
-  String get matchedDN => _matchedDN;
+  String? get matchedDN => _matchedDN;
   List<String> get referralURLs => _referralURLs;
 
   /// Constructor
@@ -88,12 +86,10 @@ class LdapResult {
   LdapResult(this._resultCode, this._matchedDN, this._diagnosticMessage,
       this._referralURLs);
 
+  @override
   String toString() =>
-      ResultCode.message(_resultCode) +
-      ((_diagnosticMessage != null && _diagnosticMessage.isNotEmpty)
-          ? ": $_diagnosticMessage"
-          : "") +
-      ((_matchedDN != null && _matchedDN.isNotEmpty) ? ": $_matchedDN" : "");
+      ResultCode.message(_resultCode) + _diagnosticMessage +
+      (_matchedDN != null ? ': $_matchedDN' : '');
 
   /// Converts an LdapResult whose result code is an error into an exception.
   ///
@@ -103,158 +99,120 @@ class LdapResult {
     switch (resultCode) {
       case ResultCode.OPERATIONS_ERROR:
         return LdapResultOperationsErrorException(this);
-        break;
 
       case ResultCode.PROTOCOL_ERROR:
         return LdapResultProtocolErrorException(this);
-        break;
 
       case ResultCode.TIME_LIMIT_EXCEEDED:
         return LdapResultTimeLimitExceededException(this);
-        break;
 
       case ResultCode.SIZE_LIMIT_EXCEEDED:
         return LdapResultSizeLimitExceededException(this);
-        break;
 
       case ResultCode.AUTH_METHOD_NOT_SUPPORTED:
         return LdapResultAuthMethodNotSupportedException(this);
-        break;
 
       case ResultCode.STRONG_AUTH_REQUIRED:
         return LdapResultStrongAuthRequiredException(this);
-        break;
 
       case ResultCode.REFERRAL:
         return LdapResultReferralException(this);
-        break;
 
       case ResultCode.ADMIN_LIMIT_EXCEEDED:
         return LdapResultAdminLimitExceededException(this);
-        break;
 
       case ResultCode.UNAVAILABLE_CRITICAL_EXTENSION:
         return LdapResultUnavailableCriticalExtensionException(this);
-        break;
 
       case ResultCode.CONFIDENTIALITY_REQUIRED:
         return LdapResultConfidentialityRequiredException(this);
-        break;
 
       case ResultCode.SASL_BIND_IN_PROGRESS:
         return LdapResultSaslBindInProgressException(this);
-        break;
 
       case ResultCode.NO_SUCH_ATTRIBUTE:
         return LdapResultNoSuchAttributeException(this);
-        break;
 
       case ResultCode.UNDEFINED_ATTRIBUTE_TYPE:
         return LdapResultUndefinedAttributeTypeException(this);
-        break;
 
       case ResultCode.INAPPROPRIATE_MATCHING:
         return LdapResultInappropriateMatchingException(this);
-        break;
 
       case ResultCode.CONSTRAINT_VIOLATION:
         return LdapResultConstraintViolationException(this);
-        break;
 
       case ResultCode.ATTRIBUTE_OR_VALUE_EXISTS:
         return LdapResultAttributeOrValueExistsException(this);
-        break;
 
       case ResultCode.INVALID_ATTRIBUTE_SYNTAX:
         return LdapResultInvalidAttributeSyntaxException(this);
-        break;
 
       case ResultCode.NO_SUCH_OBJECT:
         return LdapResultNoSuchObjectException(this);
-        break;
 
       case ResultCode.ALIAS_PROBLEM:
         return LdapResultAliasProblemException(this);
-        break;
 
       case ResultCode.INVALID_DN_SYNTAX:
         return LdapResultInvalidDnSyntaxException(this);
-        break;
 
       case ResultCode.IS_LEAF:
         return LdapResultIsLeafException(this);
-        break;
 
       case ResultCode.ALIAS_DEREFERENCING_PROBLEM:
         return LdapResultAliasDereferencingProblemException(this);
-        break;
 
       case ResultCode.INAPPROPRIATE_AUTHENTICATION:
         return LdapResultInappropriateAuthenticationException(this);
-        break;
 
       case ResultCode.INVALID_CREDENTIALS:
         return LdapResultInvalidCredentialsException(this);
-        break;
 
       case ResultCode.INSUFFICIENT_ACCESS_RIGHTS:
         return LdapResultInsufficientAccessRightsException(this);
-        break;
 
       case ResultCode.BUSY:
         return LdapResultBusyException(this);
-        break;
 
       case ResultCode.UNAVAILABLE:
         return LdapResultUnavailableException(this);
-        break;
 
       case ResultCode.UNWILLING_TO_PERFORM:
         return LdapResultUnwillingToPerformException(this);
-        break;
 
       case ResultCode.LOOP_DETECT:
         return LdapResultLoopDetectException(this);
-        break;
 
       case ResultCode.NAMING_VIOLATION:
         return LdapResultNamingViolationException(this);
-        break;
 
       case ResultCode.OBJECT_CLASS_VIOLATION:
         return LdapResultObjectClassViolationException(this);
-        break;
 
       case ResultCode.NOT_ALLOWED_ON_NONLEAF:
         return LdapResultNotAllowedOnNonleafException(this);
-        break;
 
       case ResultCode.NOT_ALLOWED_ON_RDN:
         return LdapResultNotAllowedOnRdnException(this);
-        break;
 
       case ResultCode.ENTRY_ALREADY_EXISTS:
         return LdapResultEntryAlreadyExistsException(this);
-        break;
 
       case ResultCode.OBJECT_CLASS_MODS_PROHIBITED:
         return LdapResultObjectClassModsProhibitedException(this);
-        break;
 
       case ResultCode.AFFECTS_MULTIPLE_DSAS:
         return LdapResultAffectsMultipleDsasException(this);
-        break;
 
       case ResultCode.OTHER:
         return LdapResultOtherException(this);
-        break;
 
       default:
         assert(resultCode != ResultCode.OK);
         assert(resultCode != ResultCode.COMPARE_FALSE);
         assert(resultCode != ResultCode.COMPARE_TRUE);
         return LdapResultUnknownCodeException(this);
-        break;
     }
   }
 }
@@ -268,14 +226,19 @@ class LdapResult {
 ///
 /// Use the [dn] propperty to get the entry's distinguished name and the
 /// [attributes] properties to get the attributes which were returned.
+///
+/// The server may return a list of referral URIs instead of search results. The
+/// client can check for [hasReferrals] method
 
 class SearchEntry {
   /// The entry's distinguished name.
 
   String get dn => _dn;
-  String _dn;
+  final String _dn;
 
   final List<String> _referrals;
+
+  bool get hasReferrals => _referrals.isNotEmpty;
 
   // Return the list of referrals. The search should be repeated
   // using these URIs
@@ -287,20 +250,20 @@ class SearchEntry {
   /// object.
 
   Map<String, Attribute> get attributes => _attributes;
-  Map<String, Attribute> _attributes = Map<String, Attribute>();
+  final Map<String, Attribute> _attributes = <String, Attribute>{};
 
   /// Constructor
 
   SearchEntry(this._dn, {List<String> referrals = const []})
       : _referrals = referrals;
 
-  String toString() => "Entry[$_dn,$_attributes]";
+  @override
+  String toString() => 'Entry[$_dn,$_attributes]';
 }
 
+
 //===============================================================
-/**
- * LDAP Result Codes
- */
+/// LDAP Result Codes
 class ResultCode {
   static const OK = 0;
   static const OPERATIONS_ERROR = 1;
@@ -348,58 +311,58 @@ class ResultCode {
   // [_FuturePendingOp.processResult]
 
   static final Map<int, String> _messages = {
-    OK: "OK",
-    OPERATIONS_ERROR: "Operations error",
-    PROTOCOL_ERROR: "Protocol error",
-    TIME_LIMIT_EXCEEDED: "Time limit exceeded",
-    SIZE_LIMIT_EXCEEDED: "Size limit exceeded",
-    COMPARE_FALSE: "Compare false",
-    COMPARE_TRUE: "Compare true",
-    AUTH_METHOD_NOT_SUPPORTED: "Auth method not supported",
-    STRONG_AUTH_REQUIRED: "Strong auth required",
-    REFERRAL: "Referral",
-    ADMIN_LIMIT_EXCEEDED: "Admin limit exceeded",
-    UNAVAILABLE_CRITICAL_EXTENSION: "Unavailable critical extension",
-    CONFIDENTIALITY_REQUIRED: "Confidentiality required",
-    SASL_BIND_IN_PROGRESS: "SASL bind in progress",
-    NO_SUCH_ATTRIBUTE: "No such attribute",
-    UNDEFINED_ATTRIBUTE_TYPE: "Undefined attribute type",
-    INAPPROPRIATE_MATCHING: "Inappropriate matching",
-    CONSTRAINT_VIOLATION: "Constraint violation",
-    ATTRIBUTE_OR_VALUE_EXISTS: "Attribute or value exists",
-    INVALID_ATTRIBUTE_SYNTAX: "Invalid attribute syntax",
-    NO_SUCH_OBJECT: "No such object",
-    ALIAS_PROBLEM: "Alias problem",
-    INVALID_DN_SYNTAX: "Invalid DN syntax",
-    IS_LEAF: "Is leaf",
-    ALIAS_DEREFERENCING_PROBLEM: "Alias dereferencing problem",
-    INAPPROPRIATE_AUTHENTICATION: "Inappropriate authentication",
-    INVALID_CREDENTIALS: "Invalid credentials",
-    INSUFFICIENT_ACCESS_RIGHTS: "Insufficient access rights",
-    BUSY: "Busy",
-    UNAVAILABLE: "Unavailable",
-    UNWILLING_TO_PERFORM: "Unwilling to perform",
-    LOOP_DETECT: "Loop detect",
-    NAMING_VIOLATION: "Naming violation",
-    OBJECT_CLASS_VIOLATION: "Object class violation",
-    NOT_ALLOWED_ON_NONLEAF: "Not allowed on nonleaf",
-    NOT_ALLOWED_ON_RDN: "Not allowed on RDN",
-    ENTRY_ALREADY_EXISTS: "Entry already exists",
-    OBJECT_CLASS_MODS_PROHIBITED: "Object class mods prohibited",
-    AFFECTS_MULTIPLE_DSAS: "Affects multiple DSAS",
-    OTHER: "Other"
+    OK: 'OK',
+    OPERATIONS_ERROR: 'Operations error',
+    PROTOCOL_ERROR: 'Protocol error',
+    TIME_LIMIT_EXCEEDED: 'Time limit exceeded',
+    SIZE_LIMIT_EXCEEDED: 'Size limit exceeded',
+    COMPARE_FALSE: 'Compare false',
+    COMPARE_TRUE: 'Compare true',
+    AUTH_METHOD_NOT_SUPPORTED: 'Auth method not supported',
+    STRONG_AUTH_REQUIRED: 'Strong auth required',
+    REFERRAL: 'Referral',
+    ADMIN_LIMIT_EXCEEDED: 'Admin limit exceeded',
+    UNAVAILABLE_CRITICAL_EXTENSION: 'Unavailable critical extension',
+    CONFIDENTIALITY_REQUIRED: 'Confidentiality required',
+    SASL_BIND_IN_PROGRESS: 'SASL bind in progress',
+    NO_SUCH_ATTRIBUTE: 'No such attribute',
+    UNDEFINED_ATTRIBUTE_TYPE: 'Undefined attribute type',
+    INAPPROPRIATE_MATCHING: 'Inappropriate matching',
+    CONSTRAINT_VIOLATION: 'Constraint violation',
+    ATTRIBUTE_OR_VALUE_EXISTS: 'Attribute or value exists',
+    INVALID_ATTRIBUTE_SYNTAX: 'Invalid attribute syntax',
+    NO_SUCH_OBJECT: 'No such object',
+    ALIAS_PROBLEM: 'Alias problem',
+    INVALID_DN_SYNTAX: 'Invalid DN syntax',
+    IS_LEAF: 'Is leaf',
+    ALIAS_DEREFERENCING_PROBLEM: 'Alias dereferencing problem',
+    INAPPROPRIATE_AUTHENTICATION: 'Inappropriate authentication',
+    INVALID_CREDENTIALS: 'Invalid credentials',
+    INSUFFICIENT_ACCESS_RIGHTS: 'Insufficient access rights',
+    BUSY: 'Busy',
+    UNAVAILABLE: 'Unavailable',
+    UNWILLING_TO_PERFORM: 'Unwilling to perform',
+    LOOP_DETECT: 'Loop detect',
+    NAMING_VIOLATION: 'Naming violation',
+    OBJECT_CLASS_VIOLATION: 'Object class violation',
+    NOT_ALLOWED_ON_NONLEAF: 'Not allowed on nonleaf',
+    NOT_ALLOWED_ON_RDN: 'Not allowed on RDN',
+    ENTRY_ALREADY_EXISTS: 'Entry already exists',
+    OBJECT_CLASS_MODS_PROHIBITED: 'Object class mods prohibited',
+    AFFECTS_MULTIPLE_DSAS: 'Affects multiple DSAS',
+    OTHER: 'Other'
   };
 
   /// Returns a human readable string describing the result [code].
 
   static String message(int code) =>
-      _messages[code] ?? "LDAP result code $code";
+      _messages[code] ?? 'LDAP result code $code';
 
   //===============================================================
 
   /// The integer value of the result code.
 
-  int _value;
+  final int _value;
 
   /// Constructor from an integer value.
 
@@ -409,8 +372,10 @@ class ResultCode {
   ///
   /// Returns true if and only if the [value] of the two are the same.
 
+  @override
   bool operator ==(Object that) =>
-      (that is ResultCode && this._value == that._value);
+      (that is ResultCode && _value == that._value);
 
+  @override
   String toString() => message(_value);
 }

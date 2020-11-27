@@ -13,12 +13,12 @@ import 'util.dart' as util;
 
 // Test branch
 
-const branchOU = "load_test";
-const branchDescription = "Branch for $branchOU";
+const branchOU = 'load_test';
+const branchDescription = 'Branch for $branchOU';
 
 final branchAttrs = {
-  "objectclass": ["organizationalUnit"],
-  "description": branchDescription,
+  'objectclass': ['organizationalUnit'],
+  'description': branchDescription,
 };
 
 // The LDAP directory being used for testing must have a size limit greater
@@ -30,7 +30,7 @@ const int DIRECTORY_MIN_SIZE_LIMIT = 1000;
 
 const int NUM_ENTRIES = 10; // 256
 
-const String cnPrefix = "user";
+const String cnPrefix = 'user';
 
 //----------------------------------------------------------------
 // Create entries needed for testing.
@@ -50,7 +50,7 @@ Future purgeEntries(LdapConnection ldap, DN branchDN) async {
 
   for (var j = NUM_ENTRIES - 1; 0 <= j; j--) {
     try {
-      await ldap.delete(branchDN.concat("cn=$cnPrefix$j").dn);
+      await ldap.delete(branchDN.concat('cn=$cnPrefix$j').dn);
     } catch (e) {
       // ignore any exceptions
     }
@@ -68,15 +68,15 @@ Future purgeEntries(LdapConnection ldap, DN branchDN) async {
 //----------------------------------------------------------------
 
 void runTests(util.ConfigDirectory configDirectory) {
-  LdapConnection ldap;
-  DN branchDN;
+  late LdapConnection ldap;
+  late DN branchDN;
 
   //----------------
 
   setUp(() async {
-    branchDN = configDirectory.testDN.concat("ou=$branchOU");
+    branchDN = configDirectory.testDN.concat('ou=$branchOU');
 
-    ldap = configDirectory.connect();
+    ldap = configDirectory.getConnection();
 
     await ldap.open(); // optional step: makes log entries more sensible
     //await ldap.bind();
@@ -94,7 +94,7 @@ void runTests(util.ConfigDirectory configDirectory) {
 
   //----------------
 
-  test("initial", () async {
+  test('initial', () async {
     var numToCreate = 10;
     var sizeLimit = 5;
 
@@ -104,46 +104,46 @@ void runTests(util.ConfigDirectory configDirectory) {
 /*
   //----------------
 
-  test("add/search/delete under load with $NUM_ENTRIES entries", () async {
+  test('add/search/delete under load with $NUM_ENTRIES entries', () async {
 
-    var loggerMain = Logger("main");
+    var loggerMain = Logger('main');
 
     expect(NUM_ENTRIES, lessThanOrEqualTo(DIRECTORY_MIN_SIZE_LIMIT));
 
     // Bulk add
 
-    loggerMain.fine("add");
+    loggerMain.fine('add');
 
     for (int x = 0; x < NUM_ENTRIES; x++) {
       var attrs = {
-        "objectclass": ["inetorgperson"],
-        "sn": "User $x",
-        "displayName": "Test User $x",
-        "givenName": "John",
-        "mail": "user$x@example.com",
-        "employeeType": "test",
-        "employeeNumber": "$x",
+        'objectclass': ['inetorgperson'],
+        'sn': 'User $x',
+        'displayName': 'Test User $x',
+        'givenName': 'John',
+        'mail': 'user$x@example.com',
+        'employeeType': 'test',
+        'employeeNumber': '$x',
       };
-      var result = await ldap.add(branchDN.concat("cn=$cnPrefix$x").dn, attrs);
+      var result = await ldap.add(branchDN.concat('cn=$cnPrefix$x').dn, attrs);
       expect(result.resultCode, equals(0));
     }
 
     // Bulk search
 
-    var filter = Filter.substring("cn=${cnPrefix}*");
+    var filter = Filter.substring('cn=${cnPrefix}*');
 
     var attrs = [
-      "cn",
-      "sn",
-      "givenName",
-      "displayName",
-      "mail",
-      "employeeType",
-      "employeeNumber"
+      'cn',
+      'sn',
+      'givenName',
+      'displayName',
+      'mail',
+      'employeeType',
+      'employeeNumber'
     ];
 
 
-    loggerMain.fine("search");
+    loggerMain.fine('search');
 
     var count = 0;
 
@@ -151,7 +151,7 @@ void runTests(util.ConfigDirectory configDirectory) {
     await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 
-      var cnSet = entry.attributes["cn"];
+      var cnSet = entry.attributes['cn'];
       expect(cnSet, isNotNull);
       expect(cnSet.values.length, equals(1));
       expect(cnSet.values.first, startsWith(cnPrefix));
@@ -162,16 +162,16 @@ void runTests(util.ConfigDirectory configDirectory) {
       count++;
     }
 
-    expect(count, equals(NUM_ENTRIES), reason: "Unexpected number of entries");
+    expect(count, equals(NUM_ENTRIES), reason: 'Unexpected number of entries');
 
-    loggerMain.fine("delete");
+    loggerMain.fine('delete');
 
     /*
               onError: (LDAPResult r) {
                 if (r.resultCode == ResultCode.SIZE_LIMIT_EXCEEDED &&
                     count == expected) {
-                  logger.info("got expected size result error $r");
-                } else fail("Unexpected LDAP error $r");
+                  logger.info('got expected size result error $r');
+                } else fail('Unexpected LDAP error $r');
               });
     });
      */
@@ -179,13 +179,13 @@ void runTests(util.ConfigDirectory configDirectory) {
     // Bulk delete
 
     for (int x = 0; x < NUM_ENTRIES; x++) {
-      await ldap.delete(branchDN.concat("cn=$cnPrefix$x").dn);
+      await ldap.delete(branchDN.concat('cn=$cnPrefix$x').dn);
     }
   }, timeout: Timeout(Duration(minutes: 5)));
 
   //----------------
 
-  test("sizeLimit", () async {
+  test('sizeLimit', () async {
     var numToCreate = 10;
     var sizeLimit = 5;
 
@@ -196,30 +196,30 @@ void runTests(util.ConfigDirectory configDirectory) {
 
     for (int x = 0; x < numToCreate; x++) {
       var attrs = {
-        "objectclass": ["inetorgperson"],
-        "sn": "User $x",
-        "displayName": "Test User $x",
-        "givenName": "John",
-        "mail": "user$x@example.com",
-        "employeeType": "test",
-        "employeeNumber": "$x",
+        'objectclass': ['inetorgperson'],
+        'sn': 'User $x',
+        'displayName': 'Test User $x',
+        'givenName': 'John',
+        'mail': 'user$x@example.com',
+        'employeeType': 'test',
+        'employeeNumber': '$x',
       };
-      var result = await ldap.add(branchDN.concat("cn=$cnPrefix$x").dn, attrs);
+      var result = await ldap.add(branchDN.concat('cn=$cnPrefix$x').dn, attrs);
       expect(result.resultCode, equals(0));
     }
 
     // Search with sizeLimit
 
-    var filter = Filter.substring("cn=${cnPrefix}*");
+    var filter = Filter.substring('cn=${cnPrefix}*');
 
     var attrs = [
-      "cn",
-      "sn",
-      "givenName",
-      "displayName",
-      "mail",
-      "employeeType",
-      "employeeNumber"
+      'cn',
+      'sn',
+      'givenName',
+      'displayName',
+      'mail',
+      'employeeType',
+      'employeeNumber'
     ];
 
     var count = 0;
@@ -234,18 +234,18 @@ void runTests(util.ConfigDirectory configDirectory) {
         expect(entry, isNotNull);
         entriesRetrieved++;
       }
-      fail("sizeLimit should have been triggered");
+      fail('sizeLimit should have been triggered');
     } catch (e) {
       expect(e, const TypeMatcher<LdapResultSizeLimitExceededException>());
       // Note: server might have a lower size limit set
       expect(entriesRetrieved, lessThanOrEqualTo(sizeLimit),
-          reason: "search returned more than sizeLimit entries");
+          reason: 'search returned more than sizeLimit entries');
     }
 
     // Delete
 
     for (int x = 0; x < numToCreate; x++) {
-      await ldap.delete(branchDN.concat("cn=$cnPrefix$x").dn);
+      await ldap.delete(branchDN.concat('cn=$cnPrefix$x').dn);
     }
   }, timeout: Timeout(Duration(minutes: 5)));
   */

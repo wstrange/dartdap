@@ -1,8 +1,8 @@
 part of ldap_protocol;
 
 class AddRequest extends RequestOp {
-  String _dn; // dn of entry we are adding
-  Map<String, Attribute> _attributes; // attribute of object
+  final String _dn; // dn of entry we are adding
+  final Map<String, Attribute> _attributes; // attribute of object
 
   AddRequest(this._dn, this._attributes)
       : super(ADD_REQUEST);
@@ -23,6 +23,7 @@ class AddRequest extends RequestOp {
 
   */
 
+  @override
   ASN1Object toASN1() {
     var seq = _startSequence();
     seq.add(ASN1OctetString(_dn));

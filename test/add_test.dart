@@ -7,7 +7,7 @@
 import 'dart:async';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
-import "util.dart" as util;
+import 'util.dart' as util;
 
 //----------------------------------------------------------------
 
@@ -15,21 +15,21 @@ import "util.dart" as util;
 
 // Test branch
 
-const branchOU = "entry_add_test";
-const branchDescription = "Branch for $branchOU";
+const branchOU = 'entry_add_test';
+const branchDescription = 'Branch for $branchOU';
 
 final branchAttrs = {
-  "objectclass": ["organizationalUnit"],
-  "description": branchDescription
+  'objectclass': ['organizationalUnit'],
+  'description': branchDescription
 };
 
 // Test person
 
-var testPersonSurname = "Citizen";
+var testPersonSurname = 'Citizen';
 final testPersonAttrs = {
-  "objectclass": ["person"],
-  "sn": testPersonSurname,
-  "description": "Test person"
+  'objectclass': ['person'],
+  'sn': testPersonSurname,
+  'description': 'Test person'
 };
 
 //----------------------------------------------------------------
@@ -57,9 +57,9 @@ Future purgeEntries(LdapConnection ldap, DN testPersonDN, DN branchDN) async {
 //----------------------------------------------------------------
 
 void runTests(util.ConfigDirectory configDirectory) {
-  LdapConnection ldap;
-  DN branchDN;
-  DN testPersonDN;
+  late LdapConnection ldap;
+  late DN branchDN;
+  late DN testPersonDN;
 
   //----------------
 
@@ -67,9 +67,11 @@ void runTests(util.ConfigDirectory configDirectory) {
     branchDN = configDirectory.testDN.concat('ou=$branchOU');
     testPersonDN = branchDN.concat('cn=John Citizen');
 
-    ldap = configDirectory.connect();
+    ldap = configDirectory.getConnection();
+    await ldap.open();
+    await ldap.bind();
     await purgeEntries(ldap, testPersonDN, branchDN);
-    // Nothing to populate, since these tests exercise the "add" operation
+    // Nothing to populate, since these tests exercise the 'add' operation
   });
 
   //----------------
@@ -81,7 +83,7 @@ void runTests(util.ConfigDirectory configDirectory) {
 
   //----------------
 
-  test("adding an entry", () async {
+  test('adding an entry', () async {
     // Add the organizationalUnit entry
 
     var result = await ldap.add(branchDN.dn, branchAttrs);
@@ -90,8 +92,8 @@ void runTests(util.ConfigDirectory configDirectory) {
 
     // Search for the added entry
 
-    var filter = Filter.equals("ou", branchOU);
-    var searchAttrs = ["ou", "description"];
+    var filter = Filter.equals('ou', branchOU);
+    var searchAttrs = ['ou', 'description'];
 
     var count = 0;
 
@@ -100,13 +102,17 @@ void runTests(util.ConfigDirectory configDirectory) {
     await for (SearchEntry entry in searchResult.stream) {
       expect(entry, isNotNull);
 
-      var ouSet = entry.attributes["ou"];
-      expect(ouSet, isNotNull);
+      var ouSet = entry.attributes['ou'];
+      if( ouSet == null ) {
+        fail('missting attribute: ou');
+      }
       expect(ouSet.values.length, equals(1));
       expect(ouSet.values.first, equals(branchOU));
 
-      var descSet = entry.attributes["description"];
-      expect(descSet, isNotNull);
+      var descSet = entry.attributes['description'];
+      if( descSet == null ) {
+        fail('missting attribute: description');
+      }
       expect(descSet.values.length, equals(1));
       expect(descSet.values.first, equals(branchDescription));
 
@@ -120,7 +126,7 @@ void runTests(util.ConfigDirectory configDirectory) {
 
   //----------------
 
-  test("adding an entry that already exists fails", () async {
+  test('adding an entry that already exists fails', () async {
     // Add the People organizationalUnit entry
 
     var result = await ldap.add(branchDN.dn, branchAttrs);
@@ -128,11 +134,11 @@ void runTests(util.ConfigDirectory configDirectory) {
 
     // Try to add another entry with the same DN
 
-    var newDescription = "New description should not get used";
+    var newDescription = 'New description should not get used';
 
     var newAttrs = {
-      "objectclass": ["organizationalUnit"],
-      "description": newDescription
+      'objectclass': ['organizationalUnit'],
+      'description': newDescription
     };
 
     expect(newDescription, isNot(equals(branchDescription)));
@@ -141,15 +147,15 @@ void runTests(util.ConfigDirectory configDirectory) {
 
     try {
       await ldap.add(branchDN.dn, newAttrs);
-      fail("exception not thrown");
+      fail('exception not thrown');
     } catch (e) {
       expect(e, const TypeMatcher<LdapResultEntryAlreadyExistsException>());
     }
 
     // The original entry is present and unchanged
 
-    var filter = Filter.equals("ou", branchOU);
-    var searchAttrs = ["description", "ou"]; // also tests order does not matter
+    var filter = Filter.equals('ou', branchOU);
+    var searchAttrs = ['description', 'ou']; // also tests order does not matter
 
     var count = 0;
 
@@ -158,13 +164,18 @@ void runTests(util.ConfigDirectory configDirectory) {
     await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 
-      var ouSet = entry.attributes["ou"];
-      expect(ouSet, isNotNull);
+      var ouSet = entry.attributes['ou'];
+
+      if( ouSet == null ) {
+        fail('missting attribute: ou');
+      }
       expect(ouSet.values.length, equals(1));
       expect(ouSet.values.first, equals(branchOU));
 
-      var descSet = entry.attributes["description"];
-      expect(descSet, isNotNull);
+      var descSet = entry.attributes['description'];
+      if( descSet == null ) {
+        fail('missing attribute: description');
+      }
       expect(descSet.values.length, equals(1));
       expect(descSet.values.first, equals(branchDescription)); // unchanged
 
@@ -178,7 +189,7 @@ void runTests(util.ConfigDirectory configDirectory) {
 
   //----------------
 
-  test("adding a person entry", () async {
+  test('adding a person entry', () async {
     // This test demonstrates that the subsequent tests would have worked, if
     // the parent entry existed and the mandatory attributes were all present.
 
@@ -195,12 +206,12 @@ void runTests(util.ConfigDirectory configDirectory) {
 
   //----------------
 
-  test("adding an entry under non-existant entry fails", () async {
+  test('adding an entry under non-existant entry fails', () async {
     // Attempt to add the test person (without first adding the branch entry)
 
     try {
       await ldap.add(testPersonDN.dn, testPersonAttrs);
-      fail("exception not thrown");
+      fail('exception not thrown');
     } catch (e) {
       expect(e, const TypeMatcher<LdapResultNoSuchObjectException>());
     }
@@ -208,7 +219,7 @@ void runTests(util.ConfigDirectory configDirectory) {
 
   //----------------
 
-  test("adding an entry with missing mandatory attribute fails", () async {
+  test('adding an entry with missing mandatory attribute fails', () async {
     // Add the branch entry
 
     var result1 = await ldap.add(branchDN.dn, branchAttrs);
@@ -217,14 +228,14 @@ void runTests(util.ConfigDirectory configDirectory) {
     // Attempt to add the test person missing a mandatory attribute
 
     final attrsMissingMandatory = {
-      "objectclass": ["person"],
-      "description": "Test person"
-      // no "sn" attribute, which is mandatory in the "person" schema
+      'objectclass': ['person'],
+      'description': 'Test person'
+      // no 'sn' attribute, which is mandatory in the 'person' schema
     };
 
     try {
       await ldap.add(testPersonDN.dn, attrsMissingMandatory);
-      fail("exception not thrown");
+      fail('exception not thrown');
     } catch (e) {
       expect(e, const TypeMatcher<LdapResultObjectClassViolationException>());
     }
@@ -235,10 +246,6 @@ void runTests(util.ConfigDirectory configDirectory) {
 
 void main() {
   final config = util.Config();
-
-  group('tests', () {
-    runTests(config.defaultDirectory);
-  }, skip: config.skipIfMissingDefaultDirectory);
 
   group('tests over LDAPS', () {
     runTests(config.directory(util.ldapsDirectoryName));

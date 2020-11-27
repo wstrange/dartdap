@@ -1,17 +1,17 @@
 part of ldap_protocol;
 
 class BindRequest extends RequestOp {
-  String _bindDN;
-  String _password;
+  final String _bindDN;
+  final String _password;
 
-  /**
-  * ASN1 encoding for Simple password bind type
-  * This is an octet string
-  **/
+  //
+  // * ASN1 encoding for Simple password bind type
+  // * This is an octet string
   static const int CRED_TYPE_SIMPLE = 0x80;
 
   BindRequest(this._bindDN, this._password) : super(BIND_REQUEST);
 
+  @override
   ASN1Object toASN1() {
     var seq = _startSequence();
     var version = ASN1Integer.fromInt(3); // alway v3

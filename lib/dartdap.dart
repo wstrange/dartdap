@@ -21,7 +21,7 @@ Style](https://www.dartlang.org/effective-dart/style/).
 ### Formatting
 
 The code should be formatted by running _dartfmt_ (or by using the
-"Reformat with Dart Style" command in WebStorm) before checking it in
+'Reformat with Dart Style' command in WebStorm) before checking it in
 to the git repository.
 
 ### TODO: Items to do
@@ -38,7 +38,9 @@ to the git repository.
 
 library dartdap;
 
+export 'src/dartdap/client/ldap_pool.dart';
 export 'src/dartdap/client/connection_manager.dart';
 export 'src/dartdap/client/ldap_connection.dart';
 export 'src/dartdap/core/core.dart';
 export 'src/dartdap/control/control.dart';
+export 'src/dartdap/client/ldap.dart';

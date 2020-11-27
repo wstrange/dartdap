@@ -22,10 +22,10 @@ import 'ldap_result.dart';
 ///
 /// Subclasses of the abstract [LdapResultException] are thrown when a
 /// LDAP result is received indicating an error has occured.  Any LDAP
-/// result code, except for "OK", "COMPARE_FALSE" or "COMPARE_TRUE", are
+/// result code, except for 'OK', 'COMPARE_FALSE' or 'COMPARE_TRUE', are
 /// treated as an error (constants for the result codes are defined in the
 /// [ResultCode] class). There are over 30 such classes, whose name all
-/// are of the form "LdapResult...Exception".  Commonly encountered ones
+/// are of the form 'LdapResult...Exception'.  Commonly encountered ones
 /// are:
 ///
 /// - [LdapResultInvalidCredentialsException] when the BIND distinguished
@@ -44,12 +44,13 @@ import 'ldap_result.dart';
 // here to make the documentation more useful.
 
 abstract class LdapException implements Exception {
-  String _message;
+  final String _message;
 
   String get message => _message;
 
   LdapException(this._message);
 
+  @override
   String toString() => _message;
 }
 
@@ -87,7 +88,7 @@ class LdapConfigException extends LdapException {
 /// LDAP operation.
 ///
 class LdapConnectionDisconnected extends LdapException {
-  LdapConnectionDisconnected() : super("connection disconnected");
+  LdapConnectionDisconnected() : super('connection disconnected');
 }
 
 //===============================================================
@@ -99,13 +100,12 @@ class LdapConnectionDisconnected extends LdapException {
 /// member.
 ///
 class LdapSocketException extends LdapException {
-  SocketException socketException;
+  final SocketException socketException;
   LdapSocketException(this.socketException,
-      [String message = "Socket exception"])
-      : super(message) {
-    assert(socketException != null);
-  }
+      [String message = 'Socket exception'])
+      : super(message);
 
+  @override
   String toString() => socketException.toString();
 }
 
@@ -116,13 +116,12 @@ class LdapSocketException extends LdapException {
 class LdapSocketServerNotFoundException extends LdapSocketException {
   String remoteServer;
   LdapSocketServerNotFoundException(SocketException se, this.remoteServer)
-      : super(se, "Server not found") {
-    assert(socketException != null);
-    assert(socketException.osError != null);
-    assert(socketException.osError.errorCode == 8);
+      : super(se, 'Server not found') {
+    assert(socketException.osError?.errorCode == 8);
   }
 
-  String toString() => "Cannot connect to $remoteServer";
+  @override
+  String toString() => 'Cannot connect to $remoteServer';
 }
 
 /// Exception indicating the LDAP/LDAPS port could not be connected to.
@@ -131,21 +130,21 @@ class LdapSocketServerNotFoundException extends LdapSocketException {
 /// blocked.
 ///
 class LdapSocketRefusedException extends LdapSocketException {
-  int localPort;
-  String remoteServer;
-  int remotePort;
+  late final int localPort;
+  final String remoteServer;
+  final int remotePort;
 
   LdapSocketRefusedException(
       SocketException se, this.remoteServer, this.remotePort)
-      : super(se, "Cannot establish connection") {
-    assert(socketException != null);
+      : super(se, 'Cannot establish connection') {
     assert(socketException.osError != null);
-    assert(socketException.osError.errorCode == 61);
-    this.localPort = socketException.port;
+    assert(socketException.osError?.errorCode == 61);
+    localPort = socketException.port!;
   }
 
+  @override
   String toString() =>
-      "Cannot connect to $remoteServer:$remotePort from port $localPort";
+      'Cannot connect to $remoteServer:$remotePort from port $localPort';
 }
 
 //===============================================================
@@ -157,10 +156,11 @@ class LdapSocketRefusedException extends LdapSocketException {
 
 class LdapCertificateException extends LdapException {
   X509Certificate certificate;
-  LdapCertificateException(this.certificate) : super("Bad X.509 certificate");
+  LdapCertificateException(this.certificate) : super('Bad X.509 certificate');
 
+  @override
   String toString() =>
-      "$message: subject=${certificate.subject}; issuer=${certificate.issuer}";
+      '$message: subject=${certificate.subject}; issuer=${certificate.issuer}';
 }
 
 //===============================================================
@@ -183,13 +183,12 @@ class LdapParseException extends LdapException {
 /// a corresponding exception class that is a subclass of this class.
 
 abstract class LdapResultException extends LdapException {
-  LdapResult _result;
+  final LdapResult _result;
   LdapResult get result => _result;
 
-  LdapResultException(this._result) : super("LDAP Result") {
-    assert(result != null);
-  }
+  LdapResultException(this._result) : super('LDAP Result') ;
 
+  @override
   String toString() => _result.toString();
 }
 
@@ -262,7 +261,7 @@ class LdapResultInvalidAttributeSyntaxException extends LdapResultException {
   LdapResultInvalidAttributeSyntaxException(LdapResult r) : super(r);
 }
 
-/// An LdapResult was received with a result code of "No Such Object".
+/// An LdapResult was received with a result code of 'No Such Object'.
 ///
 /// The `result.matchedDN` member indicates the part of the DN that did match.
 /// That is, it is not the actual DN of the missing object.

@@ -6,8 +6,8 @@
 /// Use the [addValue] method to add another value to the attribute.
 
 class Attribute {
-  String _name;
-  Set _values = Set();
+  final String _name;
+  final Set _values = {};
 
   /// The name of the attribute.
   String get name => _name;
@@ -23,8 +23,7 @@ class Attribute {
   /// values of the attribute. Otherwise, it is made the single value in
   /// the attribute.
 
-  Attribute(String name, dynamic initialValues) {
-    this._name = name;
+  Attribute(String name, dynamic initialValues): _name = name  {
     if (initialValues is Iterable) {
       _values.addAll(initialValues);
     } else {
@@ -34,14 +33,16 @@ class Attribute {
 
   /// Add a value to the existing values in the attribute.
 
-  addValue(dynamic val) => _values.add(val);
+  bool addValue(dynamic val) => _values.add(val);
 
   // note that when printed in a map, the attr name will be printed - so
   // we just print the value
-  String toString() => "$_values";
+  @override
+  String toString() => '$_values';
 
   // two attributes are equal if they have the same name
   // and contain the same set of values.
+  @override
   bool operator ==(Object other) =>
       (other is Attribute && _name == other._name) &&
       _values.containsAll(other._values) &&
@@ -50,9 +51,9 @@ class Attribute {
   /// Converts a map of simple strings or list values into a Map of [Attributes].
   ///
   ///     var attrs = Attribute.newAttributeMap({
-  ///       "objectClass" : [ "top", "person", "inetPerson" ],
-  ///       "sn": "Smith",
-  ///       "cn": "John Smith"
+  ///       'objectClass' : [ 'top', 'person', 'inetPerson' ],
+  ///       'sn': 'Smith',
+  ///       'cn': 'John Smith'
   ///     });
   ///
   /// This is a convenience method to allow code using ordinary Dart [Map]
@@ -60,7 +61,7 @@ class Attribute {
   /// [Set] and LDAP [Attribute] objects.
 
   static Map<String, Attribute> newAttributeMap(Map<String, dynamic> m) {
-    var newmap = Map<String, Attribute>();
+    var newmap = <String, Attribute>{};
     m.forEach((k, v) {
       newmap[k] = (v is Attribute ? v : Attribute(k, v));
     });

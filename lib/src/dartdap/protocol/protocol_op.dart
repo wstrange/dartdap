@@ -3,14 +3,12 @@ part of ldap_protocol;
 // todo: Do we need this base class. Really only applies to requests
 
 class ProtocolOp {
-  int _protocolOp;
+  final int _protocolOp;
   int get protocolOpCode => _protocolOp;
   ProtocolOp(this._protocolOp);
 
-  /**
-   * Create a sequence that is the start of the protocol op
-   * Sublclasses must add additional elements
-   */
+  /// Create a sequence that is the start of the protocol op
+  /// Sublclasses must add additional elements
   ASN1Sequence _startSequence() {
     var seq = ASN1Sequence(tag: _protocolOp);
     return seq;
@@ -20,22 +18,18 @@ class ProtocolOp {
 abstract class RequestOp extends ProtocolOp {
   RequestOp(int opcode) : super(opcode);
 
-  /**
-   * Subclasses must implement this method to convert their
-   * representation to an ASN1Sequence
-   */
+  /// Subclasses must implement this method to convert their
+  /// representation to an ASN1Sequence
   ASN1Object toASN1();
-  /**
-   * Encode this Request Operation to its BER Encoded form
-   */
+  /// Encode this Request Operation to its BER Encoded form
   Uint8List toEncodedBytes() {
-    ASN1Sequence seq = toASN1();
+    var seq = toASN1() as ASN1Sequence;
     return seq.encodedBytes;
   }
 }
 
 class ResponseOp {
-  LdapResult _ldapResult;
+  late LdapResult _ldapResult;
   List<Control> _controls = [];
 
   List<Control> get controls => _controls;
@@ -46,10 +40,11 @@ class ResponseOp {
 
   LdapResult get ldapResult => _ldapResult;
 
+  //
   ResponseOp.searchEntry(); // needed for SearchResultEntry - that does not have an LDAPMessage
 
   ResponseOp(LDAPMessage m) {
-    loggeRecvLdap.finer(() => "Response op=$m");
+    loggeRecvLdap.finer(() => 'Response op=$m');
     _ldapResult = _parseLDAPResult(m.protocolOp);
     // Parse controls;
     if (m.hasControls) _controls = Control.parseControls(m._controls);
@@ -57,8 +52,8 @@ class ResponseOp {
 
   // parse the embedded LDAP Response
   LdapResult _parseLDAPResult(ASN1Sequence s) {
-    loggeRecvLdap.finer("Parse LDAP result: $s");
-    ASN1Integer rc = s.elements[0];
+    loggeRecvLdap.finer('Parse LDAP result: $s');
+    var rc = s.elements[0] as ASN1Integer;
     var resultCode = rc.intValue;
 
     var mv = s.elements[1] as ASN1OctetString;
@@ -66,10 +61,10 @@ class ResponseOp {
     var dm = s.elements[2] as ASN1OctetString;
     var diagnosticMessage = dm.stringValue;
 
-    List<String> refURLs = [];
+    var refURLs = <String>[];
     if (s.elements.length > 3) {
       var o = s.elements[3];
-      loggeRecvLdap.finer("Parse LDAP result: type=$o");
+      loggeRecvLdap.finer('Parse LDAP result: type=$o');
       // collect refs.... we dont really deal with these now...
       //var rs = s.elements[3] as ASN1Sequence;
       //refURLs = List.from(rs.elements);

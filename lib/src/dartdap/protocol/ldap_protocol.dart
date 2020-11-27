@@ -55,31 +55,31 @@ const int CONTROLS = 0xA0;
 String _op2String(int op) {
   switch (op) {
     case BIND_REQUEST:
-      return "BND_REQ";
+      return 'BND_REQ';
     case BIND_RESPONSE:
-      return "BND_RESP";
+      return 'BND_RESP';
     case SEARCH_REQUEST:
-      return "SRCH_REQ";
+      return 'SRCH_REQ';
     case SEARCH_RESULT_ENTRY:
-      return "SRCH_RES_ENTRY";
+      return 'SRCH_RES_ENTRY';
     case SEARCH_RESULT_DONE:
-      return "SRCH_RES_DONE";
+      return 'SRCH_RES_DONE';
     case SEARCH_RESULT_REFERENCE:
-      return "SRCH_RES_REF";
+      return 'SRCH_RES_REF';
     case MODIFY_REQUEST:
-      return "MODIFY_REQUEST";
+      return 'MODIFY_REQUEST';
     case ADD_REQUEST:
-      return "ADD_REQUEST";
+      return 'ADD_REQUEST';
     case ADD_RESPONSE:
-      return "ADD_RESPONSE";
+      return 'ADD_RESPONSE';
     case MODIFY_DN_REQUEST:
-      return "MODIFY_DN_REQ";
+      return 'MODIFY_DN_REQ';
     case MODIFY_DN_RESPONSE:
-      return "MODIFY_DN_RESP";
+      return 'MODIFY_DN_RESP';
     case COMPARE_REQUEST:
-      return "COMPARE_REQ";
+      return 'COMPARE_REQ';
     case COMPARE_RESPONSE:
-      return "COMPARE_RESP";
+      return 'COMPARE_RESP';
     // todo add more...
     default:
       return op.toRadixString(16);
@@ -91,29 +91,31 @@ String _op2String(int op) {
 
 /// Logger for connection events
 ///
-Logger loggerConnection = Logger("ldap.connection");
+Logger loggerConnection = Logger('ldap.connection');
 //----------------
 // Sending
 
 /// Logger for sent LDAP messages
 ///
-Logger loggerSendLdap = Logger("ldap.send.ldap");
+Logger loggerSendLdap = Logger('ldap.send.ldap');
 
 /// Logger for sent bytes
 ///
-Logger loggerSendBytes = Logger("ldap.send.bytes");
+Logger loggerSendBytes = Logger('ldap.send.bytes');
 
 //----------------
 // Receiving
 
 /// Logger for received LDAP messages
 ///
-Logger loggeRecvLdap = Logger("ldap.recv.ldap");
+Logger loggeRecvLdap = Logger('ldap.recv.ldap');
 
 /// Logger for received ASN.1 objects
 ///
-Logger loggerRecvAsn1 = Logger("ldap.recv.asn1");
+Logger loggerRecvAsn1 = Logger('ldap.recv.asn1');
 
 /// Logger for received bytes
 ///
-Logger loggerRecvBytes = Logger("ldap.recv.bytes");
+Logger loggerRecvBytes = Logger('ldap.recv.bytes');
+
+Logger loggerPool = Logger('ldap.pool');
