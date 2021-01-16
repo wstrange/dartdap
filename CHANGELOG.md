@@ -1,4 +1,7 @@
 # Dartdap Change Log
+## 0.4.6
+* Update dependency petitparser
+
 ## 0.4.4
 
 * Added a SimplePagedResult Control and a sample
