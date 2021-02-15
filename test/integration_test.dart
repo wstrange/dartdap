@@ -2,8 +2,6 @@
 //
 //----------------------------------------------------------------
 
-import 'dart:io';
-
 import 'package:dartdap/dartdap.dart';
 import 'package:test/test.dart';
 
@@ -17,49 +15,21 @@ const bool KEEP_ENTRIES_FOR_DEBUGGING = false;
 
 //----------------------------------------------------------------
 
-void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
+void runTests(util.ConfigDirectory directoryConfig) {
   // Normally, unit tests open the LDAP connection in the [setUp]
   // and close the connection in the [tearDown] functions.
   // Since this integration test demonstrates how the LDAP package
   // is used in a real application, everything is done inside the
   // test instead of using setUp/tearDown functions.
 
-  final setup =
-      useConstructor ? 'setup with constructor' : 'setup with methods';
-  test('add/modify/search/delete ($setup)', () async {
+
+  test('add/modify/search/delete', () async {
     //----------------
     // Create the connection (at the start of the test)
 
-    LdapConnection ldap;
-
-    if (useConstructor) {
-      // For testing purposes, load connection parameters from the
-      // configName section of a config file.
-
-      ldap = LdapConnection(
-          host: directoryConfig.host,
-          ssl: directoryConfig.ssl,
-          port: directoryConfig.port,
-          bindDN: directoryConfig.bindDN,
-          password: directoryConfig.password,
-          badCertificateHandler: directoryConfig.validateCertificate
-              ? null
-              : (X509Certificate _) => true);
-      // Note: setting badCertificateHandler to accept test certificate
-      //await ldap.open();
-      //await ldap.bind();
-    } else {
-      // Or the connection parameters can be explicitly specified in code.
-      ldap = LdapConnection(host: directoryConfig.host);
-      ldap.setProtocol(directoryConfig.ssl, directoryConfig.port);
-      await ldap.setAuthentication(
-          directoryConfig.bindDN, directoryConfig.password);
-      if (!directoryConfig.validateCertificate) {
-        ldap.badCertHandler = (X509Certificate _) => true;
-      }
-      //await ldap.open();
-      //await ldap.bind();
-    }
+    var ldap  = directoryConfig.getConnection();
+    await ldap.open();
+    await ldap.bind();
 
     //----------------
     // The distinguished name is a String value
@@ -83,30 +53,30 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
     // Add the entries
 
     var attrs = {
-      "objectClass": ["organizationalUnit"],
-      "description": "Example organizationalUnit entry"
+      'objectClass': ['organizationalUnit'],
+      'description': 'Example organizationalUnit entry'
     };
 
     var result = await ldap.add(engineeringDN, attrs);
     expect(result.resultCode, equals(0),
-        reason: "Could not add engineering entry");
+        reason: 'Could not add engineering entry');
 
     result = await ldap.add(salesDN, attrs);
-    expect(result.resultCode, equals(0), reason: "Could not add sales entry");
+    expect(result.resultCode, equals(0), reason: 'Could not add sales entry');
 
     //----
     // Modify: change attribute values
 
-    var mod1 = Modification.replace("description", ["Engineering department"]);
+    var mod1 = Modification.replace('description', ['Engineering department']);
     result = await ldap.modify(engineeringDN, [mod1]);
     expect(result.resultCode, equals(0),
-        reason: "could not change engineering description attribute");
+        reason: 'could not change engineering description attribute');
 
     var mod2 = Modification.replace(
-        "description", ["Sales department", "Business development department"]);
+        'description', ['Sales department', 'Business development department']);
     result = await ldap.modify(salesDN, [mod2]);
     expect(result.resultCode, equals(0),
-        reason: "Could not change sales description attribute");
+        reason: 'Could not change sales description attribute');
 
     //----
     // Modify: rename
@@ -115,10 +85,10 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
         It always moves the entry - and does not leave the old one
      */
 
-    var tmpRDN = "ou=Business Development";
+    var tmpRDN = 'ou=Business Development';
     var r = await ldap.modifyDN(
-        salesDN, tmpRDN); // rename "Sales" to "Business Development"
-    expect(r.resultCode, equals(0), reason: "Could not rename sales entry");
+        salesDN, tmpRDN); // rename 'Sales' to 'Business Development'
+    expect(r.resultCode, equals(0), reason: 'Could not rename sales entry');
 
     // Modify: rename and change parent
     //
@@ -129,24 +99,24 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
     TODO: get this working
 
     r = await ldap.modifyDN(
-        businessDevelopmentDN, "ou=Support", true, engineeringDN);
+        businessDevelopmentDN, 'ou=Support', true, engineeringDN);
     expect(r.resultCode, equals(0),
-        reason: "Could not change Business Development to Support");
+        reason: 'Could not change Business Development to Support');
     */
 
     //----
     // Compare
 
     r = await ldap.compare(
-        engineeringDN, "description", "ENGINEERING DEPARTMENT");
+        engineeringDN, 'description', 'ENGINEERING DEPARTMENT');
     expect(r.resultCode, equals(ResultCode.COMPARE_TRUE),
-        reason: "Compare failed");
+        reason: 'Compare failed');
 
     //----------------
     // Search
 
-    var queryAttrs = ["ou", "objectClass"];
-    var filter = Filter.equals("ou", "Engineering");
+    var queryAttrs = ['ou', 'objectClass'];
+    var filter = Filter.equals('ou', 'Engineering');
 
     //TODO:  ldap.onError = expectAsync((e) => expect(false, 'Should not be reached'), count: 0);
 
@@ -160,7 +130,7 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
       numFound++;
     }
     expect(numFound, equals(1),
-        reason: "Unexpected number of entries in (ou=Engineering)");
+        reason: 'Unexpected number of entries in (ou=Engineering)');
 
     /*
     // not(ou=Engineering)
@@ -175,7 +145,7 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
     }
     expect(numFound, equals(1),
         reason:
-            "Did not find expected number of entries in (not(ou=Engineering))");
+            'Did not find expected number of entries in (not(ou=Engineering))');
             */
 
     //----
@@ -184,11 +154,11 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
     if (!KEEP_ENTRIES_FOR_DEBUGGING) {
       result = await ldap.delete(bisDevDN);
       expect(result.resultCode, equals(0),
-          reason: "Could not delete business development entry");
+          reason: 'Could not delete business development entry');
 
       result = await ldap.delete(engineeringDN);
       expect(result.resultCode, equals(0),
-          reason: "Could not delete engineering entry");
+          reason: 'Could not delete engineering entry');
     }
 
     //----
@@ -197,7 +167,7 @@ void runTests(util.ConfigDirectory directoryConfig, {bool useConstructor}) {
     var deleteFailed = false;
     try {
       await ldap.delete(salesDN);
-      fail("Delete should not have succeeded: $salesDN");
+      fail('Delete should not have succeeded: $salesDN');
     } on LdapResultNoSuchObjectException catch (_) {
       deleteFailed = true;
     }
@@ -216,13 +186,7 @@ void main() {
   final config = util.Config();
 
   group('tests', () {
-    runTests(config.defaultDirectory, useConstructor: true);
-    runTests(config.defaultDirectory, useConstructor: false);
+    runTests(config.defaultDirectory);
   }, skip: config.skipIfMissingDefaultDirectory);
 
-  group('tests over LDAPS', () {
-    final dc = config.directory(util.ldapsDirectoryName);
-    runTests(dc, useConstructor: true);
-    runTests(dc, useConstructor: false);
-  }, skip: config.skipIfMissingDirectory(util.ldapsDirectoryName));
 }

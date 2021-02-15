@@ -4,23 +4,53 @@
 # See README.md for details.
 
 directories:
-  populated-with-2000-users:
+  ldap:
     host: localhost
     port: 1389
     ssl: false
     validate-certificate: false
     bindDN: uid=admin
-    password: password
+    password: MTamghH5ak1V9mcI5dMeueyypQ8p98pk
     testDN: ou=people,ou=identities
 
-  directory-with-valid-certificates:
-    host: test-ldap.example.com
-    port: 636
+  ldaps:
+    host: localhost
+    port: 1636
     ssl: true
-    validate-certificate: true  # perform normal X.509 validation
+    validate-certificate: false
     bindDN: uid=admin
-    password: password
+    password: E7ajrLZoMiBFvPAFdl0esf1i9oh4aq5e
     testDN: ou=people,ou=identities
+
+  default:
+    host: localhost
+    port: 1636
+    ssl: true
+    validate-certificate: false
+    bindDN: uid=admin
+    password: MTamghH5ak1V9mcI5dMeueyypQ8p98pk
+    testDN: ou=people,ou=identities
+
+
+
+logging:
+  ldap.connection: INFO
+  ldap.recv.ldap: INFO
+  ldap.recv: INFO
+  ldap.send.bytes: INFO
+  ldap.send.ldap: INFO
+  ldap.send: INFO
+  ldap: INFO
+  ldap.pool: FINEST
+
+#  directory-with-valid-certificates:
+#    host: test-ldap.example.com
+#    port: 636
+#    ssl: true
+#    validate-certificate: true  # perform normal X.509 validation
+#    bindDN: uid=admin
+#    password: password
+#    testDN: ou=people,ou=identities
 
 # Note: this file needs a better name, since the tests can work with any
 # suitably configured LDAP directory, not just the OpenDJ implementation.

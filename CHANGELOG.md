@@ -1,4 +1,20 @@
 # Dartdap Change Log
+
+## 0.5.0  Null Safety
+
+* The LdapConnection class has been simplified, and no longer provides an automatic mode where a connection
+   is automatically opened. The user must call open() and then bind(). Use the LdapConnectionPool class to
+   for automatic handling of connections, binds and retries.
+* The LdapConnectionPool is a work in progress and is very much incomplete. It will retry a failed connection 
+  a numerb of times
+* SearchResult: The ldap result is now provided via a future. Use `await searchResult.getLdapResult()`.
+ Previously you needed to wait until the search entry stream was closed to fetch the ldap result. This was
+  error prone, as the consumer might try to access the result before the stream was closed.
+* LdapConnection: isAuthenticated method has been removed. Instead, query the connection state enum for 
+  ConnectionState.bound
+* The race condition test was removed as the protocol for connection.open() now blocks an attempt to open an already
+ open connection.
+
 ## 0.4.4
 
 * Added a SimplePagedResult Control and a sample

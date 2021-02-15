@@ -1,6 +1,5 @@
 import 'package:asn1lib/asn1lib.dart';
 import 'package:collection/collection.dart';
-import 'package:quiver_hashcode/hashcode.dart';
 import 'ldap_util.dart';
 import 'ldap_exception.dart';
 
@@ -24,17 +23,17 @@ import 'ldap_exception.dart';
 /// * [or] - matches if at least one of its member filters match
 
 class Filter {
-  int _filterType;
+  final int _filterType;
   int get filterType => _filterType;
 
   // The assertion value for this filter.
-  String _assertionValue;
-  String get assertionValue => _assertionValue;
-  String _attributeName;
-  String get attributeName => _attributeName;
+  final String? _assertionValue;
+  String? get assertionValue => _assertionValue;
+  String? _attributeName;
+  String? get attributeName => _attributeName;
 
   // nested filters
-  List<Filter> _subFilters = List<Filter>();
+  late final List<Filter> _subFilters;
   List<Filter> get subFilters => _subFilters;
 
   // BER Types
@@ -62,7 +61,7 @@ class Filter {
   /// instead of directly using this constructor.
 
   Filter(this._filterType,
-      [this._attributeName, this._assertionValue, this._subFilters]);
+      [this._attributeName, this._assertionValue, this._subFilters = const []]);
 
   /// Creates a [Filter] that matches an entry that has an attribute with the given value.
   static Filter equals(String attributeName, String attrValue) =>
@@ -84,12 +83,12 @@ class Filter {
 
   /// Creates a [Filter] that matches on a substring.
   ///
-  /// The [pattern] must be a [String] of the form "attr=match", where _attr_ is
+  /// The [pattern] must be a [String] of the form 'attr=match', where _attr_ is
   /// the attribute name and _match_ is a value that has at least one `*`
   /// character. There can be wildcard `*` chararcters at the beginning, middle
   /// or end of _match_.
   ///
-  /// The _match_ must not be a single `*` (e.g. "foo=*" is not permitted). If
+  /// The _match_ must not be a single `*` (e.g. 'foo=*' is not permitted). If
   /// such a filter is required, use the [present] filter instead.
 
   static Filter substring(String attribute, String pattern) =>
@@ -116,12 +115,13 @@ class Filter {
   /// Operator version of the [or] filter factory method.
   Filter operator |(Filter other) => Filter.or([this, other]);
 
+  @override
   String toString() {
-    var s = "Filter(type=0x${_filterType.toRadixString(16)}";
-    if (_attributeName != null) s += ",attributeName=$_attributeName";
-    if (_assertionValue != null) s += ",value=$_assertionValue,";
-    if (_subFilters != null) s += _subFilters.toString();
-    s += ")";
+    var s = 'Filter(type=0x${_filterType.toRadixString(16)}';
+    if (_attributeName != null) s += ',attributeName=$_attributeName';
+    if (_assertionValue != null) s += ',value=$_assertionValue,';
+    s += _subFilters.toString();
+    s += ')';
     return s;
   }
 
@@ -135,11 +135,12 @@ class Filter {
       case Filter.TYPE_APPROXIMATE_MATCH:
         var seq = ASN1Sequence(tag: filterType);
         seq.add(ASN1OctetString(attributeName));
-        seq.add(ASN1OctetString(LdapUtil.escapeString(assertionValue)));
+        seq.add(ASN1OctetString(LdapUtil.escapeString(assertionValue!)));
         return seq;
 
       case Filter.TYPE_AND:
       case Filter.TYPE_OR:
+        assert(subFilters.isNotEmpty);
         var aset = ASN1Set(tag: filterType);
         subFilters.forEach((Filter subf) {
           aset.add(subf.toASN1());
@@ -151,22 +152,23 @@ class Filter {
 
       case Filter.TYPE_NOT:
         // like AND/OR but with only one subFilter.
-        assert(subFilters != null);
+        assert(subFilters.isNotEmpty);
         var notObj = ASN1Set(tag: filterType);
         notObj.add(subFilters[0].toASN1());
         return notObj;
 
       case Filter.TYPE_EXTENSIBLE_MATCH:
-        throw "Not Done yet. Fix me!!";
+        throw 'Not Done yet. Fix me!!';
 
       default:
         throw LdapUsageException(
-            "Unexpected filter type = $filterType. This should never happen");
+            'Unexpected filter type = $filterType. This should never happen');
     }
   }
 
-  Function _eq = const ListEquality().equals;
+  final Function _eq = const ListEquality().equals;
 
+  @override
   bool operator ==(other) =>
       other is Filter &&
       other._filterType == _filterType &&
@@ -176,7 +178,11 @@ class Filter {
 
   @override
   int get hashCode =>
-      hash4(_filterType, _assertionValue, _attributeName, _subFilters);
+      _filterType.hashCode ^
+      _assertionValue.hashCode ^
+      _attributeName.hashCode ^
+      _subFilters.hashCode ^
+      _eq.hashCode;
 }
 
 /// A Substring filter
@@ -191,47 +197,50 @@ class SubstringFilter extends Filter {
   /// BER type for final part of string filter
   static const int TYPE_SUBFINAL = 0x82;
 
-  String _initial;
+  String? _initial;
   List<String> _any;
-  String _final;
+  String? _final;
 
   /// The initial substring filter component. Zero or one
-  String get initial => _initial;
-  /// The list of "any" components. Zero or more
+  String? get initial => _initial;
+
+  /// The list of 'any' components. Zero or more
   List<String> get any => _any;
-  /** The final component. Zero or more */
-  String get finalString => _final;
+
+  /// The final component. Zero or more */
+  String? get finalString => _final;
 
   SubstringFilter.rfc224(String attributeName,
-      {String initial, List<String> any = const [], String finalValue})
-      : super(Filter.TYPE_SUBSTRING) {
-    this._attributeName = attributeName;
-    _final = finalValue;
-    _any = any == null ? [] : any;
-    _initial = initial;
+      {String? initial, List<String> any = const [], String? finalValue})
+      : _initial = initial,
+        _any = any,
+        _final = finalValue,
+        super(Filter.TYPE_SUBSTRING) {
+    _attributeName = attributeName;
   }
 
   SubstringFilter.fromPattern(String attributeName, String pattern)
-      : super(Filter.TYPE_SUBSTRING) {
+      : _any = const [],
+        super(Filter.TYPE_SUBSTRING) {
     // todo: We probaby need to properly escape special chars = and *
-    if (pattern == null || pattern.length <= 2 || !pattern.contains("*")) {
+    if (pattern.length <= 2 || !pattern.contains('*')) {
       throw LdapUsageException(
-          "Invalid substring pattern: expecting attr=match: '$pattern'");
+          'Invalid substring pattern: expecting attr=match: $pattern');
     }
 
-    this._attributeName = attributeName;
+    _attributeName = attributeName;
     // now parse initial, any, final
 
-    var x = pattern.split("*");
+    var x = pattern.split('*');
 
     if (x.length == 1) {
       throw LdapUsageException(
-          "Invalid substring pattern: missing '*': '$pattern'");
+          'Invalid substring pattern: missing *: $pattern');
     }
 
     if (!x.any((s) => s.isNotEmpty)) {
       throw LdapUsageException(
-          "Invalid substring pattern: use \"present\" filter instead: '$pattern'");
+          'Invalid substring pattern: use \'present\' filter instead: \'$pattern\'');
     }
 
     /*
@@ -242,33 +251,33 @@ class SubstringFilter extends Filter {
      *  foo*bar*baz*boo
      */
 
-    if (x[0] != "") {
+    if (x[0] != '') {
       _initial = x[0];
     }
-    if (x.last != "") {
+    if (x.last != '') {
       _final = x.last;
     }
     _any = [];
-    for (int i = 1; i < x.length - 1; ++i) {
+    for (var i = 1; i < x.length - 1; ++i) {
       _any.add(x[i]);
     }
   }
 
+  @override
   ASN1Object toASN1() {
     var seq = ASN1Sequence(tag: filterType);
     seq.add(ASN1OctetString(attributeName));
     // sub sequence embeds init,any,final
     var sSeq = ASN1Sequence();
 
-    if (initial != null) {
-      sSeq.add(
-          ASN1OctetString(initial, tag: SubstringFilter.TYPE_SUBINITIAL));
+    if (_initial != null) {
+      sSeq.add(ASN1OctetString(initial, tag: SubstringFilter.TYPE_SUBINITIAL));
     }
-    if (any != null) {
+    if (any.isNotEmpty) {
       any.forEach((v) =>
           sSeq.add(ASN1OctetString(v, tag: SubstringFilter.TYPE_SUBANY)));
     }
-    if (finalString != null) {
+    if (_final != null) {
       sSeq.add(
           ASN1OctetString(finalString, tag: SubstringFilter.TYPE_SUBFINAL));
     }
@@ -276,11 +285,12 @@ class SubstringFilter extends Filter {
     return seq;
   }
 
+  @override
   String toString() =>
-      'SubstringFilter(initial=$_initial, ${_any != null ? "any=$_any" : ""},  ${_final != null ? "final $_final" : ""})';
+      'SubstringFilter(initial=$_initial, _any, ${_final != null ? 'final $_final' : ""})';
 
   @override
-  operator ==(other) =>
+  bool operator ==(other) =>
       other is SubstringFilter &&
       other._filterType == _filterType &&
       other._attributeName == _attributeName &&

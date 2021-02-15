@@ -1,5 +1,5 @@
 /// Unit tests for control encodings
-//@Skip("currently failing")
+//@Skip('currently failing')
 
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';

@@ -6,7 +6,8 @@ import 'package:asn1lib/asn1lib.dart';
 
 /// VLV Request Control. The client sends this to the server to request a VLV search
 class VLVRequestControl extends Control {
-  static const OID = "2.16.840.1.113730.3.4.9";
+  static const OID = '2.16.840.1.113730.3.4.9';
+  @override
   String get oid => OID;
 
   // The BER type to use when encoding the byOffset target element.
@@ -15,7 +16,7 @@ class VLVRequestControl extends Control {
   // The BER type to use when encoding the greaterThanOrEqual target element.
   static const TYPE_TARGET_GREATERTHANOREQUAL = 0x81;
 
-  get controlName => "VirtualListViewRequestControl";
+  String get controlName => 'VirtualListViewRequestControl';
 
   int beforeCount;
   int afterCount;
@@ -23,8 +24,8 @@ class VLVRequestControl extends Control {
   int offset = 0;
   int contentCount = 100;
 
-  String assertionValue;
-  String contextId;
+  String? assertionValue;
+  String? contextId;
 
   VLVRequestControl(
       this.beforeCount, this.afterCount, this.offset, this.contentCount);
@@ -54,16 +55,16 @@ class VLVRequestControl extends Control {
 
   VLVRequestControl.offsetControl(this.offset, this.contentCount,
       this.beforeCount, this.afterCount, this.contextId,
-      {critical: false}) {
+      {critical = false}) {
     // todo: Sanity checking!!!
     isCritical = critical;
     assertionValue = null;
   }
 
   VLVRequestControl.newVLVSearch()
-      : this.offset = 0,
-        this.beforeCount = 0,
-        this.afterCount = 100;
+      : offset = 0,
+        beforeCount = 0,
+        afterCount = 100;
 
   //
   //  Creates a new virtual list view request control that will identify the
@@ -77,13 +78,14 @@ class VLVRequestControl extends Control {
 
   VLVRequestControl.assertionControl(
       this.assertionValue, this.beforeCount, this.afterCount,
-      {this.contextId: null, critical: true}) {
+      {this.contextId, critical = true}) {
     // todo: Sanity checking!!!
     isCritical = critical;
   }
 
   bool get hasTargetOffset => assertionValue == null;
 
+  @override
   ASN1Sequence toASN1() {
     var s = startSequence();
 
@@ -96,8 +98,8 @@ class VLVRequestControl extends Control {
       s.add(ASN1Integer.fromInt(contentCount));
       seq.add(s);
     } else {
-      clogger.finest("VLV request Assertion value = $assertionValue");
-      seq.add(ASN1OctetString(assertionValue.codeUnits,
+      clogger.finest('VLV request Assertion value = $assertionValue');
+      seq.add(ASN1OctetString(assertionValue?.codeUnits,
           tag: TYPE_TARGET_GREATERTHANOREQUAL));
     }
     if (contextId != null) seq.add(ASN1OctetString(contextId));
@@ -108,15 +110,16 @@ class VLVRequestControl extends Control {
 }
 
 class VLVResponseControl extends Control {
-  static const OID = "2.16.840.1.113730.3.4.10";
-  get oid => OID;
+  static const OID = '2.16.840.1.113730.3.4.10';
+  @override
+  String get oid => OID;
 
-  int targetPosition;
-  int contentCount;
-  int extraParam = 0;
+  late int targetPosition;
+  late int contentCount;
+  late int extraParam;
 
   //List<int> contextID; ????
-  int contextId;
+  //int contextId;
 
   VLVResponseControl.fromASN1(ASN1OctetString s) {
     var bytes = s.encodedBytes;
@@ -125,17 +128,18 @@ class VLVResponseControl extends Control {
     // asn1 library.    octetString.unwrapSequence();
     bytes[0] = SEQUENCE_TYPE;
     var seq = ASN1Sequence.fromBytes(bytes);
-    clogger.finest("Create control from $s  seq=${seq}");
+    clogger.finest('Create control from $s  seq=${seq}');
 
     var x = (seq.elements.first as ASN1Sequence);
 
     // todo: confirm order of response
-    x.elements.forEach((e) => clogger.finest(" ${e.runtimeType}  $e"));
+    x.elements.forEach((e) => clogger.finest(' ${e.runtimeType}  $e'));
     targetPosition = (x.elements[0] as ASN1Integer).intValue;
     contentCount = (x.elements[1] as ASN1Integer).intValue;
     extraParam = (x.elements[2] as ASN1Integer).intValue;
   }
 
+  @override
   String toString() =>
-      "${super.toString()}(targetpos=$targetPosition, contentCount=$contentCount,x=$extraParam)";
+      '${super.toString()}(targetpos=$targetPosition, contentCount=$contentCount,x=$extraParam)';
 }

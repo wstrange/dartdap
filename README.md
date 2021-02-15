@@ -21,7 +21,7 @@ bottom of this page.
 
 ## Using dartdap
 
-### Search example
+### Examples
 
 To perform operations on an LDAP directory, the basic process is:
 
@@ -29,64 +29,15 @@ To perform operations on an LDAP directory, the basic process is:
 2. Perform LDAP operations (`search`, `add`, `modify`, `modifyDN`, `compare`, `delete`).
 3. Close the connection (`close`).
 
-```dart
-import 'dart:async';
+The following [examples](example) are provided:
 
-import 'package:dartdap/dartdap.dart';
+* [main.dart](example/main.dart) - A basic sample using the LdapConnection() class
+* [pool.dart](example/pool.dart) - Connection pool example
+* [paged_search.dart](example/paged_search.dart) - demonstrates how to use the paged search control
 
-Future example() async {
+Note:  As of version 0.5.0, A connection pool is also provided, and is the recommended way to access
+Ldap.  The documentation is lacking here. Assistance welcome!
 
-  // Create an LDAP connection object
-
-  var host = "localhost";
-  var ssl = false; // true = use LDAPS (i.e. LDAP over SSL/TLS)
-  var port = null; // null = use standard LDAP/LDAPS port
-  var bindDN = "cn=Manager,dc=example,dc=com"; // null=unauthenticated
-  var password = "p@ssw0rd";
-
-  var connection = new LdapConnection(host: host);
-  connection.setProtocol(ssl, port);
-  connection.setAuthentication(bindDN, password);
-
-  try {
-    // Perform search operation
-
-    var base = "dc=example,dc=com";
-    var filter = Filter.present("objectClass");
-    var attrs = ["dc", "objectClass"];
-
-    var count = 0;
-
-    var searchResult = await connection.search(base, filter, attrs);
-    await for (var entry in searchResult.stream) {
-      // Processing stream of SearchEntry
-      count++;
-      print("dn: ${entry.dn}");
-
-      // Getting all attributes returned
- 
-      for (var attr in entry.attributes.values) {
-        for (var value in attr.values) { // attr.values is a Set
-          print("  ${attr.name}: $value");
-        }
-      }
-
-      // Getting a particular attribute
-
-      assert(entry.attributes["dc"].values.length == 1);
-      var dc = entry.attributes["dc"].values.first;
-      print("# dc=$dc");
-    }
-
-    print("# Number of entries: ${count}");
-  } catch (e) {
-    print("Exception: $e");
-  } finally {
-    // Close the connection when finished with it
-    await connection.close();
-  }
-}
-```
 
 #### Create an LDAP connection
 
@@ -230,45 +181,18 @@ try {
 
 ## Connecting and authenticating
 
-The `LdapConnection` can operate in automatic or manual modes. The
-mode can be set when it is created, or by using the `setAutomaticMode`
-method.
+The `LdapConnection` provides a basic connection to the LdapServer. The caller is
+responsible for performing any Bind() operations, handling any disconnects, or
+retrying on failure.
 
-In automatic mode (the default), it is not necessary to explicitly
-connect or send LDAP BIND requests.
+As of 0.5.0, a protoype LdapConnectionPool() is provided that handles some of the
+these tasks. The pool implements the Ldap() interface, and will attempt to bind() 
+with the provided credentials, and will retry a connection if the server is not 
+available.
 
-In automatic mode, the connection to the LDAP directory will be
-established whenever it is needed. This will occur when the first LDAP
-operation is performed. If it becomes disconnected (e.g. LDAP server
-timeout), it will also re-establish the connection when the next LDAP
-operation is performed.
+The Connection pool is still experimental, and provides only basic functionality.
 
-In automatic mode, LDAP BIND requests will be made when necessary. For
-example, if a bindDN and password has been set (via the constructor,
-or the `setAuthentication` and `setAnonymous` methods), an LDAP BIND
-request will be sent when the first LDAP operation is performed:
-obviously, after the connection has been established and before the
-operation's request.
-
-There are `open` and `bind` methods to explicitly cause the connection
-to be made and LDAP BIND request to be sent. But since these are
-performed automatically, using them is optional in automatic
-mode. However, an application might want to explicitly use them to
-check the connection/authentication parameters; rather than have the
-errors detected later when an LDAP operation is performed.
-
-In manual mode, opening the connection and sending LDAP BIND requests
-must be explicitly performed by the application. Exceptions will be
-raised if the application fails to do this (e.g. attempting to perform
-a search with a closed connection). In manual mode, if a disconnection
-occurs subsequent LDAP operations will fail unless the application
-re-opens the connection.
-
-It is expected that most applications will use automatic mode.
-
-The `state` property indicates what state the connection is in.
-
-See the documentation of `LdapConnection` for more details.
+See the documentation of `LdapConnection` and `LdapConnectionPool` for more details.
 
 
 ## Exceptions
@@ -387,6 +311,16 @@ new Logger("ldap").level = Level.OFF;
 
 
 ## Breaking changes
+
+### 0.5.0 
+
+There are many breaking changes in 0.5.0. The most signifcant are:
+
+* dartdap is now null safe.
+* The `LdapConnection` class no longer handles automatic retry or error handling. A new
+`LdapConnectionPool` has been introduced that will host this functionality.
+
+See the [CHANGELOG.md](CHANGELOG.md)
 
 ### Version 0.4.0
 

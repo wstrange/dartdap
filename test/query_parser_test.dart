@@ -4,36 +4,35 @@ import 'package:dartdap/dartdap.dart';
 // import 'package:petitparser/debug.dart';
 
 void main() {
-  test("Basic Parser test", () {
-    var babs = Filter.equals("cn", "Babs");
-    var foo = Filter.equals("sn", "Foo");
+  test('Basic Parser test', () {
+    var babs = Filter.equals('cn', 'Babs');
+    var foo = Filter.equals('sn', 'Foo');
 
     final m = <String, Filter>{
       '(cn=Babs)': babs,
       '(&(cn=Babs)(sn=Foo))': Filter.and([babs, foo]),
       '(|(cn=Babs)(sn=Foo))': Filter.or([babs, foo]),
-      '(sn=Foo*)': SubstringFilter.rfc224("sn", initial: "Foo"),
-      '(sn=*Foo)': SubstringFilter.rfc224("sn", finalValue: "Foo"),
-      '(sn=*Foo*Baz*)': SubstringFilter.rfc224("sn", any: ["Foo", "Baz"]),
+      '(sn=Foo*)': SubstringFilter.rfc224('sn', initial: 'Foo'),
+      '(sn=*Foo)': SubstringFilter.rfc224('sn', finalValue: 'Foo'),
+      '(sn=*Foo*Baz*)': SubstringFilter.rfc224('sn', any: ['Foo', 'Baz']),
       '(!(sn=Foo*))': Filter.not(SubstringFilter.rfc224(
-        "sn",
-        initial: "Foo",
+        'sn',
+        initial: 'Foo',
       )),
-      // '(|(cn=Babs)(sn=Foo))': Filter.or([babs, foo]),
-      '(sn~=Foo)': Filter.approx("sn", "Foo"),
+      '(sn~=Foo)': Filter.approx('sn', 'Foo'),
       // A complex compound filter
       '(&(cn=Babs)(|(cn=Babs)(sn=Foo)))': Filter.and([
         babs,
         Filter.or([babs, foo])
       ]),
-      '(cn=*)': Filter.present("cn"),
+      '(cn=*)': Filter.present('cn'),
       // Test for some special chars in the attribute value
       // the encoding \2a is the escaped * character.
-      '(cn=uid-.2_\\2a*)': SubstringFilter.rfc224("cn", initial: "uid-.2_\\2a"),
+      '(cn=uid-.2_\\2a*)': SubstringFilter.rfc224('cn', initial: 'uid-.2_\\2a'),
     };
 
     m.forEach((query, filter) {
-      // print("eval: $query");
+      // print('eval: $query');
       var f = queryParser.getFilter(query);
       expect(f, equals(filter));
     });

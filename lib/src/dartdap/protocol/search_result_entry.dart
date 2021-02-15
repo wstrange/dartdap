@@ -1,33 +1,35 @@
 part of ldap_protocol;
 
-/**
- * LDAP Search Entry represent a single search result item.
- *
- * SearchResultEntry is a protocol Op that wraps a
- * [SearchEntry] object. We do this so that the protocol details
- * are kept out of SearchEntry for library consumers.
- */
+/// LDAP Search Entry represent a single search result item.
+///
+/// SearchResultEntry is a protocol Op that wraps a
+/// [SearchEntry] object. We do this so that the protocol details
+/// are kept out of SearchEntry for library consumers.
 
 class SearchResultEntry extends ResponseOp {
-  SearchEntry _searchEntry;
+  late SearchEntry _searchEntry;
 
   SearchEntry get searchEntry => _searchEntry;
 
-  SearchResultEntry.referral(LDAPMessage m) : super.searchEntry() {
-    loggeRecvLdap.fine(() => "Search result is a referral");
+  SearchResultEntry.referral(LDAPMessage m): super.searchEntry()  {
+    loggeRecvLdap.fine(() => 'Search result is a referral');
     var uris = m.protocolOp.elements;
     var l = uris.map((obj) => (obj as ASN1OctetString).stringValue).toList();
-    _searchEntry = SearchEntry(null, referrals: l);
+    _searchEntry = SearchEntry('', referrals: l);
   }
 
-  SearchResultEntry(LDAPMessage m) : super.searchEntry() {
+  // Creates an entry for a single result. Note that
+  // This is not like most ResponseOps - in that it does
+  // not have an LDAPResult object. The result
+  // only comes at the end with the SearchResultDone message
+  SearchResultEntry(LDAPMessage m):super.searchEntry()  {
     var s = m.protocolOp;
 
     var t = s.elements[0] as ASN1OctetString;
 
     var dn = t.stringValue;
 
-    loggeRecvLdap.fine(() => "Search Result Entry: dn=${dn}");
+    loggeRecvLdap.fine(() => 'Search Result Entry: dn=${dn}');
 
     // embedded sequence is attr list
     var seq = s.elements[1] as ASN1Sequence;
@@ -45,17 +47,18 @@ class SearchResultEntry extends ResponseOp {
       searchEntry.attributes[attrName.stringValue] =
           Attribute(attrName.stringValue, valSet);
 
-      loggeRecvLdap.finest("attribute: ${attrName.stringValue}=${valSet}");
+      loggeRecvLdap.finest('attribute: ${attrName.stringValue}=${valSet}');
     });
 
     // controls are optional.
     if (s.elements.length >= 3) {
       var controls = s.elements[2];
-      loggeRecvLdap.finest("controls: ${controls}");
+      loggeRecvLdap.finest('controls: ${controls}');
     }
   }
 
+  @override
   String toString() {
-    return "SearchResultEntry($searchEntry})";
+    return 'SearchResultEntry($searchEntry})';
   }
 }

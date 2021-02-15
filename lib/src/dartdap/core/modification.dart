@@ -1,24 +1,22 @@
-/**
- * An LDAP modification operation type.
- *
- * [ADD] adds a new value to an attribute.
- * [DELETE] deletes a value from an attribute or delets the attribute
- * [REPLACE] replaces an attribute value with a new value
- * [INCREMENT] increments a numeric attribute value
- *
- */
+/// An LDAP modification operation type.
+///
+/// [ADD] adds a new value to an attribute.
+/// [DELETE] deletes a value from an attribute or delets the attribute
+/// [REPLACE] replaces an attribute value with a new value
+/// [INCREMENT] increments a numeric attribute value
+///
 class Modification {
   static const int ADD = 0;
   static const int DELETE = 1;
   static const int REPLACE = 2;
   static const int INCREMENT = 3;
 
-  String _attrName;
+  final String _attrName;
 
   // attr values
-  List _values = List();
+  final List _values;
 
-  int _operation;
+  final int _operation;
 
   String get attributeName => _attrName;
   int get operation => _operation;
@@ -26,37 +24,27 @@ class Modification {
 
   Modification(this._operation, this._attrName, this._values);
 
-  Modification.replace(this._attrName, this._values) {
-    _operation = REPLACE;
-  }
+  Modification.replace(this._attrName, this._values):_operation = REPLACE;
 
-  Modification.add(this._attrName, this._values) {
-    _operation = ADD;
-  }
+  Modification.add(this._attrName, this._values):_operation = ADD;
 
-  Modification.increment(this._attrName, this._values) {
-    _operation = INCREMENT;
-  }
+  Modification.increment(this._attrName, this._values): _operation = INCREMENT;
 
-  Modification.delete(this._attrName, this._values) {
-    _operation = DELETE;
-  }
+  Modification.delete(this._attrName, this._values): _operation = DELETE;
 
-  /**
-   *
-   * TODO: This is a hack. Create a nicer way of handling this
-   *
-   * Utility method that creates a list of modifications
-   * when given a [modList] of triplets consiting of
-   * modType - string value in the set [a,d,r,i]
-   *    (for add, delete, replace, increment)
-   * attribute,values
-   *
-   * For example, the list ["r","sn", "Mickey Mouse","i", "age",null]
-   *
-   */
+  ///
+  /// TODO: This is a hack. Create a nicer way of handling this
+  ///
+  /// Utility method that creates a list of modifications
+  /// when given a [modList] of triplets consiting of
+  /// modType - string value in the set [a,d,r,i]
+  ///    (for add, delete, replace, increment)
+  /// attribute,values
+  ///
+  /// For example, the list ['r','sn', 'Mickey Mouse','i', 'age',null]
+  ///
   static List<Modification> modList(List modList) {
-    var list = List<Modification>();
+    var list = <Modification>[];
     modList.forEach((x) {
       assert(x.length == 3);
       String op = x[0];
@@ -65,16 +53,16 @@ class Modification {
       if (!(vals is List)) vals = [vals];
 
       switch (op) {
-        case "a":
+        case 'a':
           list.add(Modification.add(attr, vals));
           break;
-        case "d":
+        case 'd':
           list.add(Modification.delete(attr, vals));
           break;
-        case "r":
+        case 'r':
           list.add(Modification.replace(attr, vals));
           break;
-        case "i":
+        case 'i':
           list.add(Modification.increment(attr, vals));
           break;
       }

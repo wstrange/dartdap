@@ -11,17 +11,15 @@ export 'simple_paged_results.dart';
 
 /// Logger for the control section of dartdap.
 
-Logger clogger = Logger("ldap.control");
+Logger clogger = Logger('ldap.control');
 
-/**
- * An LDAP Control
- */
+/// An LDAP Control
 abstract class Control {
-//  static const VLV_REQUEST = "2.16.840.1.113730.3.4.9";
-//  static const VLV_RESPONSE = "2.16.840.1.113730.3.4.10";
+//  static const VLV_REQUEST = '2.16.840.1.113730.3.4.9';
+//  static const VLV_RESPONSE = '2.16.840.1.113730.3.4.10';
 //
-//  static const SERVER_SIDE_SORT_REQUEST = "1.2.840.113556.1.4.473";
-//  static const SERVER_SIDE_SORT_RESPONSE = "1.2.840.113556.1.4.474";
+//  static const SERVER_SIDE_SORT_REQUEST = '1.2.840.113556.1.4.473';
+//  static const SERVER_SIDE_SORT_RESPONSE = '1.2.840.113556.1.4.474';
 
   String get oid;
 
@@ -33,7 +31,7 @@ abstract class Control {
   // Control subclasses must override this to return their encoded representation
 
   ASN1Sequence toASN1() =>
-      throw Exception("Not implemented. Subclass must implement");
+      throw Exception('Not implemented. Subclass must implement');
 
   /// Subclasses may want to call this to start the encoding sequence. All
   /// controls start with the OID and a critical flag, followed by the
@@ -48,28 +46,26 @@ abstract class Control {
   Control();
 
   static List<Control> parseControls(ASN1Sequence obj) {
-    clogger.finest("Create Controls from $obj");
+    clogger.finest('Create Controls from $obj');
     // todo: Parse the object, return
-    List<Control> controls = [];
+    var controls = <Control>[];
 
-    if (obj != null) {
-      obj.elements.forEach((control) => controls.add(_parseControl(control)));
-    }
+    obj.elements.forEach((control) => controls.add(_parseControl(control as ASN1Sequence)));
     return controls;
   }
 
   static Control _parseControl(ASN1Sequence s) {
     var oid = (s.elements.first as ASN1OctetString).stringValue;
-    clogger.finest("Got control $oid");
+    clogger.finest('Got control $oid');
     switch (oid) {
       case VLVResponseControl.OID:
-        return VLVResponseControl.fromASN1(s.elements[1]);
+        return VLVResponseControl.fromASN1(s.elements[1] as ASN1OctetString);
       case ServerSideSortResponseControl.OID:
-        return ServerSideSortResponseControl.fromASN1(s.elements[1]);
+        return ServerSideSortResponseControl.fromASN1(s.elements[1] as ASN1OctetString);
       case SimplePagedResultsControl.OID:
-        return SimplePagedResultsControl.fromASN1(s.elements[1]);
+        return SimplePagedResultsControl.fromASN1(s.elements[1] as ASN1OctetString);
       default:
-        throw Exception("Control $oid not implemented");
+        throw Exception('Control $oid not implemented');
     }
   }
 
@@ -81,5 +77,6 @@ abstract class Control {
     return ASN1Sequence.fromBytes(bytes);
   }
 
-  String toString() => "$oid ${this.runtimeType}, isCritical=$isCritical}";
+  @override
+  String toString() => '$oid ${runtimeType}, isCritical=$isCritical}';
 }

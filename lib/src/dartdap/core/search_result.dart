@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'ldap_result.dart';
 import '../control/control.dart';
 
@@ -6,7 +8,7 @@ import '../control/control.dart';
 /// This object is produced by the [LdapConnection.search] method.
 ///
 /// Use the [stream] property to get a stream of [SearchEntry] objects, which
-/// representes the results from the search operation.
+/// represents the results from the search operation.
 ///
 /// The [controls] property contains the VLV context information, for example
 /// to pass on to a subsequent search.
@@ -15,8 +17,10 @@ import '../control/control.dart';
 // TODO: Is this the right design?
 
 class SearchResult {
-  LdapResult ldapResult;
-  List<Control> _controls;
+  // todo: The result should be a function Future<LdapResult>
+  // That only completes when the search is finished..
+  //late LdapResult _ldapResult;
+  List<Control> _controls = [];
 
   SearchResult(this._stream);
 
@@ -33,18 +37,29 @@ class SearchResult {
   /// entries that match.
 
   Stream<SearchEntry> get stream => _stream;
-  Stream<SearchEntry> _stream;
+  final Stream<SearchEntry> _stream;
+
+  final Completer<LdapResult> _resultCompleter = Completer();
+
+  Future<LdapResult> getLdapResult() {
+    return _resultCompleter.future;
+  }
+
+  // Complete the ldap result. This causes the future to return with the
+  // ldap result.
+  void completeLdapResult(LdapResult r) {
+    ///_ldapResult = r;
+    _resultCompleter.complete(r);
+  }
 
   /// The controls that may have been returned on search completion.
   ///
   /// These can be used to obtain the cursor, number of remaining results, etc. for VLV search.
 
   // TODO: This needs to be a stream...
-  set controls(List<Control> s) => this._controls = s;
+  set controls(List<Control> s) => _controls = s;
   // Trying to read a control before the stream has been processed is an error
   List<Control>  get controls {
-    //if( _stream == null || _stream.isEmpty)
-
     return _controls;
   }
 }

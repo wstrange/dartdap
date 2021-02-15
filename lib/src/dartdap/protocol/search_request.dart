@@ -26,23 +26,24 @@ part of ldap_protocol;
 
  */
 class SearchRequest extends RequestOp {
-  String _baseDN;
-  int _scope;
-  int _sizeLimit;
+  final String _baseDN;
+  final int _scope;
+  final int _sizeLimit;
   //int _derefPolicy = 3; // todo: read spec on this
-  int _derefPolicy = 0; // todo: read spec on this
+  final int _derefPolicy = 0; // todo: read spec on this
 
-  List<String> _attributes;
-  bool _typesOnly = false;
-  int _timeLimit = 0; // default: no time limit
+  final List<String> _attributes;
+  final bool _typesOnly = false;
+  final int _timeLimit = 0; // default: no time limit
 
-  Filter _filter;
+  final Filter _filter;
 
   // todo: These should be named params
   SearchRequest(this._baseDN, this._filter, this._attributes,
       [this._scope = SearchScope.SUB_LEVEL, this._sizeLimit = 0])
       : super(SEARCH_REQUEST);
 
+  @override
   ASN1Object toASN1() {
     var seq = _startSequence();
 

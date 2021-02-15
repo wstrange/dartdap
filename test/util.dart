@@ -1,12 +1,13 @@
 /// Utility to load configurations from a YAML file.
 
-import "dart:io";
+import 'dart:io';
 import 'package:dartdap/dartdap.dart';
 import 'package:logging/logging.dart';
-import "package:yaml/yaml.dart";
+import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 //################################################################
-// Names of common "well-known" directory configurations used by the tests.
+// Names of common 'well-known' directory configurations used by the tests.
 //
 // Note: like all directory configurations (including the default one, whose
 // name is [Config.defaultDirectoryName]) these are optional. But if they
@@ -32,7 +33,7 @@ class Config {
   /// it will use the default config file. By convention, the default config
   /// file should always be available.
 
-  Config({String filename, this.strict = true, bool logging = true}) {
+  Config({String? filename, this.strict = true, bool logging = true}) {
     // Determine which file to open
 
     File file;
@@ -60,8 +61,6 @@ class Config {
         throw ConfigException('file not found: $filename');
       }
     }
-    assert(file != null);
-    assert(_filename != null);
 
     try {
       // Parse the file as YAML
@@ -93,7 +92,7 @@ class Config {
 
         final logConfig = topLevel[_loggingItem];
         if (logConfig is YamlMap) {
-          _setupLogging(logConfig, logging: logging);
+          _setupLogging(logConfig, useLogging: logging);
         } else if (logConfig != null) {
           throw ConfigFileException(_filename, 'not map: "$_loggingItem"');
         }
@@ -142,12 +141,12 @@ class Config {
   // Members
 
   // Name of the config file loaded
-  String _filename;
+  late String _filename;
 
   /// Unexpected content in the configuration file is ignored or is an error.
   bool strict;
 
-  Map<String, ConfigDirectory> _directories;
+  Map<String, ConfigDirectory> _directories = {};
 
   //================================================================
   // Methods
@@ -168,7 +167,7 @@ class Config {
   //----------------------------------------------------------------
   /// Returns a string message if a directory has not been configured.
   ///
-  /// Returns a string for use with a test or group's "skip" parameter, if
+  /// Returns a string for use with a test or group's 'skip' parameter, if
   /// the [name] directory is not in the configuration file. Otherwise, null
   /// is returned if the directory is configured.
   ///
@@ -178,20 +177,26 @@ class Config {
   /// The convenience method [skipIfMissingDefaultDirectory] can be used for
   /// the default directory.
 
-  String skipIfMissingDirectory(String name) => hasDirectory(name)
+  String? skipIfMissingDirectory(String name) => hasDirectory(name)
       ? null
       : 'configuration "$_filename" does not have a "$name" directory';
 
   //----------------------------------------------------------------
   /// Retrieves the configuration for the named directory.
   ///
-  /// Retrieves the configuration for the directory with [name] or returns null
-  /// if there is no directory configuration with that name.
+  /// Retrieves the configuration for the directory with [name].
+  /// throws a Confi
   ///
   /// The convenience method [defaultDirectory] can be used for the default
   /// directory.
 
-  ConfigDirectory directory(String name) => _directories[name];
+  ConfigDirectory directory(String name) {
+    var d = _directories[name];
+    if (d == null) {
+      throw ConfigException('No Directory with name $name found');
+    }
+    return d;
+  }
 
   //----------------------------------------------------------------
   /// Indicates if the default directory has been specified.
@@ -206,7 +211,7 @@ class Config {
   //----------------------------------------------------------------
   /// To skip a test/group if the default directory has not been configured.
 
-  String get skipIfMissingDefaultDirectory =>
+  String? get skipIfMissingDefaultDirectory =>
       skipIfMissingDirectory(defaultDirectoryName);
 
   //================================================================
@@ -275,15 +280,15 @@ class Config {
                 'testdn': _itemTestDn,
                 'testDn': _itemTestDn,
                 'testdN': _itemTestDn,
-                'basedn': _itemTestDn, // Calling this item "testDN", because
-                'baseDn': _itemTestDn, // "baseDN" easily mistaken for "bindDN".
+                'basedn': _itemTestDn, // Calling this item 'testDN', because
+                'baseDn': _itemTestDn, // 'baseDN' easily mistaken for 'bindDN'.
                 'basedN': _itemTestDn,
               }[key];
 
               final suggestion =
-                  (correctKey != null) ? ' (use "$correctKey")' : '';
+                  (correctKey != null) ? ' (use "$correctKey)"' : '';
               throw ConfigFileException(_filename,
-                  'unexpected item: "$_directoriesItem/$name/$key"$suggestion');
+                  'unexpected item: "$_directoriesItem/$name/$key $suggestion');
             }
           }
         }
@@ -300,13 +305,13 @@ class Config {
             _getBool(d, name, _itemValidateCertificate, defaultValue: true);
 
         final _base = _getString(d, name, _itemTestDn);
-        if (_base == null) {
+        if (_base.isEmpty) {
           throw ConfigFileException(
               _filename, 'missing: "$_directoriesItem/$name/$_itemTestDn"');
         }
         dir.testDN = DN(_base);
 
-        if (dir.host == null) {
+        if (dir.host.isEmpty) {
           throw ConfigFileException(
               _filename, 'missing: "$_directoriesItem/$name/$_itemHost"');
         }
@@ -315,7 +320,7 @@ class Config {
               _filename, 'out of range: "$_directoriesItem/$name/$_itemPort"');
         }
 
-        if (dir.bindDN != null && dir.password == null) {
+        if (dir.bindDN.isEmpty|| dir.password.isEmpty) {
           throw ConfigFileException(_filename,
               '$_itemBindDn without $_itemPassword: "$_directoriesItem/$name"');
         }
@@ -338,7 +343,7 @@ class Config {
   ///
   /// ```
   /// logging:
-  ///    "*": INFO
+  ///    '*': INFO
   ///   ldap: INFO
   ///   ldap.connection: FINE
   ///   ldap.send.ldap: INFO
@@ -347,12 +352,10 @@ class Config {
   ///   ldap.recv.asn1: INFO
   /// ```
 
-  void _setupLogging(YamlMap logConfig, {bool logging}) {
+  void _setupLogging(YamlMap logConfig, {bool useLogging = true}) {
     // Only use the logging configuration if the program did not explicitly
     // set [logging] to false. But even if logging is not used, it is still
     // parsed by this method to check for errors.
-
-    final useLogging = logging ?? true;
 
     if (useLogging) {
       hierarchicalLoggingEnabled = true;
@@ -413,8 +416,7 @@ class Config {
             break;
           default:
             throw ConfigFileException(_filename,
-                'unsupported level name for "$_loggingItem/$key": "$value"');
-            break;
+                'unsupported level name for "$_loggingItem/$key": $value');
         }
       } else if (value is int) {
         if (value < Level.ALL.value) {
@@ -431,7 +433,6 @@ class Config {
         throw ConfigFileException(_filename,
             'expecting string or integer level for "$_loggingItem/$key"');
       }
-      assert(level != null);
 
       if (key is String) {
         if (useLogging) {
@@ -452,7 +453,7 @@ class Config {
   // Internal method for parsing the YAML.
 
   String _getString(YamlMap map, String name, String param,
-      {String defaultValue}) {
+      {String defaultValue = ''}) {
     final _value = map[param];
     if (_value is String) {
       return _value;
@@ -464,7 +465,7 @@ class Config {
     }
   }
 
-  int _getInt(YamlMap map, String name, String param, {int defaultValue}) {
+  int _getInt(YamlMap map, String name, String param, {int defaultValue =0}) {
     final _value = map[param];
     if (_value is int) {
       return _value;
@@ -475,7 +476,7 @@ class Config {
     }
   }
 
-  bool _getBool(YamlMap map, String path, String param, {bool defaultValue}) {
+  bool _getBool(YamlMap map, String path, String param, {bool defaultValue = false}) {
     final _value = map[param];
     if (_value is bool) {
       return _value;
@@ -490,31 +491,33 @@ class Config {
 //################################################################
 /// Represents the configuration for a directory the tests can connect to.
 
+
+// TOOD: As part of the null safety cleanup this should be refactored
+// into an immutable class.
 class ConfigDirectory {
-  String host;
-  int port;
-  bool ssl; // should be "tls", but using ssl for consistency with dartdap
-  String bindDN;
-  String password;
+  late String host;
+  late int port;
+  late bool ssl; // should be 'tls', but using ssl for consistency with dartdap
+  late String bindDN;
+  late String password;
 
   /// Perform certificate validation or not.
   /// Self-signed certificates can be used for testing, if this is set to false.
-  bool validateCertificate;
+  late bool validateCertificate;
 
   /// Tests should confine themselves to this branch
-  DN testDN;
+  late DN testDN;
 
   //----------------------------------------------------------------
   /// Creates a connection using the settings.
 
-  LdapConnection connect() => LdapConnection(
+  LdapConnection getConnection() => LdapConnection(
       host: host,
       ssl: ssl,
       port: port,
       bindDN: bindDN,
       password: password,
-      badCertificateHandler:
-          validateCertificate ? null : (X509Certificate _) => true);
+      badCertificateHandler: (X509Certificate _) => ! validateCertificate);
 }
 
 //################################################################
@@ -539,4 +542,25 @@ class ConfigFileException extends ConfigException {
 
   @override
   String toString() => '$filename: $message';
+}
+
+// Utility to check attribute for non null and expected value
+void expectSingleAttributeValue(SearchEntry entry,  String attributeName, String expectedValue) {
+  var attrs = entry.attributes[attributeName];
+  if( attrs == null ) {
+   fail('Attribute $attributeName not found');
+  }
+  expect(attrs.values.length, equals(1));
+  expect(attrs.values.first, equals(expectedValue));
+}
+
+// Utility to check attribute for non null and expected value startsWith
+void expectSingleAttributeValueStartsWith(SearchEntry entry,  String attributeName, String startsWith) {
+  var attrs = entry.attributes[attributeName];
+  if( attrs == null ) {
+    fail('Attribute $attributeName not found');
+  }
+  expect(attrs.values.length, equals(1));
+  var s=  attrs.values.first as String;
+  expect(s.startsWith(startsWith), isTrue);
 }
