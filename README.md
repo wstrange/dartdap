@@ -14,7 +14,7 @@ This library can be used to query (search for and compare entries) and
 modify (add, delete and modify) LDAP directories.
 
 This library supports the LDAP v3 protocol, which is defined in
-IETF [RFC 4511](http://tools.ietf.org/html/rfc4511).
+IETF [RFC 4511](https://tools.ietf.org/html/rfc4511).
 
 Breaking changes from previous versions are described at the
 bottom of this page.
