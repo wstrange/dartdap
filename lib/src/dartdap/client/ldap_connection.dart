@@ -311,13 +311,13 @@ class LdapConnection extends Ldap {
   /// If [immediate] is true, the connection is immediately closed and any
   /// queued operations are discarded.
   ///
-  Future close([bool immediate = false]) async {
-    loggerConnection.fine('close${immediate ? ': immediate' : ""}');
+  Future<void> close() async {
+    loggerConnection.fine('close');
 
     switch (state) {
       case ConnectionState.ready:
       case ConnectionState.bound:
-        await _cmgr.close(immediate);
+        await _cmgr.close();
         loggerConnection.finer('close: done');
         _state = ConnectionState.closed;
         break;
@@ -326,7 +326,7 @@ class LdapConnection extends Ldap {
         break;
       case ConnectionState.disconnected:
       case ConnectionState.error:
-        await _cmgr.close(immediate);
+        await _cmgr.close();
         _state = ConnectionState.closed;
         loggerConnection.finer('close: was disconnected');
         break;

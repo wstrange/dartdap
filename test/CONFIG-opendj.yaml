@@ -10,7 +10,7 @@ directories:
     ssl: false
     validate-certificate: false
     bindDN: uid=admin
-    password: MTamghH5ak1V9mcI5dMeueyypQ8p98pk
+    password: UOd15YiaNGulHj6H1NnBKnZFvxgF4p7B
     testDN: ou=people,ou=identities
 
   ldaps:
@@ -19,7 +19,7 @@ directories:
     ssl: true
     validate-certificate: false
     bindDN: uid=admin
-    password: E7ajrLZoMiBFvPAFdl0esf1i9oh4aq5e
+    password: UOd15YiaNGulHj6H1NnBKnZFvxgF4p7B
     testDN: ou=people,ou=identities
 
   default:
@@ -28,7 +28,7 @@ directories:
     ssl: true
     validate-certificate: false
     bindDN: uid=admin
-    password: MTamghH5ak1V9mcI5dMeueyypQ8p98pk
+    password: UOd15YiaNGulHj6H1NnBKnZFvxgF4p7B
     testDN: ou=people,ou=identities
 
 

@@ -169,13 +169,13 @@ class LdapConnectionPool extends Ldap {
   }
 
   // closing a pool connection closes all connections
-  Future<void> close([bool immediate = false]) async {
+  Future<void> close() async {
     loggerPool.info('Closing all pool connections');
     for(var c in _connections) {
       if (c.state == ConnectionState.bound ||
           c.state == ConnectionState.ready) {
         loggerPool.fine('Pool closing connection ${c.connectionInfo.id}');
-        await c.close(immediate);
+        await c.close();
       }
     }
   }
@@ -183,7 +183,7 @@ class LdapConnectionPool extends Ldap {
   // close the pool
   Future<void> destroy() async {
     await Future.forEach(_connections, (LdapConnection c) async {
-      await c.close(true);
+      await c.close();
     });
   }
 
