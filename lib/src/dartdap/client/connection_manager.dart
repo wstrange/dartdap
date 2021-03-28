@@ -139,15 +139,14 @@ class ConnectionManager {
   static const PENDING_OP_TIMEOUT = Duration(seconds: 10);
   //
   bool _bindPending = false; // true if a BIND is pending
-  Socket? _socket;
+  late Socket _socket;
+  bool _isClosed = true;
 
   //----------------------------------------------------------------
   /// Indicates if the connection is closed.
   ///
   /// Returns true if the connection is closed, false otherwise.
-
-  // (if the socket is null, we consider it closed)
-  bool isClosed() => _socket == null;
+  bool isClosed() => _isClosed;
 
   int _nextMessageId = 1; // message counter for this connection
 
@@ -158,10 +157,6 @@ class ConnectionManager {
 
   final BadCertHandlerType? _badCertHandler;
 
-  /// Completes when the stream transformer is done.
-  /// Indicates the connection is completely closed.
-  ///
-  Completer? _whenDone;
 
   //----------------------------------------------------------------
   /// Constructor
@@ -198,18 +193,17 @@ class ConnectionManager {
   Future<ConnectionManager> connect() async {
     try {
       if (isClosed()) {
-        var s = _ssl
+        _socket = await (_ssl
             ? SecureSocket.connect(_host, _port,
                 onBadCertificate: _badCertHandler, context: _context)
-            : Socket.connect(_host, _port);
+            : Socket.connect(_host, _port));
 
-        _socket = await s;
-
-        _whenDone = Completer();
-        _socket?.transform(createLdapTransformer()).listen(
+        _socket.transform(createLdapTransformer()).listen(
             (m) => _handleLDAPMessage(m),
             onError: _ldapListenerOnError,
             onDone: _ldapListenerOnDone);
+
+        _isClosed = false;
       }
 
       return this;
@@ -305,10 +299,7 @@ class ConnectionManager {
 
   void _ldapListenerOnDone() {
     loggerConnection.finest('message stream done');
-
-    _whenDone?.complete();
-
-    _doClose();
+    close();
   }
 
   //================================================================
@@ -383,7 +374,7 @@ class ConnectionManager {
 
     loggerSendBytes.finest('[${op.message.messageId}] Bytes sending: $l');
 
-    _socket?.add(l);
+    _socket.add(l);
     _pendingResponseMessages[op.message.messageId] = op;
     if (op.message.protocolTag == BIND_REQUEST) {
       _bindPending = true;
@@ -418,28 +409,13 @@ class ConnectionManager {
   ///
   /// Returns a Future that is called when the connection is closed
 
-  Future close(bool immediate) async {
-    if (immediate || _canClose()) {
-      await _doClose();
-    } else {
-      loggerConnection.finer(
-          'wait for queue to drain pendingResponse=$_pendingResponseMessages');
-
-      var c = Completer();
-      // todo: dont wait if there are no pending ops....
-      Timer.periodic(PENDING_OP_TIMEOUT, (Timer t) {
-        if (_canClose()) {
-          t.cancel();
-          _doClose().then((_) => c.complete());
-        }
-      });
-      await c.future;
+  Future close() async {
+    loggerConnection.finer('Closing connection');
+    if( ! _canClose() ) {
+      loggerConnection.warning('Trying to close connection that is pending!');
     }
-
-    if (_whenDone != null) {
-      loggerConnection.finest('wait for message stream to be done');
-      await _whenDone?.future; // wait for stream to be done
-    }
+    _socket.destroy();
+    _isClosed = true;
   }
 
   //----------------------------------------------------------------
@@ -450,16 +426,5 @@ class ConnectionManager {
     }
     _sendPendingMessage();
     return false;
-  }
-
-  //----------------------------------------------------------------
-  /// Closes the connection.
-
-  Future<void> _doClose() async {
-    if (!isClosed()) {
-      loggerConnection.fine('Closing socket');
-      await _socket?.close();
-      _socket = null;
-    }
   }
 }

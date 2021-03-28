@@ -30,6 +30,7 @@ Future example() async {
 
 
   try {
+    await connection.open();
     // Perform search operation
     await connection.bind();
     print('Bind OK');
@@ -45,7 +46,7 @@ Future example() async {
 
   } finally {
     // Close the connection when finished with it
-    print('Closing!!! ');
+    print('Closing');
     await connection.close();
   }
 }

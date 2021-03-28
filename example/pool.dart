@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:dartdap/dartdap.dart';
 import 'package:logging/logging.dart';
 
-final adminPassword = 'AdminPasswordHere';
+final adminPassword = 'SomePassword';
 
 /// A sample showing the use of the connection pool
 ///
@@ -12,7 +12,7 @@ Future<void> main() async {
     print('${r.time}: ${r.loggerName}: ${r.level.name}: ${r.message}');
   });
 
-  Logger.root.level = Level.INFO;
+  Logger.root.level = Level.FINE;
   await example();
 }
 
