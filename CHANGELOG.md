@@ -1,5 +1,11 @@
 # Dartdap Change Log
 
+## 0.6.0 
+
+* Simplfied connection.close(). Fixes #40. This delegates more responsibility to the library user
+ to consume all the results before issuing a connection.close(). 
+* Update pub deps to all null safety libs
+
 ## 0.5.0  Null Safety
 
 * The LdapConnection class has been simplified, and no longer provides an automatic mode where a connection

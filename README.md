@@ -312,6 +312,11 @@ new Logger("ldap").level = Level.OFF;
 
 ## Breaking changes
 
+### 0.6.0
+
+* The library user is now responsible for waiting for all LDAP operations to complete before
+calling connection.close()
+
 ### 0.5.0 
 
 There are many breaking changes in 0.5.0. The most signifcant are:

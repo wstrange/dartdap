@@ -341,10 +341,6 @@ class LdapConnection extends Ldap {
   Future<LdapResult> bind({String? DN, String? password}) async {
     loggerConnection.fine('bind: ${_bindDN.isEmpty ? 'anonymous' : _bindDN}');
 
-    if (_cmgr.isClosed() ) {
-      loggerConnection.warning('Attempting to call bind() on a closed connection. Will try open()');
-      await open();
-    }
     _bindDN = DN ?? _bindDN;
     _password = password ?? _password;
 
