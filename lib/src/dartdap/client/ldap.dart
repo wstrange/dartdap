@@ -1,7 +1,6 @@
 import 'package:dartdap/dartdap.dart';
 
 // parser that Create LDAP Queries using https://tools.ietf.org/html/rfc2254 syntax
-final queryParser = QueryParser();
 
 /// The Ldap Interface [https://tools.ietf.org/html/rfc4511]
 ///
@@ -118,7 +117,7 @@ abstract class Ldap  {
   ///
   Future<SearchResult> query(String baseDN, String query, List<String> attributes,
       {int scope = SearchScope.SUB_LEVEL, int sizeLimit = 0, List<Control> controls = const []}) {
-    var filter = queryParser.getFilter(query);
+    var filter = parseQuery(query);
     return search(baseDN, filter, attributes,
         scope: scope, sizeLimit: sizeLimit, controls: controls);
   }
