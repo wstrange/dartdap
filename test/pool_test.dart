@@ -15,7 +15,6 @@ Future<void> main()  async{
 
 void runTests(util.ConfigDirectory configDirectory) {
   late LdapConnection ldap;
-  late DN testPersonDN;
   late LdapConnectionPool pool;
 
   //----------------

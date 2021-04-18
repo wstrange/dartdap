@@ -128,7 +128,7 @@ class VLVResponseControl extends Control {
     // asn1 library.    octetString.unwrapSequence();
     bytes[0] = SEQUENCE_TYPE;
     var seq = ASN1Sequence.fromBytes(bytes);
-    clogger.finest('Create control from $s  seq=${seq}');
+    clogger.finest('Create control from $s  seq=$seq');
 
     var x = (seq.elements.first as ASN1Sequence);
 

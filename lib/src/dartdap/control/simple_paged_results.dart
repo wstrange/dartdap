@@ -69,5 +69,5 @@ class SimplePagedResultsControl extends Control {
   }
 
   @override
-  String toString() => 'SimplePagedResultControl(size=$size, cookie=${_cookie})';
+  String toString() => 'SimplePagedResultControl(size=$size, cookie=$_cookie)';
 }

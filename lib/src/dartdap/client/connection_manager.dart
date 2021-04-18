@@ -22,7 +22,7 @@ abstract class _PendingOp {
   _PendingOp(this.message);
 
   @override
-  String toString() => 'PendingOp m=${message}';
+  String toString() => 'PendingOp m=$message';
 
   // Process an LDAP result. Return true if this operation is now complete
   bool processResult(ResponseOp op);

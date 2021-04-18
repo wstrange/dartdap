@@ -38,7 +38,7 @@ Future main() async {
     }
     var sr = await results.getLdapResult();
 
-    print('LDAP result: ${sr}');
+    print('LDAP result: $sr');
 
     var cookie = <int>[];
     if (results.controls.isNotEmpty ) {

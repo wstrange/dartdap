@@ -39,7 +39,7 @@ FutureOr<void> doLdapOperation(LdapConnection ldap,DN testDN) async {
   var searchResults =
       await ldap.search(testDN.dn, filter, searchAttrs, sizeLimit: 100);
   var ldapResult = await searchResults.getLdapResult();
-  print('bound = ${ldap.isBound}  ssl= ${ldap.isSSL} ${ldapResult}');
+  print('bound = ${ldap.isBound}  ssl= ${ldap.isSSL} $ldapResult');
   await for (SearchEntry entry in searchResults.stream) {
     expect(entry, isNotNull);
     expect(entry, const TypeMatcher<SearchEntry>());
@@ -137,12 +137,18 @@ void main() async {
   final normal = config.directory(util.noLdapsDirectoryName);
   final secure = config.directory(util.ldapsDirectoryName);
 
-  if (normal != null) {
-    // The tests need both LDAP (without TLS) and LDAPS (with TLS) directories
-    runTests(normal, secure);
-  } else {
-    test('bind tests', () {}, skip: true); // to produce a skip message
-  }
+  runTests(normal, secure);
+
+  // TODO: Refactor bind tests to not require TLS.
+  // This will assist automated testing using a GH action / openldap -
+  // where TLS may not be easily configured.
+  //
+  // if (normal != null) {
+  //   // The tests need both LDAP (without TLS) and LDAPS (with TLS) directories
+  //   runTests(normal, secure);
+  // } else {
+  //   test('bind tests', () {}, skip: true); // to produce a skip message
+  // }
 }
 
 void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {

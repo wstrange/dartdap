@@ -15,4 +15,4 @@ dependencies:
 dev_dependencies:
   test: "^1.16.2"
   yaml: "^3.0.0"
-  pedantic: "^1.10.0"
+  pedantic: "^1.11.0"

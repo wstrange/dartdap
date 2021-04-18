@@ -288,7 +288,7 @@ class LdapConnection extends Ldap {
   ///
   ///
   Future<void> open() async {
-    loggerConnection.fine('open: ${url}');
+    loggerConnection.fine('open: $url');
     switch (state) {
       case ConnectionState.closed:
       case ConnectionState.disconnected:

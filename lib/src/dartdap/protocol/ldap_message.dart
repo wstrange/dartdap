@@ -81,7 +81,7 @@ class LDAPMessage {
       _obj = ASN1Sequence.fromBytes(bytes);
     }
     catch(e) {
-      throw LdapParseException('Parsing error on ${bytes}');
+      throw LdapParseException('Parsing error on $bytes');
     }
 
     if (elements.length != 2 && elements.length != 3) {
@@ -104,7 +104,7 @@ class LDAPMessage {
       }
     }
     loggeRecvLdap.fine(() =>
-        'LDAP message received: Id=${messageId} protocolOp=${protocolOp}');
+        'LDAP message received: Id=$messageId protocolOp=$protocolOp');
   }
 
   // Convert this LDAP message to a stream of ASN1 encoded bytes
@@ -130,6 +130,6 @@ class LDAPMessage {
   @override
   String toString() {
     var s = _op2String(_protocolTag);
-    return 'Msg(id=${_messageId}, op=${s},controls=$_controls)';
+    return 'Msg(id=$_messageId, op=$s,controls=$controls)';
   }
 }

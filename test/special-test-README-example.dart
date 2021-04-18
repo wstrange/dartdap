@@ -55,7 +55,7 @@ Future<void> example(String host, int port, bool ssl, String bindDN,
       }
     }
 
-    print('# Number of entries: ${count}');
+    print('# Number of entries: $count');
   } catch (e) {
     print('Exception: $e');
   } finally {

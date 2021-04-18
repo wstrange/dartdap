@@ -78,5 +78,5 @@ abstract class Control {
   }
 
   @override
-  String toString() => '$oid ${runtimeType}, isCritical=$isCritical}';
+  String toString() => '$oid $runtimeType, isCritical=$isCritical}';
 }
