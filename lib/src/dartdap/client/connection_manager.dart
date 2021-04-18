@@ -157,7 +157,6 @@ class ConnectionManager {
 
   final BadCertHandlerType? _badCertHandler;
 
-
   //----------------------------------------------------------------
   /// Constructor
   ///
@@ -190,14 +189,16 @@ class ConnectionManager {
   ///   and the port number is correct.
   /// - Other exceptions might also be thrown.
 
-  static const _connectionTimeout =  Duration(seconds: 30);
+  static const _connectionTimeout = Duration(seconds: 30);
 
   Future<ConnectionManager> connect() async {
     try {
       if (isClosed()) {
         _socket = await (_ssl
             ? SecureSocket.connect(_host, _port,
-                onBadCertificate: _badCertHandler, context: _context, timeout: _connectionTimeout)
+                onBadCertificate: _badCertHandler,
+                context: _context,
+                timeout: _connectionTimeout)
             : Socket.connect(_host, _port, timeout: _connectionTimeout));
 
         _socket.transform(createLdapTransformer()).listen(
@@ -413,7 +414,7 @@ class ConnectionManager {
 
   Future close() async {
     loggerConnection.finer('Closing connection');
-    if( ! _canClose() ) {
+    if (!_canClose()) {
       loggerConnection.warning('Trying to close connection that is pending!');
     }
     _socket.destroy();

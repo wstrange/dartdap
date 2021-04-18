@@ -88,7 +88,8 @@ class LdapResult {
 
   @override
   String toString() =>
-      ResultCode.message(_resultCode) + _diagnosticMessage +
+      ResultCode.message(_resultCode) +
+      _diagnosticMessage +
       (_matchedDN != null ? ': $_matchedDN' : '');
 
   /// Converts an LdapResult whose result code is an error into an exception.
@@ -260,7 +261,6 @@ class SearchEntry {
   @override
   String toString() => 'Entry[$_dn,$_attributes]';
 }
-
 
 //===============================================================
 /// LDAP Result Codes

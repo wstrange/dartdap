@@ -25,11 +25,11 @@ Future main() async {
   var done = false;
   var count = 0;
 
-  while (!done)  {
+  while (!done) {
     print('**** Query for $pageSize entries **** total count=$count');
 
-    var results = await ldap.query(baseDN, '(objectclass=*)', attrs,
-        controls: [simplePaged,sss]);
+    var results = await ldap
+        .query(baseDN, '(objectclass=*)', attrs, controls: [simplePaged, sss]);
 
     await for (var entry in results.stream) {
       // uncomment if you want to see the entries. Slow...
@@ -41,11 +41,11 @@ Future main() async {
     print('LDAP result: $sr');
 
     var cookie = <int>[];
-    if (results.controls.isNotEmpty ) {
+    if (results.controls.isNotEmpty) {
       results.controls.forEach((control) {
         print('Control $control');
-        if( control is SimplePagedResultsControl) {
-          if (control.isEmptyCookie  ) {
+        if (control is SimplePagedResultsControl) {
+          if (control.isEmptyCookie) {
             done = true;
           } else {
             cookie = control.cookie;

@@ -19,7 +19,6 @@ class SearchResultDone extends ResponseOp {
   SearchResultDone(LDAPMessage m) : super(m);
 }
 
-
 //  ModifyResponse ::= [APPLICATION 7] LDAPResult
 //
 class ModifyResponse extends ResponseOp {

@@ -1,17 +1,17 @@
 part of ldap_protocol;
 
- //
- // * Modify DN Request.
- // *
- // * Rename a DN to a new RDN. Optionally delete the old entry and
- // * reparent the DN to new superior.
- // *
- // *      ModifyDNRequest ::= [APPLICATION 12] SEQUENCE {
- //                entry           LDAPDN,
- //                newrdn          RelativeLDAPDN,
- //                deleteoldrdn    BOOLEAN,
- //                newSuperior     [0] LDAPDN OPTIONAL }
- //
+//
+// * Modify DN Request.
+// *
+// * Rename a DN to a new RDN. Optionally delete the old entry and
+// * reparent the DN to new superior.
+// *
+// *      ModifyDNRequest ::= [APPLICATION 12] SEQUENCE {
+//                entry           LDAPDN,
+//                newrdn          RelativeLDAPDN,
+//                deleteoldrdn    BOOLEAN,
+//                newSuperior     [0] LDAPDN OPTIONAL }
+//
 
 class ModDNRequest extends RequestOp {
   final String _dn; // dn of entry we are adding

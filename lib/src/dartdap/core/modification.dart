@@ -24,13 +24,13 @@ class Modification {
 
   Modification(this._operation, this._attrName, this._values);
 
-  Modification.replace(this._attrName, this._values):_operation = REPLACE;
+  Modification.replace(this._attrName, this._values) : _operation = REPLACE;
 
-  Modification.add(this._attrName, this._values):_operation = ADD;
+  Modification.add(this._attrName, this._values) : _operation = ADD;
 
-  Modification.increment(this._attrName, this._values): _operation = INCREMENT;
+  Modification.increment(this._attrName, this._values) : _operation = INCREMENT;
 
-  Modification.delete(this._attrName, this._values): _operation = DELETE;
+  Modification.delete(this._attrName, this._values) : _operation = DELETE;
 
   ///
   /// TODO: This is a hack. Create a nicer way of handling this

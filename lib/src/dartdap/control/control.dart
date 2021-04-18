@@ -50,7 +50,8 @@ abstract class Control {
     // todo: Parse the object, return
     var controls = <Control>[];
 
-    obj.elements.forEach((control) => controls.add(_parseControl(control as ASN1Sequence)));
+    obj.elements.forEach(
+        (control) => controls.add(_parseControl(control as ASN1Sequence)));
     return controls;
   }
 
@@ -61,9 +62,11 @@ abstract class Control {
       case VLVResponseControl.OID:
         return VLVResponseControl.fromASN1(s.elements[1] as ASN1OctetString);
       case ServerSideSortResponseControl.OID:
-        return ServerSideSortResponseControl.fromASN1(s.elements[1] as ASN1OctetString);
+        return ServerSideSortResponseControl.fromASN1(
+            s.elements[1] as ASN1OctetString);
       case SimplePagedResultsControl.OID:
-        return SimplePagedResultsControl.fromASN1(s.elements[1] as ASN1OctetString);
+        return SimplePagedResultsControl.fromASN1(
+            s.elements[1] as ASN1OctetString);
       default:
         throw Exception('Control $oid not implemented');
     }

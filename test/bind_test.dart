@@ -30,7 +30,7 @@ var allowAnonymousSearch = true;
 /// For the purpose of the tests in this file, this can be any operation
 /// (except for BIND) which will require the connection to be open.
 ///
-FutureOr<void> doLdapOperation(LdapConnection ldap,DN testDN) async {
+FutureOr<void> doLdapOperation(LdapConnection ldap, DN testDN) async {
   var filter = Filter.present('cn');
   var searchAttrs = ['cn', 'sn'];
 
@@ -124,7 +124,6 @@ Future<void> _doBind(LdapConnection ldap, DN testDN) async {
 
   expect(ldap.state, equals(ConnectionState.closed));
   expect(ldap.isBound, isFalse);
-
 }
 
 //----------------------------------------------------------------
@@ -157,129 +156,128 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
   assert(secure.ssl,
       '${util.ldapsDirectoryName} without TLS when it must be LDAPS');
 
-    //================================================================
-    group('connect succeeds', () {
-      group('anonymous', () {
-        test('using LDAP', () async {
-          var ldap = LdapConnection(
-              host: normal.host, ssl: normal.ssl, port: normal.port);
-          await ldap.open();
-          // todo - what can we do with anonymous connections on all ldap servers
-        });
+  //================================================================
+  group('connect succeeds', () {
+    group('anonymous', () {
+      test('using LDAP', () async {
+        var ldap = LdapConnection(
+            host: normal.host, ssl: normal.ssl, port: normal.port);
+        await ldap.open();
+        // todo - what can we do with anonymous connections on all ldap servers
+      });
 
-        //----------------
+      //----------------
 
-        test('close test', () async {
-          var ldap = LdapConnection(
-              host: normal.host, ssl: normal.ssl, port: normal.port);
+      test('close test', () async {
+        var ldap = LdapConnection(
+            host: normal.host, ssl: normal.ssl, port: normal.port);
 
-          expect(ldap.state, equals(ConnectionState.closed));
-          expect(ldap.isBound, isFalse);
+        expect(ldap.state, equals(ConnectionState.closed));
+        expect(ldap.isBound, isFalse);
 
-          await ldap.open();
+        await ldap.open();
 
-          expect(ldap.state, equals(ConnectionState.ready));
-          expect(ldap.isBound, isFalse);
+        expect(ldap.state, equals(ConnectionState.ready));
+        expect(ldap.isBound, isFalse);
 
-          // LDAP operations can be performed on an open connection
-          await doLdapOperation(ldap, normal.testDN);
+        // LDAP operations can be performed on an open connection
+        await doLdapOperation(ldap, normal.testDN);
 
-          // Close the connection
+        // Close the connection
 
-          await ldap.close();
+        await ldap.close();
 
-          expect(ldap.state, equals(ConnectionState.closed));
-          expect(ldap.isBound, isFalse);
-        });
+        expect(ldap.state, equals(ConnectionState.closed));
+        expect(ldap.isBound, isFalse);
+      });
 
-        //----------------
+      //----------------
 
-        test('using LDAPS', () async {
-          var ldaps = LdapConnection(
-              host: secure.host,
-              ssl: secure.ssl,
-              port: secure.port,
-              badCertificateHandler: (X509Certificate _) => true);
-          // Note: setting badCertificateHandler to accept test certificate
+      test('using LDAPS', () async {
+        var ldaps = LdapConnection(
+            host: secure.host,
+            ssl: secure.ssl,
+            port: secure.port,
+            badCertificateHandler: (X509Certificate _) => true);
+        // Note: setting badCertificateHandler to accept test certificate
 
-          expect(ldaps.state, equals(ConnectionState.closed));
-          expect(ldaps.isBound, isFalse);
+        expect(ldaps.state, equals(ConnectionState.closed));
+        expect(ldaps.isBound, isFalse);
 
-          // Open anonymous connection
+        // Open anonymous connection
 
-          await ldaps.open();
+        await ldaps.open();
 
-          expect(ldaps.state, equals(ConnectionState.ready));
-          expect(ldaps.isBound, isFalse);
+        expect(ldaps.state, equals(ConnectionState.ready));
+        expect(ldaps.isBound, isFalse);
 
-          // LDAP operations can be performed on an open connection
+        // LDAP operations can be performed on an open connection
 
-          await doLdapOperation(ldaps, normal.testDN);
+        await doLdapOperation(ldaps, normal.testDN);
 
-          // Close connection
+        // Close connection
 
-          await ldaps.close();
+        await ldaps.close();
 
-          expect(ldaps.state, equals(ConnectionState.closed));
-          expect(ldaps.isBound, isFalse);
-        });
-      }, skip: !allowAnonymousSearch);
+        expect(ldaps.state, equals(ConnectionState.closed));
+        expect(ldaps.isBound, isFalse);
+      });
+    }, skip: !allowAnonymousSearch);
 
-      group('authenticated', () {
-        test('using LDAP', () async {
-          var ldap = LdapConnection(
-              host: normal.host,
-              ssl: normal.ssl,
-              port: normal.port,
-              bindDN: normal.bindDN,
-              password: normal.password);
+    group('authenticated', () {
+      test('using LDAP', () async {
+        var ldap = LdapConnection(
+            host: normal.host,
+            ssl: normal.ssl,
+            port: normal.port,
+            bindDN: normal.bindDN,
+            password: normal.password);
 
-          await _doBind(ldap, normal.testDN);
-        });
+        await _doBind(ldap, normal.testDN);
+      });
 
-        //----------------
+      //----------------
 
-        test('using LDAPS', () async {
-          var ldaps = LdapConnection(
-              host: secure.host,
-              ssl: secure.ssl,
-              port: secure.port,
-              bindDN: normal.bindDN,
-              password: normal.password,
-              badCertificateHandler: (X509Certificate _) => true);
-          // Note: setting badCertificateHandler to accept test certificate
+      test('using LDAPS', () async {
+        var ldaps = LdapConnection(
+            host: secure.host,
+            ssl: secure.ssl,
+            port: secure.port,
+            bindDN: normal.bindDN,
+            password: normal.password,
+            badCertificateHandler: (X509Certificate _) => true);
+        // Note: setting badCertificateHandler to accept test certificate
 
-          await _doBind(ldaps, secure.testDN);
-        });
+        await _doBind(ldaps, secure.testDN);
       });
     });
+  });
 
-    //----------------------------------------------------------------
-    // Connecting incorrectly: mixing up LDAP and LDAPS
+  //----------------------------------------------------------------
+  // Connecting incorrectly: mixing up LDAP and LDAPS
 
-    group('mismatched protocol fails', () {
-      //----------------
+  group('mismatched protocol fails', () {
+    //----------------
 
-      test('using LDAPS on LDAP', () async {
-        var bad =
-            LdapConnection(host: normal.host, ssl: true, port: normal.port);
+    test('using LDAPS on LDAP', () async {
+      var bad = LdapConnection(host: normal.host, ssl: true, port: normal.port);
 
-        expect(bad.state, equals(ConnectionState.closed));
+      expect(bad.state, equals(ConnectionState.closed));
 
-        try {
-          await bad.open();
-          expect(false, isTrue);
-        } catch (e) {
-          expect(e, const TypeMatcher<HandshakeException>());
-        }
+      try {
+        await bad.open();
+        expect(false, isTrue);
+      } catch (e) {
+        expect(e, const TypeMatcher<HandshakeException>());
+      }
 
-        // Connection cannot be established because handshake fails
+      // Connection cannot be established because handshake fails
 
-        expect(bad.state, equals(ConnectionState.closed));
-      });
+      expect(bad.state, equals(ConnectionState.closed));
+    });
 
-      //----------------
-      /*
+    //----------------
+    /*
     // Test does not work yet: can't capture the timeout exception
 
     test('using LDAP on LDAPS', () async {
@@ -307,167 +305,167 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
         );
     */
 
-      //----------------
+    //----------------
+  });
+
+  //----------------------------------------------------------------
+
+  group('TCP/IP socket fails', () {
+    test('using LDAP on non-existant host', () async {
+      var bad =
+          LdapConnection(host: badHost, ssl: normal.ssl, port: normal.port);
+
+      try {
+        await bad.open();
+        expect(false, isTrue);
+      } on LdapSocketServerNotFoundException catch (e) {
+        // TODO: confirm behaviour and fix dartdap if necessary
+        //
+        // Previously, LdapSocketRefusedException was expected and
+        // LdapSocketServerNotFoundException was commented out.
+        //
+        // LdapSocketServerNotFoundException is thrown when connecting
+        // to an OpenLDAP server (from Dart 2.8.4 on macOS connecting to
+        // OpenLDAP running on CentOS 7.2). Does it throw
+        // LdapSocketRefusedException with a different setup?
+
+        // expect(e, const TypeMatcher<LdapSocketRefusedException>());
+        expect(e.remoteServer, equals(badHost));
+      }
     });
 
-    //----------------------------------------------------------------
+    test('using LDAPS on non-existant host', () async {
+      var bad =
+          LdapConnection(host: badHost, ssl: secure.ssl, port: secure.port);
 
-    group('TCP/IP socket fails', () {
-      test('using LDAP on non-existant host', () async {
-        var bad =
-            LdapConnection(host: badHost, ssl: normal.ssl, port: normal.port);
+      try {
+        await bad.open();
+        expect(false, isTrue);
+      } catch (e) {
+        // TODO:  confirm behaviour and fix dartdap if necessary (see above)
 
-        try {
-          await bad.open();
-          expect(false, isTrue);
-        } on LdapSocketServerNotFoundException catch (e) {
-          // TODO: confirm behaviour and fix dartdap if necessary
-          //
-          // Previously, LdapSocketRefusedException was expected and
-          // LdapSocketServerNotFoundException was commented out.
-          //
-          // LdapSocketServerNotFoundException is thrown when connecting
-          // to an OpenLDAP server (from Dart 2.8.4 on macOS connecting to
-          // OpenLDAP running on CentOS 7.2). Does it throw
-          // LdapSocketRefusedException with a different setup?
-
-          // expect(e, const TypeMatcher<LdapSocketRefusedException>());
-          expect(e.remoteServer, equals(badHost));
-        }
-      });
-
-      test('using LDAPS on non-existant host', () async {
-        var bad =
-            LdapConnection(host: badHost, ssl: secure.ssl, port: secure.port);
-
-        try {
-          await bad.open();
-          expect(false, isTrue);
-        } catch (e) {
-          // TODO:  confirm behaviour and fix dartdap if necessary (see above)
-
-          expect(e, const TypeMatcher<LdapSocketServerNotFoundException>());
-          //expect(e, const TypeMatcher<LdapSocketRefusedException>());
-          //expect(e, hasProperty('remoteServer', badHost));
-        }
-      });
-
-      test('using LDAP on non-existant port', () async {
-        var bad =
-            LdapConnection(host: normal.host, ssl: normal.ssl, port: badPort);
-
-        try {
-          await bad.open();
-          expect(false, isTrue);
-        }  on LdapSocketRefusedException catch(e) {
-          expect(e.remoteServer, equals(normal.host));
-          expect(e.remotePort, equals(badPort));
-          expect(e.localPort, isNotNull);
-        }
-      });
-
-      test('using LDAPS on non-existant port', () async {
-        var bad =
-            LdapConnection(host: secure.host, ssl: secure.ssl, port: badPort);
-
-        try {
-          await bad.open();
-          expect(false, isTrue);
-        } on LdapSocketRefusedException catch (e) {
-          expect(e.remoteServer, equals(normal.host));
-          expect(e.remotePort, equals(badPort));
-          expect(e.localPort, isNotNull);
-        }
-      });
+        expect(e, const TypeMatcher<LdapSocketServerNotFoundException>());
+        //expect(e, const TypeMatcher<LdapSocketRefusedException>());
+        //expect(e, hasProperty('remoteServer', badHost));
+      }
     });
 
-    //----------------------------------------------------------------
+    test('using LDAP on non-existant port', () async {
+      var bad =
+          LdapConnection(host: normal.host, ssl: normal.ssl, port: badPort);
 
-    group('Simple LDAP bind', () {
-      //----------------
+      try {
+        await bad.open();
+        expect(false, isTrue);
+      } on LdapSocketRefusedException catch (e) {
+        expect(e.remoteServer, equals(normal.host));
+        expect(e.remotePort, equals(badPort));
+        expect(e.localPort, isNotNull);
+      }
+    });
 
-      test('Simple Bind', () async {
-        var ldap = LdapConnection(
-            host: normal.host,
-            ssl: normal.ssl,
-            port: normal.port,
-            bindDN: normal.bindDN,
-            password: normal.password);
+    test('using LDAPS on non-existant port', () async {
+      var bad =
+          LdapConnection(host: secure.host, ssl: secure.ssl, port: badPort);
 
-        expect(ldap.isBound, isFalse);
-        expect(ldap.state, equals(ConnectionState.closed));
+      try {
+        await bad.open();
+        expect(false, isTrue);
+      } on LdapSocketRefusedException catch (e) {
+        expect(e.remoteServer, equals(normal.host));
+        expect(e.remotePort, equals(badPort));
+        expect(e.localPort, isNotNull);
+      }
+    });
+  });
 
-        // Open connection
+  //----------------------------------------------------------------
 
-        await ldap.open();
+  group('Simple LDAP bind', () {
+    //----------------
 
-        expect(ldap.isBound, isFalse);
+    test('Simple Bind', () async {
+      var ldap = LdapConnection(
+          host: normal.host,
+          ssl: normal.ssl,
+          port: normal.port,
+          bindDN: normal.bindDN,
+          password: normal.password);
 
-        // Bind
+      expect(ldap.isBound, isFalse);
+      expect(ldap.state, equals(ConnectionState.closed));
 
-        var result = await ldap.bind();
-        expect(result, const TypeMatcher<LdapResult>());
-        expect(result.resultCode, equals(ResultCode.OK));
+      // Open connection
 
-        expect(ldap.isBound, isTrue);
-        expect(ldap.state, equals(ConnectionState.bound));
-        // Close
+      await ldap.open();
 
-        await ldap.close();
+      expect(ldap.isBound, isFalse);
 
-        expect(ldap.isBound, isFalse);
-        expect(ldap.state, equals(ConnectionState.closed));
-      });
+      // Bind
 
+      var result = await ldap.bind();
+      expect(result, const TypeMatcher<LdapResult>());
+      expect(result.resultCode, equals(ResultCode.OK));
 
-      //----------------
+      expect(ldap.isBound, isTrue);
+      expect(ldap.state, equals(ConnectionState.bound));
+      // Close
 
-      test('with bad DN fails', () async {
-        var ldap = LdapConnection( bindDN: 'uid=badDN',
-            host: normal.host, ssl: normal.ssl, port: normal.port);
+      await ldap.close();
 
-        expect(ldap.isBound, isFalse);
-        expect(ldap.state, equals(ConnectionState.closed));
+      expect(ldap.isBound, isFalse);
+      expect(ldap.state, equals(ConnectionState.closed));
+    });
 
-        await ldap.open();
-        expect(ldap.isBound, isFalse);
-        expect(ldap.state, equals(ConnectionState.ready));
+    //----------------
 
-        try {
-          await ldap.bind();
-          fail('Expected bad bind() credentials to throw an error');
-        } catch (e) {
-          expect(e, const TypeMatcher<LdapResultInvalidCredentialsException>());
-        }
-      });
+    test('with bad DN fails', () async {
+      var ldap = LdapConnection(
+          bindDN: 'uid=badDN',
+          host: normal.host,
+          ssl: normal.ssl,
+          port: normal.port);
 
-      //----------------
+      expect(ldap.isBound, isFalse);
+      expect(ldap.state, equals(ConnectionState.closed));
 
-      test('with bad password fails', () async {
-        var ldap = LdapConnection(password: 'badPassword!!',
-            host: normal.host, ssl: normal.ssl, port: normal.port);
+      await ldap.open();
+      expect(ldap.isBound, isFalse);
+      expect(ldap.state, equals(ConnectionState.ready));
 
-        expect(ldap.isBound, isFalse);
-        expect(ldap.state, equals(ConnectionState.closed));
+      try {
+        await ldap.bind();
+        fail('Expected bad bind() credentials to throw an error');
+      } catch (e) {
+        expect(e, const TypeMatcher<LdapResultInvalidCredentialsException>());
+      }
+    });
 
-        await ldap.open();
+    //----------------
 
-        expect(ldap.isBound, isFalse);
-        expect(ldap.state, equals(ConnectionState.ready));
+    test('with bad password fails', () async {
+      var ldap = LdapConnection(
+          password: 'badPassword!!',
+          host: normal.host,
+          ssl: normal.ssl,
+          port: normal.port);
 
-        // Bind
+      expect(ldap.isBound, isFalse);
+      expect(ldap.state, equals(ConnectionState.closed));
 
-        try {
-          await ldap.bind();
-          fail('Expected bad password to throw an exception');
-        } catch (e) {
-          expect(e, const TypeMatcher<LdapResultInvalidCredentialsException>());
-        }
-      });
-    }); // end group
+      await ldap.open();
 
+      expect(ldap.isBound, isFalse);
+      expect(ldap.state, equals(ConnectionState.ready));
 
+      // Bind
 
+      try {
+        await ldap.bind();
+        fail('Expected bad password to throw an exception');
+      } catch (e) {
+        expect(e, const TypeMatcher<LdapResultInvalidCredentialsException>());
+      }
+    });
+  }); // end group
 }
-
-

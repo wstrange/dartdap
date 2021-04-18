@@ -103,14 +103,14 @@ void runTests(util.ConfigDirectory configDirectory) {
       expect(entry, isNotNull);
 
       var ouSet = entry.attributes['ou'];
-      if( ouSet == null ) {
+      if (ouSet == null) {
         fail('missting attribute: ou');
       }
       expect(ouSet.values.length, equals(1));
       expect(ouSet.values.first, equals(branchOU));
 
       var descSet = entry.attributes['description'];
-      if( descSet == null ) {
+      if (descSet == null) {
         fail('missting attribute: description');
       }
       expect(descSet.values.length, equals(1));
@@ -166,14 +166,14 @@ void runTests(util.ConfigDirectory configDirectory) {
 
       var ouSet = entry.attributes['ou'];
 
-      if( ouSet == null ) {
+      if (ouSet == null) {
         fail('missting attribute: ou');
       }
       expect(ouSet.values.length, equals(1));
       expect(ouSet.values.first, equals(branchOU));
 
       var descSet = entry.attributes['description'];
-      if( descSet == null ) {
+      if (descSet == null) {
         fail('missing attribute: description');
       }
       expect(descSet.values.length, equals(1));

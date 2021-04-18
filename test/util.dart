@@ -320,7 +320,7 @@ class Config {
               _filename, 'out of range: "$_directoriesItem/$name/$_itemPort"');
         }
 
-        if (dir.bindDN.isEmpty|| dir.password.isEmpty) {
+        if (dir.bindDN.isEmpty || dir.password.isEmpty) {
           throw ConfigFileException(_filename,
               '$_itemBindDn without $_itemPassword: "$_directoriesItem/$name"');
         }
@@ -465,7 +465,7 @@ class Config {
     }
   }
 
-  int _getInt(YamlMap map, String name, String param, {int defaultValue =0}) {
+  int _getInt(YamlMap map, String name, String param, {int defaultValue = 0}) {
     final _value = map[param];
     if (_value is int) {
       return _value;
@@ -476,7 +476,8 @@ class Config {
     }
   }
 
-  bool _getBool(YamlMap map, String path, String param, {bool defaultValue = false}) {
+  bool _getBool(YamlMap map, String path, String param,
+      {bool defaultValue = false}) {
     final _value = map[param];
     if (_value is bool) {
       return _value;
@@ -490,7 +491,6 @@ class Config {
 
 //################################################################
 /// Represents the configuration for a directory the tests can connect to.
-
 
 // TOOD: As part of the null safety cleanup this should be refactored
 // into an immutable class.
@@ -517,7 +517,7 @@ class ConfigDirectory {
       port: port,
       bindDN: bindDN,
       password: password,
-      badCertificateHandler: (X509Certificate _) => ! validateCertificate);
+      badCertificateHandler: (X509Certificate _) => !validateCertificate);
 }
 
 //################################################################
@@ -545,22 +545,24 @@ class ConfigFileException extends ConfigException {
 }
 
 // Utility to check attribute for non null and expected value
-void expectSingleAttributeValue(SearchEntry entry,  String attributeName, String expectedValue) {
+void expectSingleAttributeValue(
+    SearchEntry entry, String attributeName, String expectedValue) {
   var attrs = entry.attributes[attributeName];
-  if( attrs == null ) {
-   fail('Attribute $attributeName not found');
+  if (attrs == null) {
+    fail('Attribute $attributeName not found');
   }
   expect(attrs.values.length, equals(1));
   expect(attrs.values.first, equals(expectedValue));
 }
 
 // Utility to check attribute for non null and expected value startsWith
-void expectSingleAttributeValueStartsWith(SearchEntry entry,  String attributeName, String startsWith) {
+void expectSingleAttributeValueStartsWith(
+    SearchEntry entry, String attributeName, String startsWith) {
   var attrs = entry.attributes[attributeName];
-  if( attrs == null ) {
+  if (attrs == null) {
     fail('Attribute $attributeName not found');
   }
   expect(attrs.values.length, equals(1));
-  var s=  attrs.values.first as String;
+  var s = attrs.values.first as String;
   expect(s.startsWith(startsWith), isTrue);
 }

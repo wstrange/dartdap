@@ -55,6 +55,4 @@ class SearchResult {
     ///_ldapResult = r;
     _resultCompleter.complete(r);
   }
-
-
 }
