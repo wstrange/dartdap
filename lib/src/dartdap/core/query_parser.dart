@@ -7,7 +7,7 @@ import 'filter.dart';
 final _queryDefinition = QueryParserDefinition();
 final _parser = _queryDefinition.build();
 
-Filter parseQuery(String input ) {
+Filter parseQuery(String input) {
   var result = _parser.parse(input);
   if (result.isSuccess) {
     return result.value;
@@ -128,7 +128,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
       return input.token().trim();
     } else if (input is String) {
       return token(input.length == 1 ? char(input) : string(input));
-    } else if (input is  _ParserFunc) {
+    } else if (input is _ParserFunc) {
       return token(ref0(input));
     }
     throw ArgumentError.value(input, 'invalid token parser');
@@ -176,7 +176,8 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser simple() => ref0(attr) & ref0(filtertype) & ref0(value);
 
   //  filtertype = equal / approx / greater / less
-  Parser filtertype() => ref0(EQUAL) | ref0(approx) | ref0(GREATER) | ref0(LESS);
+  Parser filtertype() =>
+      ref0(EQUAL) | ref0(approx) | ref0(GREATER) | ref0(LESS);
 
   //  present    = attr '=*'
   Parser present() => ref0(attr) & ref1(token, '=*');
@@ -203,19 +204,16 @@ class QueryGrammarDefinition extends GrammarDefinition {
   //  any        = '*' *(value '*')
   Parser _any() => STAR() & (ref0(value) & STAR()).star();
 
-
   //  attr       = AttributeDescription from Section 4.1.5 of [1]
   Parser attr() => pattern('a-zA-Z0-9\-.').plus();
 
   // todo:
   //  matchingrule = MatchingRuleId from Section 4.1.9 of [1]
 
-
   //  value      = AttributeValue from Section 4.1.6 of [1]
   // todo: This needs to allow the escape sequence, unicode characters, etc
   // See https://tools.ietf.org/html/rfc4512
   // Note: The petit pattern uses ^ to invert the match.
   // Works - but is not complete / correct.
-  Parser value() => pattern('a-zA-Z0-9-._\\').plus() ;
-
+  Parser value() => pattern('a-zA-Z0-9-._\\').plus();
 }
