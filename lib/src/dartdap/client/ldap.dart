@@ -1,7 +1,6 @@
 import 'package:dartdap/dartdap.dart';
 
 // parser that Create LDAP Queries using https://tools.ietf.org/html/rfc2254 syntax
-final queryParser = QueryParser();
 
 /// The Ldap Interface [https://tools.ietf.org/html/rfc4511]
 ///
@@ -14,9 +13,10 @@ final queryParser = QueryParser();
 /// - [delete] - removes an existing LDAP entry
 /// - [modify] - changes attributes in an LDAP entry
 /// - [modifyDN] - moves an LDAP entry
-abstract class Ldap  {
+abstract class Ldap {
   /// Standard port for LDAP (i.e. without TLS/SSL).
   static const PORT_LDAP = 389;
+
   /// Standard port for LDAP over TLS/SSL.
   static const PORT_LDAPS = 636;
 
@@ -31,7 +31,7 @@ abstract class Ldap  {
   ///
   /// [LdapResultEntryAlreadyExistsException] thrown when the entry to add
   /// already exists.
-  Future<LdapResult> add(String dn, Map<String, dynamic> attrs) ;
+  Future<LdapResult> add(String dn, Map<String, dynamic> attrs);
 
   //----------------------------------------------------------------
   /// Performs an LDAP BIND operation.
@@ -62,7 +62,7 @@ abstract class Ldap  {
   ///
   /// [LdapResultNoSuchObjectException] thrown when the entry to delete did
   /// not exist.
-  Future<LdapResult> delete(String dn) ;
+  Future<LdapResult> delete(String dn);
 
   //----------------------------------------------------------------
   /// Performs an LDAP modify operation.
@@ -81,8 +81,8 @@ abstract class Ldap  {
   /// Modify the LDAP entry identified by [dn] to a new relative [rdn].
   /// If [deleteOldRDN] is true delete the old entry.
   /// If [newSuperior] is not null, re-parent the entry.
-  Future<LdapResult> modifyDN(String dn, String rdn, {bool deleteOldRDN = true, String? newSuperior});
-
+  Future<LdapResult> modifyDN(String dn, String rdn,
+      {bool deleteOldRDN = true, String? newSuperior});
 
   //----------------------------------------------------------------
   /// Performs an LDAP search operation.
@@ -110,15 +110,21 @@ abstract class Ldap  {
   ///       // entry.attributes = attributes returned (Map<String,Attribute>)
   ///     }
   /// ```
-  Future<SearchResult> search(String baseDN, Filter filter,  List<String> attributes,
-      {int scope = SearchScope.SUB_LEVEL, int sizeLimit = 0, List<Control> controls = const <Control>[]});
+  Future<SearchResult> search(
+      String baseDN, Filter filter, List<String> attributes,
+      {int scope = SearchScope.SUB_LEVEL,
+      int sizeLimit = 0,
+      List<Control> controls = const <Control>[]});
 
   /// Like the [search] method, but the filter is constructed using the
   /// [query] string. See https://tools.ietf.org/html/rfc2254
   ///
-  Future<SearchResult> query(String baseDN, String query, List<String> attributes,
-      {int scope = SearchScope.SUB_LEVEL, int sizeLimit = 0, List<Control> controls = const []}) {
-    var filter = queryParser.getFilter(query);
+  Future<SearchResult> query(
+      String baseDN, String query, List<String> attributes,
+      {int scope = SearchScope.SUB_LEVEL,
+      int sizeLimit = 0,
+      List<Control> controls = const []}) {
+    var filter = parseQuery(query);
     return search(baseDN, filter, attributes,
         scope: scope, sizeLimit: sizeLimit, controls: controls);
   }

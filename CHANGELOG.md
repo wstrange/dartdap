@@ -1,5 +1,12 @@
 # Dartdap Change Log
 
+## 0.6.1
+
+* Added a 30 second timeout to the socket.connect()
+* Updated petitparser to fix deprecations
+* Added a github workflow
+* Reformated many dart files to pass the GH action check
+
 ## 0.6.0 
 
 * Simplfied connection.close(). Fixes #40. This delegates more responsibility to the library user

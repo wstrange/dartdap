@@ -1,6 +1,5 @@
 part of ldap_protocol;
 
-
 // Create a LDAP Compare Request
 //
 //  CompareRequest ::= [APPLICATION 14] SEQUENCE {

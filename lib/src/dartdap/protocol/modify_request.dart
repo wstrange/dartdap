@@ -16,7 +16,6 @@ class ModifyRequest extends RequestOp {
   // replace (2) },
   // modification    AttributeTypeAndValues } }
 
-
   @override
   ASN1Object toASN1() {
     var seq = _startSequence();

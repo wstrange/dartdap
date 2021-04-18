@@ -20,7 +20,11 @@ class SearchResult {
   // todo: The result should be a function Future<LdapResult>
   // That only completes when the search is finished..
   //late LdapResult _ldapResult;
-  List<Control> _controls = [];
+
+  /// The controls that may have been returned on search completion.
+  ///
+  /// These can be used to obtain the cursor, number of remaining results, etc. for VLV search.
+  List<Control> controls = [];
 
   SearchResult(this._stream);
 
@@ -50,16 +54,5 @@ class SearchResult {
   void completeLdapResult(LdapResult r) {
     ///_ldapResult = r;
     _resultCompleter.complete(r);
-  }
-
-  /// The controls that may have been returned on search completion.
-  ///
-  /// These can be used to obtain the cursor, number of remaining results, etc. for VLV search.
-
-  // TODO: This needs to be a stream...
-  set controls(List<Control> s) => _controls = s;
-  // Trying to read a control before the stream has been processed is an error
-  List<Control>  get controls {
-    return _controls;
   }
 }

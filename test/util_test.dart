@@ -24,7 +24,7 @@ void commonTestsOnAnyConfig(util.Config c, {bool ignoreDirectories = true}) {
     expect(c.directory(_missingDirectoryName), isNull);
   });
 
-  if (! ignoreDirectories) {
+  if (!ignoreDirectories) {
     // Note: sometimes these tests may be skipped: and that is ok. That happens
     // if there is no preferred config file (so the default is loaded) or there
     // is a custom config file that does not specify one/both of these
@@ -45,8 +45,8 @@ void commonTestsOnAnyConfig(util.Config c, {bool ignoreDirectories = true}) {
     test('directory: ${util.noLdapsDirectoryName}', () {
       final directoryConfig = c.directory(util.noLdapsDirectoryName);
       expect(directoryConfig.ssl, equals(false),
-          reason: 'TLS not expected but is set): "${util
-              .noLdapsDirectoryName}"');
+          reason:
+              'TLS not expected but is set): "${util.noLdapsDirectoryName}"');
     }, skip: c.skipIfMissingDirectory(util.noLdapsDirectoryName));
   }
 }

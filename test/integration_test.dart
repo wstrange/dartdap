@@ -22,12 +22,11 @@ void runTests(util.ConfigDirectory directoryConfig) {
   // is used in a real application, everything is done inside the
   // test instead of using setUp/tearDown functions.
 
-
   test('add/modify/search/delete', () async {
     //----------------
     // Create the connection (at the start of the test)
 
-    var ldap  = directoryConfig.getConnection();
+    var ldap = directoryConfig.getConnection();
     await ldap.open();
     await ldap.bind();
 
@@ -188,5 +187,4 @@ void main() {
   group('tests', () {
     runTests(config.defaultDirectory);
   }, skip: config.skipIfMissingDefaultDirectory);
-
 }

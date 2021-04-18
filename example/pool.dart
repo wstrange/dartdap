@@ -17,7 +17,6 @@ Future<void> main() async {
 }
 
 Future<void> example() async {
-
   var filter = Filter.present('objectclass');
 
   // Create a prototype connection
@@ -35,13 +34,12 @@ Future<void> example() async {
     // repeat search - to see if bind happens again
     searchResult = await pool
         .search('ou=identities', filter, ['dn', 'objectclass'], sizeLimit: 5);
-    await  printResults(searchResult);
+    await printResults(searchResult);
 
     // Try search on a bad DN
     searchResult = await pool
         .search('ou=identitiesXX', filter, ['dn', 'objectclass'], sizeLimit: 5);
-    await  printResults(searchResult);
-
+    await printResults(searchResult);
   } catch (e) {
     print('Exception --->$e  ${e.runtimeType}');
   }
@@ -51,13 +49,13 @@ Future<void> example() async {
 Future<void> printResults(SearchResult searchResult) async {
   var result = await searchResult.getLdapResult();
   print('got result = $result');
-  if (result.resultCode == ResultCode.OK || result.resultCode == ResultCode.SIZE_LIMIT_EXCEEDED) {
+  if (result.resultCode == ResultCode.OK ||
+      result.resultCode == ResultCode.SIZE_LIMIT_EXCEEDED) {
     print('ok');
     await searchResult.stream.forEach((entry) {
       print('got entry $entry');
     });
-  }
-  else {
+  } else {
     print('ldap error ${result.resultCode}');
   }
 }

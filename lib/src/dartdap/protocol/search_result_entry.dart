@@ -11,7 +11,7 @@ class SearchResultEntry extends ResponseOp {
 
   SearchEntry get searchEntry => _searchEntry;
 
-  SearchResultEntry.referral(LDAPMessage m): super.searchEntry()  {
+  SearchResultEntry.referral(LDAPMessage m) : super.searchEntry() {
     loggeRecvLdap.fine(() => 'Search result is a referral');
     var uris = m.protocolOp.elements;
     var l = uris.map((obj) => (obj as ASN1OctetString).stringValue).toList();
@@ -22,14 +22,14 @@ class SearchResultEntry extends ResponseOp {
   // This is not like most ResponseOps - in that it does
   // not have an LDAPResult object. The result
   // only comes at the end with the SearchResultDone message
-  SearchResultEntry(LDAPMessage m):super.searchEntry()  {
+  SearchResultEntry(LDAPMessage m) : super.searchEntry() {
     var s = m.protocolOp;
 
     var t = s.elements[0] as ASN1OctetString;
 
     var dn = t.stringValue;
 
-    loggeRecvLdap.fine(() => 'Search Result Entry: dn=${dn}');
+    loggeRecvLdap.fine(() => 'Search Result Entry: dn=$dn');
 
     // embedded sequence is attr list
     var seq = s.elements[1] as ASN1Sequence;
@@ -47,13 +47,13 @@ class SearchResultEntry extends ResponseOp {
       searchEntry.attributes[attrName.stringValue] =
           Attribute(attrName.stringValue, valSet);
 
-      loggeRecvLdap.finest('attribute: ${attrName.stringValue}=${valSet}');
+      loggeRecvLdap.finest('attribute: ${attrName.stringValue}=$valSet');
     });
 
     // controls are optional.
     if (s.elements.length >= 3) {
       var controls = s.elements[2];
-      loggeRecvLdap.finest('controls: ${controls}');
+      loggeRecvLdap.finest('controls: $controls');
     }
   }
 

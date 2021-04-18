@@ -13,8 +13,8 @@ Future<void> example(String host, int port, bool ssl, String bindDN,
     String password, DN testDN) async {
   // Create connection
 
-  var connection = LdapConnection(host: host, ssl: ssl, port: port,
-      bindDN: bindDN, password: password);
+  var connection = LdapConnection(
+      host: host, ssl: ssl, port: port, bindDN: bindDN, password: password);
 
   await connection.open();
   await connection.bind();
@@ -38,24 +38,22 @@ Future<void> example(String host, int port, bool ssl, String bindDN,
 
       for (var attr in entry.attributes.values) {
         for (var value in attr.values) {
-
           print('  ${attr.name}: $value');
         }
       }
 
       // Getting a particular attribute
       var dc = entry.attributes['dc'];
-      if( dc == null ) {
+      if (dc == null) {
         print('Missing expected attribute dc!');
-      }
-      else {
+      } else {
         assert(dc.values.length == 1);
         var dcf = dc.values.first;
         print('# dcf=$dcf');
       }
     }
 
-    print('# Number of entries: ${count}');
+    print('# Number of entries: $count');
   } catch (e) {
     print('Exception: $e');
   } finally {

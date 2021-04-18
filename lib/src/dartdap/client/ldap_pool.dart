@@ -171,7 +171,7 @@ class LdapConnectionPool extends Ldap {
   // closing a pool connection closes all connections
   Future<void> close() async {
     loggerPool.info('Closing all pool connections');
-    for(var c in _connections) {
+    for (var c in _connections) {
       if (c.state == ConnectionState.bound ||
           c.state == ConnectionState.ready) {
         loggerPool.fine('Pool closing connection ${c.connectionInfo.id}');
@@ -297,15 +297,15 @@ class LdapConnectionPool extends Ldap {
   // Calls a user supplied function to check the health of a specific connection
   // Note that a bind() is not automatically done on the connection.
   // TODO: This is not implemented yet
-  Future<LdapResult> _ldapHealthCheck(
-      LdapConnection c, Future<LdapResult> Function(LdapConnection) f) async {
-    try {
-      // call the user supplied function
-      var result = await f(c);
-      return result;
-    } catch (e) {
-      loggerPool.warning('Health check failed', e);
-      rethrow;
-    }
-  }
+  // Future<LdapResult> _ldapHealthCheck(
+  //     LdapConnection c, Future<LdapResult> Function(LdapConnection) f) async {
+  //   try {
+  //     // call the user supplied function
+  //     var result = await f(c);
+  //     return result;
+  //   } catch (e) {
+  //     loggerPool.warning('Health check failed', e);
+  //     rethrow;
+  //   }
+  // }
 }

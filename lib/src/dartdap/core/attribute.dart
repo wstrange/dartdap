@@ -23,7 +23,7 @@ class Attribute {
   /// values of the attribute. Otherwise, it is made the single value in
   /// the attribute.
 
-  Attribute(String name, dynamic initialValues): _name = name  {
+  Attribute(String name, dynamic initialValues) : _name = name {
     if (initialValues is Iterable) {
       _values.addAll(initialValues);
     } else {

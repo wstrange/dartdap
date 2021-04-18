@@ -22,7 +22,7 @@ abstract class _PendingOp {
   _PendingOp(this.message);
 
   @override
-  String toString() => 'PendingOp m=${message}';
+  String toString() => 'PendingOp m=$message';
 
   // Process an LDAP result. Return true if this operation is now complete
   bool processResult(ResponseOp op);
@@ -157,7 +157,6 @@ class ConnectionManager {
 
   final BadCertHandlerType? _badCertHandler;
 
-
   //----------------------------------------------------------------
   /// Constructor
   ///
@@ -190,13 +189,17 @@ class ConnectionManager {
   ///   and the port number is correct.
   /// - Other exceptions might also be thrown.
 
+  static const _connectionTimeout = Duration(seconds: 30);
+
   Future<ConnectionManager> connect() async {
     try {
       if (isClosed()) {
         _socket = await (_ssl
             ? SecureSocket.connect(_host, _port,
-                onBadCertificate: _badCertHandler, context: _context)
-            : Socket.connect(_host, _port));
+                onBadCertificate: _badCertHandler,
+                context: _context,
+                timeout: _connectionTimeout)
+            : Socket.connect(_host, _port, timeout: _connectionTimeout));
 
         _socket.transform(createLdapTransformer()).listen(
             (m) => _handleLDAPMessage(m),
@@ -411,7 +414,7 @@ class ConnectionManager {
 
   Future close() async {
     loggerConnection.finer('Closing connection');
-    if( ! _canClose() ) {
+    if (!_canClose()) {
       loggerConnection.warning('Trying to close connection that is pending!');
     }
     _socket.destroy();

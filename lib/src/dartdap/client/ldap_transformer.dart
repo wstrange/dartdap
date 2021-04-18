@@ -34,7 +34,7 @@ StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
     }
 
     // closure prevents expensive code to be executed if it is not needed.
-    loggerRecvBytes.finest(() => 'received: ${data}');
+    loggerRecvBytes.finest(() => 'received: $data');
 
     // Try to process the bytes, until there are not enough bytes left to form a
     // complete ASN1 object. Using a do-while loop because since this handleData
@@ -78,7 +78,7 @@ StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
 
         loggerRecvBytes.finer(() => 'parsed ASN.1 object: $message_size bytes');
         loggerRecvAsn1.fine(
-            () => 'ASN.1 object received: tag=${buf[0]}, length=${value_size}');
+            () => 'ASN.1 object received: tag=${buf[0]}, length=$value_size');
         loggerRecvAsn1.finest(() =>
             'ASN.1 value: ${Uint8List.view(buf.buffer, 1 + length_size, value_size)}');
 
@@ -143,7 +143,7 @@ StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
         return;
       }
     }
-    loggerRecvBytes.severe('LDAP stream transformer: error=${error}');
+    loggerRecvBytes.severe('LDAP stream transformer: error=$error');
     throw error;
   }, handleDone: (EventSink<LDAPMessage> sink) {
     loggerRecvBytes.finest('LDAP stream transformer: byte stream done');

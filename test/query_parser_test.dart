@@ -33,7 +33,7 @@ void main() {
 
     m.forEach((query, filter) {
       // print('eval: $query');
-      var f = queryParser.getFilter(query);
+      var f = parseQuery(query);
       expect(f, equals(filter));
     });
   });

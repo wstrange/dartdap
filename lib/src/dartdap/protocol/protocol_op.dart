@@ -21,6 +21,7 @@ abstract class RequestOp extends ProtocolOp {
   /// Subclasses must implement this method to convert their
   /// representation to an ASN1Sequence
   ASN1Object toASN1();
+
   /// Encode this Request Operation to its BER Encoded form
   Uint8List toEncodedBytes() {
     var seq = toASN1() as ASN1Sequence;

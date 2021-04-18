@@ -4,23 +4,36 @@ import 'filter.dart';
 
 // Create LDAP Queries using https://tools.ietf.org/html/rfc2254 syntax
 
-class QueryParser<Filter> extends GrammarParser {
-  QueryParser() : super(QueryParserDefinition());
+final _queryDefinition = QueryParserDefinition();
+final _parser = _queryDefinition.build();
 
-  // Parse the rfc2254 search filter and and return a [Filter]
-  // throws [LdapParseException] if the input can not be parsed.
-  // TODO: Consider caching queries
-  Filter getFilter(String input) {
-    var result = parse(input);
-
-    if (result.isSuccess) {
-      return result.value;
-    } else {
-      throw LdapParseException(
-          'Cant parse filter \'$input\'. Error is ${result.message}');
-    }
+Filter parseQuery(String input) {
+  var result = _parser.parse(input);
+  if (result.isSuccess) {
+    return result.value;
+  } else {
+    throw LdapParseException(
+        'Cant parse filter \'$input\'. Error is ${result.message}');
   }
 }
+//
+// class QueryParser<Filter> extends GrammarParser {
+//   QueryParser() : super(QueryParserDefinition());
+//
+//   // Parse the rfc2254 search filter and and return a [Filter]
+//   // throws [LdapParseException] if the input can not be parsed.
+//   // TODO: Consider caching queries
+//   Filter getFilter(String input) {
+//     var result = parse(input);
+//
+//     if (result.isSuccess) {
+//       return result.value;
+//     } else {
+//       throw LdapParseException(
+//           'Cant parse filter \'$input\'. Error is ${result.message}');
+//     }
+//   }
+// }
 
 // The grammar turns the parsed stream into a Filter
 class QueryParserDefinition extends QueryGrammarDefinition {
@@ -103,9 +116,8 @@ class QueryParserDefinition extends QueryGrammarDefinition {
       });
 }
 
-class QueryGrammar extends GrammarParser {
-  QueryGrammar() : super(QueryGrammarDefinition());
-}
+// Typedef to keep pedantic happy
+typedef _ParserFunc = Parser<dynamic> Function();
 
 // Grammar comments taken from: https://tools.ietf.org/html/rfc2254
 class QueryGrammarDefinition extends GrammarDefinition {
@@ -116,58 +128,59 @@ class QueryGrammarDefinition extends GrammarDefinition {
       return input.token().trim();
     } else if (input is String) {
       return token(input.length == 1 ? char(input) : string(input));
-    } else if (input is Function) {
-      return token(ref(input));
+    } else if (input is _ParserFunc) {
+      return token(ref0(input));
     }
     throw ArgumentError.value(input, 'invalid token parser');
   }
 
-  Parser LPAREN() => ref(token, '(');
+  Parser LPAREN() => ref1(token, '(');
 
-  Parser RPAREN() => ref(token, ')');
+  Parser RPAREN() => ref1(token, ')');
 
-  Parser and() => ref(token, '&') & ref(filterlist);
+  Parser and() => ref1(token, '&') & ref0(filterlist);
 
-  Parser or() => ref(token, '|') & ref(filterlist);
+  Parser or() => ref1(token, '|') & ref0(filterlist);
 
-  Parser not() => ref(token, '!') & ref(filter);
+  Parser not() => ref1(token, '!') & ref0(filter);
 
-  Parser EQUAL() => ref(token, '=');
+  Parser EQUAL() => ref1(token, '=');
 
-  Parser approx() => ref(token, '~=');
+  Parser approx() => ref1(token, '~=');
 
-  Parser GREATER() => ref(token, '>=');
+  Parser GREATER() => ref1(token, '>=');
 
-  Parser LESS() => ref(token, '<=');
+  Parser LESS() => ref1(token, '<=');
 
   // NOTE: This needs to be uppercase to avoid conflict with the petit star()
-  Parser STAR() => ref(token, '*');
+  Parser STAR() => ref1(token, '*');
 
   //  filterlist = 1*filter
-  Parser filterlist() => ref(filter).plus();
+  Parser filterlist() => ref0(filter).plus();
 
   @override
-  Parser start() => ref(filter).end();
+  Parser start() => ref0(filter).end();
 
   //  filter     = '(' filtercomp ')'
-  Parser filter() => LPAREN() & ref(filtercomp) & RPAREN();
+  Parser filter() => LPAREN() & ref0(filtercomp) & RPAREN();
 
   //  filtercomp = and / or / not / item
-  Parser filtercomp() => ref(and) | ref(or) | ref(not) | ref(item);
+  Parser filtercomp() => ref0(and) | ref0(or) | ref0(not) | ref0(item);
 
   // item       = simple / present / substring / extensible
-  Parser item() => ref(substring) | ref(simple) | ref(present);
-  //       ref(substring).starGreedy(STAR()) | ref(simple) | ref(present);
-  //Parser item() => ref(simple) | ref(present) | ref(substring) | ref(extensible);
+  Parser item() => ref0(substring) | ref0(simple) | ref0(present);
+  //       ref0(substring).starGreedy(STAR()) | ref0(simple) | ref0(present);
+  //Parser item() => ref0(simple) | ref0(present) | ref0(substring) | ref0(extensible);
 
   //  simple     = attr filtertype value
-  Parser simple() => ref(attr) & ref(filtertype) & ref(value);
+  Parser simple() => ref0(attr) & ref0(filtertype) & ref0(value);
 
   //  filtertype = equal / approx / greater / less
-  Parser filtertype() => ref(EQUAL) | ref(approx) | ref(GREATER) | ref(LESS);
+  Parser filtertype() =>
+      ref0(EQUAL) | ref0(approx) | ref0(GREATER) | ref0(LESS);
 
   //  present    = attr '=*'
-  Parser present() => ref(attr) & ref(token, '=*');
+  Parser present() => ref0(attr) & ref1(token, '=*');
 
   // todo: implement extensible matching rule
   //  extensible = attr [':dn'] [':' matchingrule] ':=' value
@@ -177,20 +190,19 @@ class QueryGrammarDefinition extends GrammarDefinition {
   //  substring  = attr '=' [initial] any [final]
   //  [notation] means 'optional'
   Parser substring() =>
-      ref(attr) &
-      ref(EQUAL) &
-      ref(initial).optional() &
-      ref(_any) &
-      ref(_final).optional();
+      ref0(attr) &
+      ref0(EQUAL) &
+      ref0(initial).optional() &
+      ref0(_any) &
+      ref0(_final).optional();
 
   //  initial    = value
-  Parser initial() => ref(value);
+  Parser initial() => ref0(value);
   // final = value  - we use _final because final is a reserved word
-  Parser _final() => ref(value);
+  Parser _final() => ref0(value);
 
   //  any        = '*' *(value '*')
-  Parser _any() => STAR() & (ref(value) & STAR()).star();
-
+  Parser _any() => STAR() & (ref0(value) & STAR()).star();
 
   //  attr       = AttributeDescription from Section 4.1.5 of [1]
   Parser attr() => pattern('a-zA-Z0-9\-.').plus();
@@ -198,12 +210,10 @@ class QueryGrammarDefinition extends GrammarDefinition {
   // todo:
   //  matchingrule = MatchingRuleId from Section 4.1.9 of [1]
 
-
   //  value      = AttributeValue from Section 4.1.6 of [1]
   // todo: This needs to allow the escape sequence, unicode characters, etc
   // See https://tools.ietf.org/html/rfc4512
   // Note: The petit pattern uses ^ to invert the match.
   // Works - but is not complete / correct.
-  Parser value() => pattern('a-zA-Z0-9-._\\').plus() ;
-
+  Parser value() => pattern('a-zA-Z0-9-._\\').plus();
 }

@@ -103,8 +103,8 @@ void runTests(util.ConfigDirectory configDirectory) {
     await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 
-      util.expectSingleAttributeValue(entry,'cn','user0');
-      util.expectSingleAttributeValue(entry,'sn','User 0');
+      util.expectSingleAttributeValue(entry, 'cn', 'user0');
+      util.expectSingleAttributeValue(entry, 'sn', 'User 0');
 
       expect(entry.attributes.length, equals(2)); // no other attributes
 

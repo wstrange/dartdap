@@ -1,40 +1,40 @@
 part of ldap_protocol;
 
- //
- // * Envelope for LDAP message protocol exchange
- // *
- // * See http://tools.ietf.org/html/rfc4511
- // *
- // *   LDAPMessage ::=
- //         SEQUENCE {
- //              messageID      MessageID,
- //              protocolOp     CHOICE {
- //                                  bindRequest         BindRequest,
- //                                  bindResponse        BindResponse,
- //                                  unbindRequest       UnbindRequest,
- //                                  searchRequest       SearchRequest,
- //                                  searchResEntry      SearchResultEntry,
- //                                  searchResDone       SearchResultDone,
- //                                  searchResRef        SearchResultReference,
- //                                  modifyRequest       ModifyRequest,
- //                                  modifyResponse      ModifyResponse,
- //                                  addRequest          AddRequest,
- //                                  addResponse         AddResponse,
- //                                  delRequest          DelRequest,
- //                                  delResponse         DelResponse,
- //                                  modifyDNRequest     ModifyDNRequest,
- //                                  modifyDNResponse    ModifyDNResponse,
- //                                  compareRequest      CompareRequest,
- //                                  compareResponse     CompareResponse,
- //                                  abandonRequest      AbandonRequest,
- //                                  extendedRequest     ExtendedRequest,
- //                                  extendedResponse    ExtendedResponse,
- //                                  ...,
- //                                  intermediateResponse IntermediateResponse
- //                             },
- //              controls       [0] Controls OPTIONAL
- //         }
- //
+//
+// * Envelope for LDAP message protocol exchange
+// *
+// * See http://tools.ietf.org/html/rfc4511
+// *
+// *   LDAPMessage ::=
+//         SEQUENCE {
+//              messageID      MessageID,
+//              protocolOp     CHOICE {
+//                                  bindRequest         BindRequest,
+//                                  bindResponse        BindResponse,
+//                                  unbindRequest       UnbindRequest,
+//                                  searchRequest       SearchRequest,
+//                                  searchResEntry      SearchResultEntry,
+//                                  searchResDone       SearchResultDone,
+//                                  searchResRef        SearchResultReference,
+//                                  modifyRequest       ModifyRequest,
+//                                  modifyResponse      ModifyResponse,
+//                                  addRequest          AddRequest,
+//                                  addResponse         AddResponse,
+//                                  delRequest          DelRequest,
+//                                  delResponse         DelResponse,
+//                                  modifyDNRequest     ModifyDNRequest,
+//                                  modifyDNResponse    ModifyDNResponse,
+//                                  compareRequest      CompareRequest,
+//                                  compareResponse     CompareResponse,
+//                                  abandonRequest      AbandonRequest,
+//                                  extendedRequest     ExtendedRequest,
+//                                  extendedResponse    ExtendedResponse,
+//                                  ...,
+//                                  intermediateResponse IntermediateResponse
+//                             },
+//              controls       [0] Controls OPTIONAL
+//         }
+//
 class LDAPMessage {
   late int _messageId;
   late int _protocolTag;
@@ -63,8 +63,9 @@ class LDAPMessage {
   /// the total length of this encoded message in bytes
   int get messageLength => _obj.totalEncodedByteLength;
 
-  LDAPMessage(this._messageId, RequestOp rop, [List<Control> controls = const <Control>[]]):
-    _protocolTag = rop.protocolOpCode {
+  LDAPMessage(this._messageId, RequestOp rop,
+      [List<Control> controls = const <Control>[]])
+      : _protocolTag = rop.protocolOpCode {
     _obj = rop.toASN1();
     if (controls.isNotEmpty) {
       controls.forEach((control) {
@@ -79,9 +80,8 @@ class LDAPMessage {
   LDAPMessage.fromBytes(Uint8List bytes) {
     try {
       _obj = ASN1Sequence.fromBytes(bytes);
-    }
-    catch(e) {
-      throw LdapParseException('Parsing error on ${bytes}');
+    } catch (e) {
+      throw LdapParseException('Parsing error on $bytes');
     }
 
     if (elements.length != 2 && elements.length != 3) {
@@ -103,8 +103,8 @@ class LDAPMessage {
         _controls = ASN1Sequence.fromBytes(c);
       }
     }
-    loggeRecvLdap.fine(() =>
-        'LDAP message received: Id=${messageId} protocolOp=${protocolOp}');
+    loggeRecvLdap.fine(
+        () => 'LDAP message received: Id=$messageId protocolOp=$protocolOp');
   }
 
   // Convert this LDAP message to a stream of ASN1 encoded bytes
@@ -119,7 +119,6 @@ class LDAPMessage {
       seq.add(_controls);
     }
 
-
     var b = seq.encodedBytes;
 
     //var xx = LDAPUtil.toHexString(b);
@@ -130,6 +129,6 @@ class LDAPMessage {
   @override
   String toString() {
     var s = _op2String(_protocolTag);
-    return 'Msg(id=${_messageId}, op=${s},controls=$_controls)';
+    return 'Msg(id=$_messageId, op=$s,controls=$controls)';
   }
 }

@@ -186,7 +186,7 @@ abstract class LdapResultException extends LdapException {
   final LdapResult _result;
   LdapResult get result => _result;
 
-  LdapResultException(this._result) : super('LDAP Result') ;
+  LdapResultException(this._result) : super('LDAP Result');
 
   @override
   String toString() => _result.toString();

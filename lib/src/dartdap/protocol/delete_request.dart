@@ -5,10 +5,10 @@ class DeleteRequest extends RequestOp {
 
   DeleteRequest(this._dn) : super(DELETE_REQUEST);
 
-   //
-   // Encode the add request to BER
-   //
-   //      DelRequest ::= [APPLICATION 10] LDAPDN
+  //
+  // Encode the add request to BER
+  //
+  //      DelRequest ::= [APPLICATION 10] LDAPDN
 
   @override
   ASN1Object toASN1() => ASN1OctetString(_dn, tag: DELETE_REQUEST);
