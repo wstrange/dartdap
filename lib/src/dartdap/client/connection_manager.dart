@@ -190,13 +190,15 @@ class ConnectionManager {
   ///   and the port number is correct.
   /// - Other exceptions might also be thrown.
 
+  static const _connectionTimeout =  Duration(seconds: 30);
+
   Future<ConnectionManager> connect() async {
     try {
       if (isClosed()) {
         _socket = await (_ssl
             ? SecureSocket.connect(_host, _port,
-                onBadCertificate: _badCertHandler, context: _context)
-            : Socket.connect(_host, _port));
+                onBadCertificate: _badCertHandler, context: _context, timeout: _connectionTimeout)
+            : Socket.connect(_host, _port, timeout: _connectionTimeout));
 
         _socket.transform(createLdapTransformer()).listen(
             (m) => _handleLDAPMessage(m),
