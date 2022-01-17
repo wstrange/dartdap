@@ -120,7 +120,13 @@ class LdapConnectionPool extends Ldap {
         break;
       }
     }
+
+    // TODO: The connection pool logic is totally broken....
+    // This is a hack to work around the problem until I get time to
+    // create a proper fix.
+    // The pool is getting exhausted on every call - since connections
     if (c == null) {
+      // /// FIXME
       throw LdapPoolException('All pool connections are in use');
     }
 
@@ -156,16 +162,25 @@ class LdapConnectionPool extends Ldap {
 
   @override
   Future<LdapResult> bind({String? DN, String? password}) async {
-    var c = await getConnection(bind: false);
-    LdapResult result;
-    if (DN != null && password != null) {
-      loggerPool.finest(() => 'bind($DN)');
-      result = await c.bind(DN: DN, password: password);
-    } else {
-      result = await c.bind();
+    LdapConnection c = await getConnection(bind: false);
+    try {
+      LdapResult result;
+      if (DN != null && password != null) {
+        loggerPool.finest(() => 'bind($DN)');
+        result = await c.bind(DN: DN, password: password);
+      } else {
+        result = await c.bind();
+      }
+      loggerPool.finest(() => 'Bind result $result');
+      return result;
     }
-    loggerPool.finest(() => 'Bind result $result');
-    return result;
+    on LdapException catch(e) {
+      loggerPool.severe(e);
+    }
+    finally {
+        releaseConnection(c);
+    }
+    throw LdapPoolException('Could not bind');
   }
 
   // closing a pool connection closes all connections
@@ -284,7 +299,7 @@ class LdapConnectionPool extends Ldap {
       c = await getConnection(bind: true);
       var r = await f(c);
       return r;
-    } catch (e) {
+    } on LdapException catch (e) {
       loggerPool.warning('LdapPool exception', e);
       rethrow;
     } finally {
