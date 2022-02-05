@@ -50,9 +50,11 @@ class ExtendedResponse extends ResponseOp {
   static const int TYPE_EXTENDED_RESPONSE_VALUE = 0x8B;
 
   ExtendedResponse(LDAPMessage m) : super(m) {
-    responseName = _elementAsString(m.elements[2]);
+    if( m.elements.length >= 3) {
+      responseName = _elementAsString(m.elements[2]);
+    }
     // check for optional response
-    if (m.elements.length == 4) {
+    if (m.elements.length >= 4) {
       response = _elementAsString(m.elements[3]);
     }
   }

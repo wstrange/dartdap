@@ -8,17 +8,17 @@ The _dartdap_ tests are implemented using the Dart
 
 To run all the tests:
 
-    pub run test
+    dart test
 
 To run tests from a particular test file, specifying the path to the
 test file:
 
-    pub run test test/util_test.dart
+    dart test test/util_test.dart
 
 To run a particular test in a particular test file, specify the path
 to the test file and the name of the test:
 
-    pub run test test/util_test.dart --name 'config file: test/CONFIG-default.yaml missing directory behaviour'
+    dart test test/util_test.dart --name 'config file: test/CONFIG-default.yaml missing directory behaviour'
 
 ### No setup
 
@@ -130,7 +130,7 @@ directory. So it can be used like this on the local machine:
 
 And the tests run from a different session on the local machine:
 
-    $ pub run test
+    $ dart test
 
 ### File contents
 

@@ -63,7 +63,7 @@ Future<void> bindUsers(SearchResult searchResult,LdapConnectionPool p) async {
       print('Bind dn ${entry.dn}');
       try {
         var r2 = await p.bind(DN: entry.dn, password: TEST_PASSWORD);
-        print('bind result ${r2.resultCode} ${r2}');
+        print('bind result ${r2.resultCode} $r2');
       }
       on LdapResultInvalidCredentialsException catch(e) {
         print('Invalid credentials for ${entry.dn}');

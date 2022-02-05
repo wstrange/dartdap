@@ -20,6 +20,7 @@ part 'delete_request.dart';
 part 'modify_request.dart';
 part 'moddn_request.dart';
 part 'compare_request.dart';
+part 'abandon_request.dart';
 
 // top level constants
 // todo: Should we put these in a class?
@@ -80,7 +81,9 @@ String _op2String(int op) {
       return 'COMPARE_REQ';
     case COMPARE_RESPONSE:
       return 'COMPARE_RESP';
-    // todo add more...
+    case ABANDON_REQUEST:
+      return 'ABANDON_REQ';
+  // todo add more...
     default:
       return op.toRadixString(16);
   }

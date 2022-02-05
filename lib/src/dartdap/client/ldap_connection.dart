@@ -395,6 +395,13 @@ class LdapConnection extends Ldap {
     return await _cmgr.process(CompareRequest(dn, attrName, attrValue));
   }
 
+  // Abandon the request specified by messageId
+  // This is not a future because the server is not expected to reply.
+  // An Abandon of message Id=0 can be used to keep an ldap connection alive.
+  // See https://stackoverflow.com/questions/313575/ldap-socket-keep-alive
+  void abandonRequest({required int messageId}) {
+    _cmgr.sendLdapBytes(LDAPMessage(messageId,AbandonRequest(messageId)));
+  }
   //================================================================
 
   //----------------------------------------------------------------

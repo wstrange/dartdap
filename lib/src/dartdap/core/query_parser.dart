@@ -90,7 +90,9 @@ class QueryParserDefinition extends QueryGrammarDefinition {
     each.forEach((val) {
       if (val is List) {
         s.addAll(_flatten(val));
-      } else if (val is String) s.add(val);
+      } else if (val is String) {
+        s.add(val);
+      }
     });
     return s;
   }

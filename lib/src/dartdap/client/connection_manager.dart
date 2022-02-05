@@ -86,7 +86,7 @@ class _StreamPendingOp extends _PendingOp {
 
 //================================================================
 
-// A pending opertion that expects a single return response message
+// A pending operation that expects a single return response message
 // returned via a future. For all LDAP ops except search results
 class _FuturePendingOp extends _PendingOp {
   var completer = Completer<LdapResult>();
@@ -367,37 +367,40 @@ class ConnectionManager {
       (_outgoingMessageQueue.isNotEmpty) && (_bindPending == false);
 
   //----------------------------------------------------------------
-  // Send a single message to the server
-
+  // Send a single message to the server. Add the operation to
+  // the pending response queue.
   void _sendMessage(_PendingOp op) {
     loggerSendLdap
         .fine('[${op.message.messageId}] Sending LDAP message: ${op.message}');
 
-    var l = op.message.toBytes();
-
-    loggerSendBytes.finest('[${op.message.messageId}] Bytes sending: $l');
-
-    _socket.add(l);
+    sendLdapBytes(op.message);
     _pendingResponseMessages[op.message.messageId] = op;
     if (op.message.protocolTag == BIND_REQUEST) {
       _bindPending = true;
     }
+  }
 
-    // Call the [flush] method so we can use [catchError] to detect errors
-    // Note: this is experimental. So far no errors/exceptions have been seen.
-    // TODO: Expiriment with non flush
-    // try {
-    //   _socket?.flush().then((v) {
-    //     loggerSendBytes
-    //         .finer('[${op.message.messageId}] Sent ${l.length} bytes');
-    //   }).catchError((e) {
-    //     loggerSendBytes.severe('[${op.message.messageId}] $e');
-    //     throw e;
-    //   });
-    // } catch (e) {
-    //   loggerSendBytes.severe('[${op.message.messageId}] caught: $e');
-    //   rethrow;
-    // }
+  // Call the [flush] method so we can use [catchError] to detect errors
+  // Note: this is experimental. So far no errors/exceptions have been seen.
+  // TODO: Expiriment with non flush
+  // try {
+  //   _socket?.flush().then((v) {
+  //     loggerSendBytes
+  //         .finer('[${op.message.messageId}] Sent ${l.length} bytes');
+  //   }).catchError((e) {
+  //     loggerSendBytes.severe('[${op.message.messageId}] $e');
+  //     throw e;
+  //   });
+  // } catch (e) {
+  //   loggerSendBytes.severe('[${op.message.messageId}] caught: $e');
+  //   rethrow;
+  // }
+
+  // Send an Ldap Message to the server.
+  void sendLdapBytes(LDAPMessage m) {
+    var l = m.toBytes();
+    loggerSendBytes.finest('[${m.messageId}] Bytes sending: $l');
+    _socket.add(l);
   }
 
   //================================================================

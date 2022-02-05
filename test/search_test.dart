@@ -25,7 +25,6 @@ Future populateEntries(LdapConnection ldap, DN testDN) async {
     'objectclass': ['organizationalUnit'],
     'description': descriptionStr
   });
-  assert(addResult is LdapResult);
   assert(addResult.resultCode == 0);
 
   // Create subentries

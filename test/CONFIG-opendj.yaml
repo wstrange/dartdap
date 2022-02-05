@@ -10,8 +10,8 @@ directories:
     ssl: false
     validate-certificate: false
     bindDN: uid=admin
-    password: UOd15YiaNGulHj6H1NnBKnZFvxgF4p7B
-    testDN: ou=people,ou=identities
+    password: password
+    testDN: dc=example,dc=com
 
   ldaps:
     host: localhost
@@ -19,8 +19,8 @@ directories:
     ssl: true
     validate-certificate: false
     bindDN: uid=admin
-    password: UOd15YiaNGulHj6H1NnBKnZFvxgF4p7B
-    testDN: ou=people,ou=identities
+    password: password
+    testDN: dc=example,dc=com
 
   default:
     host: localhost
@@ -28,9 +28,8 @@ directories:
     ssl: true
     validate-certificate: false
     bindDN: uid=admin
-    password: UOd15YiaNGulHj6H1NnBKnZFvxgF4p7B
-    testDN: ou=people,ou=identities
-
+    password: password
+    testDN: dc=example,dc=com
 
 
 logging:

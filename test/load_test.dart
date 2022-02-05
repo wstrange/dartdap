@@ -37,7 +37,6 @@ const String cnPrefix = 'user';
 
 Future populateEntries(LdapConnection ldap, DN branchDN) async {
   var addResult = await ldap.add(branchDN.dn, branchAttrs);
-  assert(addResult is LdapResult);
   assert(addResult.resultCode == 0);
 }
 
