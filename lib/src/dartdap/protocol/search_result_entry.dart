@@ -12,7 +12,7 @@ class SearchResultEntry extends ResponseOp {
   SearchEntry get searchEntry => _searchEntry;
 
   SearchResultEntry.referral(LDAPMessage m) : super.searchEntry() {
-    loggeRecvLdap.fine(() => 'Search result is a referral');
+    loggerRecvLdap.fine(() => 'Search result is a referral');
     var uris = m.protocolOp.elements;
     var l = uris.map((obj) => (obj as ASN1OctetString).stringValue).toList();
     _searchEntry = SearchEntry('', referrals: l);
@@ -29,7 +29,7 @@ class SearchResultEntry extends ResponseOp {
 
     var dn = t.stringValue;
 
-    loggeRecvLdap.fine(() => 'Search Result Entry: dn=$dn');
+    loggerRecvLdap.fine(() => 'Search Result Entry: dn=$dn');
 
     // embedded sequence is attr list
     var seq = s.elements[1] as ASN1Sequence;
@@ -47,13 +47,13 @@ class SearchResultEntry extends ResponseOp {
       searchEntry.attributes[attrName.stringValue] =
           Attribute(attrName.stringValue, valSet);
 
-      loggeRecvLdap.finest('attribute: ${attrName.stringValue}=$valSet');
+      loggerRecvLdap.finest('attribute: ${attrName.stringValue}=$valSet');
     });
 
     // controls are optional.
     if (s.elements.length >= 3) {
       var controls = s.elements[2];
-      loggeRecvLdap.finest('controls: $controls');
+      loggerRecvLdap.finest('controls: $controls');
     }
   }
 

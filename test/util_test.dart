@@ -18,11 +18,6 @@ import 'util.dart' as util;
 void commonTestsOnAnyConfig(util.Config c, {bool ignoreDirectories = true}) {
   // Looking for a non-existent directory configuration
 
-  test('missing directory behaviour', () {
-    const _missingDirectoryName = 'this-name-should-never-exist-in-any-config';
-    expect(c.hasDirectory(_missingDirectoryName), isFalse);
-    expect(c.directory(_missingDirectoryName), isNull);
-  });
 
   if (!ignoreDirectories) {
     // Note: sometimes these tests may be skipped: and that is ok. That happens

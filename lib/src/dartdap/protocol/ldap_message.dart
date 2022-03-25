@@ -103,7 +103,7 @@ class LDAPMessage {
         _controls = ASN1Sequence.fromBytes(c);
       }
     }
-    loggeRecvLdap.fine(
+    loggerRecvLdap.fine(
         () => 'LDAP message received: Id=$messageId protocolOp=$protocolOp');
   }
 

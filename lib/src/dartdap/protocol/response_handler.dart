@@ -5,7 +5,7 @@ abstract class ResponseHandler {
   //ResponseHandler(this._ldapMessage);
 
   static ResponseOp handleResponse(LDAPMessage m) {
-    loggeRecvLdap
+    loggerRecvLdap
         .finer(() => 'LDAP response received: ${_op2String(m.protocolOp.tag)}');
 
     switch (m.protocolOp.tag) {

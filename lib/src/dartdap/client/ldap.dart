@@ -2,7 +2,7 @@ import 'package:dartdap/dartdap.dart';
 
 // parser that Create LDAP Queries using https://tools.ietf.org/html/rfc2254 syntax
 
-/// The Ldap Interface [https://tools.ietf.org/html/rfc4511]
+/// The Ldap Interface https://tools.ietf.org/html/rfc4511
 ///
 /// The available LDAP operations are:
 ///

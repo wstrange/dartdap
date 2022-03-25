@@ -1,6 +1,5 @@
 import 'package:dartdap/dartdap.dart';
 import 'package:petitparser/petitparser.dart';
-import 'filter.dart';
 
 // Create LDAP Queries using https://tools.ietf.org/html/rfc2254 syntax
 
@@ -90,7 +89,9 @@ class QueryParserDefinition extends QueryGrammarDefinition {
     each.forEach((val) {
       if (val is List) {
         s.addAll(_flatten(val));
-      } else if (val is String) s.add(val);
+      } else if (val is String) {
+        s.add(val);
+      }
     });
     return s;
   }

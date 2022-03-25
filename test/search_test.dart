@@ -21,12 +21,27 @@ const int NUM_ENTRIES = 3;
 Future populateEntries(LdapConnection ldap, DN testDN) async {
   // Create entry
 
-  var addResult = await ldap.add(testDN.dn, {
-    'objectclass': ['organizationalUnit'],
-    'description': descriptionStr
-  });
-  assert(addResult is LdapResult);
-  assert(addResult.resultCode == 0);
+  // TODO: Clean up tests - this OU should exist already..
+
+  try {
+    await ldap.add('ou=test,dc=example,dc=com', {
+      'objectclass': ['organizationalUnit'],
+      'description': descriptionStr
+    });
+  }
+  catch(e) {
+    // ignore  - since it might already exist
+    print('ignore $e');
+  }
+
+    var addResult = await ldap.add(testDN.dn, {
+      'objectclass': ['organizationalUnit'],
+      'description': descriptionStr
+    });
+    // ignore error if it already exists
+    assert(addResult.resultCode == ResultCode.ENTRY_ALREADY_EXISTS ||
+      addResult.resultCode == 0);
+
 
   // Create subentries
 
@@ -36,7 +51,6 @@ Future populateEntries(LdapConnection ldap, DN testDN) async {
       'sn': 'User $j'
     };
     var addResult = await ldap.add(testDN.concat('cn=user$j').dn, attrs);
-    assert(addResult is LdapResult);
     assert(addResult.resultCode == 0);
   }
 }

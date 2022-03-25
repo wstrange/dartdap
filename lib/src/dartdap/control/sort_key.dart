@@ -29,8 +29,8 @@
 /// process, although if none is provided it will use the default ordering
 /// matching rule for the attribute type.
 ///
-///[RFC 2891 - LDAP Control
-///      Extension for Server Side Sorting of Search Results| 'http:tools.ietf.org/html/rfc2891']
+///RFC 2891 - LDAP Control
+///   Extension for Server Side Sorting of Search Results http:tools.ietf.org/html/rfc2891
 
 class SortKey {
   bool isReverseOrder;
