@@ -1,6 +1,5 @@
 import 'package:dartdap/dartdap.dart';
 import 'package:petitparser/petitparser.dart';
-import 'filter.dart';
 
 // Create LDAP Queries using https://tools.ietf.org/html/rfc2254 syntax
 

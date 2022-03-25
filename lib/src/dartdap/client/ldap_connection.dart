@@ -3,30 +3,18 @@ import 'dart:async';
 
 import 'package:dartdap/dartdap.dart';
 
-import '../core/core.dart';
-import 'connection_manager.dart';
 import '../protocol/ldap_protocol.dart';
-import '../control/control.dart';
 import 'connection_info.dart';
-import 'ldap.dart';
 
 /// Connection to perform LDAP operations on an LDAP server.
-///
-/// There are two modes: automatic and manual.  Most programs will use the
-/// default automatic mode. The mode is set by the constructor or changed using
-/// the [setAutomaticMode] method.
 ///
 /// ## Properties
 ///
 /// An LdapConnection is defined by the network connection and the LDAP binding.
 ///
 /// The network connection is determined by the hostname, whether SSL/TLS is
-/// used or not, and the port number.  These are set by the constructor or
-/// changed using the [setHost] and [setProtocol] methods.
+/// used or not, and the port number.
 ///
-/// The LDAP binding is either anonymous or authenticated.  It is set by the
-/// constructor or changed using the [setAuthentication] and [setAnonymous]
-/// methods.
 ///
 /// The [badCertHandler] is a callback function to process bad certificates
 /// (if encountered when attempting to establish a TLS/SSL connection).
@@ -110,9 +98,13 @@ class LdapConnection extends Ldap {
   //================================================================
   // Members
 
+  ///
   /// The underlying connection manager.
   ///
   late ConnectionManager _cmgr;
+
+  // the last bind request made on this connection
+  BindRequest? _lastBindRequest;
 
   //----------------------------------------------------------------
   // Hostname
@@ -121,8 +113,7 @@ class LdapConnection extends Ldap {
   //----------------
   /// Host name of the LDAP directory server.
   ///
-  /// This value is initially set by the constructor and can be changed using
-  /// the [setHost] method.
+  /// This value is initially set by the constructor
   String get host => _host;
 
   //----------------------------------------------------------------
@@ -141,16 +132,10 @@ class LdapConnection extends Ldap {
   /// Value is true if LDAP over TLS/SSL is being used. Otherwise, value is
   /// false, indicating LDAP without TLS/SSL.
   ///
-  /// This value is initially set by the constructor and can be changed using
-  /// the [setProtocol] method.
-  ///
   bool get isSSL => _isSSL;
 
   //----------------
   /// Port number of the LDAP directory server.
-  ///
-  /// This value is initially set by the constructor and can be changed using
-  /// the [setProtocol] method.
   ///
   int get port => _port;
 
@@ -167,6 +152,7 @@ class LdapConnection extends Ldap {
   /// [LdapCertificateException] if a bad certificate is encountered.
   ///
   final BadCertHandlerType _badCertHandler;
+  BadCertHandlerType get badCertHandler => _badCertHandler;
 
   //----------------------------------------------------------------
   // Authentication credentials
@@ -184,7 +170,7 @@ class LdapConnection extends Ldap {
   /// If the connection is anonymous, this value is an empty string.
   ///
   /// This value is initially set by the constructor but rebinding
-  /// with a new DN can change this valu
+  /// with a new DN can change this value
   String get bindDN => _bindDN;
 
   // Information on the connection. Time created, etc.
@@ -192,11 +178,16 @@ class LdapConnection extends Ldap {
 
   //================================================================
   // State
-  ConnectionState _state = ConnectionState.closed;
+  ConnectionState state = ConnectionState.closed;
 
-  /// Indicates the state of the [LdapConnection].
-  ///
-  ConnectionState get state => _state;
+  // Counter for incrementing the connection id
+  static int _nextConnectionId = 0;
+  // Unique Id for this connection
+  final int _connectionId = _nextConnectionId++;
+
+  /// Return the unique connection id for this connection
+  /// TODO: How does this work with isolates?
+  int get connectionId => _connectionId;
 
   //================================================================
   // Constructors
@@ -205,15 +196,9 @@ class LdapConnection extends Ldap {
   /// Constructor for an LDAP connection to an LDAP directory server.
   ///
   /// The connection is set to use [ssl] (or not) to connect to [port] at
-  /// [hostname], and optionally authenticated to [bindDN] with [password].
+  /// [host], and optionally authenticated to [bindDN] with [password].
   ///
-  /// The default is to create an automatic mode, anonymous LDAP connection to
-  /// localhost.
-  /// The mode can be changed using [setAutomaticMode].
   ///
-  /// These parameters can be later changed using [setHost], [setProtocol],
-  /// [setAuthentication] and [setAuthentication] (see those methods for details
-  /// on the values for the parameters to this constructor).
   ///
   /// The [badCertHandler] is set to [badCertificateHandler]. If null,
   /// a [LdapCertificateException] is thrown if the certificate is bad.
@@ -240,10 +225,7 @@ class LdapConnection extends Ldap {
         _password = password,
         _isSSL = ssl,
         _badCertHandler = badCertificateHandler {
-    _cmgr = ConnectionManager(_host, _port,
-        ssl: _isSSL,
-        badCertHandler: _badCertHandler,
-        tlsSecurityContext: _context);
+    _cmgr = ConnectionManager(this, tlsSecurityContext: _context);
   }
 
   // Create a new [LdapConnection] by copying the parameters of
@@ -254,11 +236,9 @@ class LdapConnection extends Ldap {
         _bindDN = c.bindDN,
         _password = c._password,
         _isSSL = c._isSSL,
+        _lastBindRequest = c._lastBindRequest,
         _badCertHandler = c._badCertHandler {
-    _cmgr = ConnectionManager(_host, _port,
-        ssl: _isSSL,
-        badCertHandler: _badCertHandler,
-        tlsSecurityContext: _context);
+    _cmgr = ConnectionManager(this, tlsSecurityContext: _context);
   }
 
   //================================================================
@@ -288,12 +268,24 @@ class LdapConnection extends Ldap {
     loggerConnection.fine('open: $url');
     switch (state) {
       case ConnectionState.closed:
-      case ConnectionState.disconnected:
         await _cmgr.connect();
-        _state = ConnectionState.ready;
+        state = ConnectionState.ready;
         return;
       default:
-        throw StateError('Attempt to open conection that is already opened');
+        throw StateError('Attempt to open connection that is already opened');
+    }
+  }
+
+  ///
+  /// Reopen the connection, and rebind with the last known bind credentiuals
+  ///
+  Future<void> reconnect() async {
+    loggerConnection.fine('reconnecting');
+    // force close of socket..
+    await close();
+    await open();
+    if (_lastBindRequest != null) {
+      await _doBind(_lastBindRequest!);
     }
   }
 
@@ -302,11 +294,6 @@ class LdapConnection extends Ldap {
   ///
   /// The connection is closed when the returned Future completes.
   ///
-  /// If [immediate] is false, it waits for any/all queued operations to
-  /// finish before closing the connection.
-  ///
-  /// If [immediate] is true, the connection is immediately closed and any
-  /// queued operations are discarded.
   ///
   Future<void> close() async {
     loggerConnection.fine('close');
@@ -316,15 +303,14 @@ class LdapConnection extends Ldap {
       case ConnectionState.bound:
         await _cmgr.close();
         loggerConnection.finer('close: done');
-        _state = ConnectionState.closed;
+        state = ConnectionState.closed;
         break;
       case ConnectionState.closed:
         loggerConnection.finer('close: was closed');
         break;
-      case ConnectionState.disconnected:
       case ConnectionState.error:
         await _cmgr.close();
-        _state = ConnectionState.closed;
+        state = ConnectionState.closed;
         loggerConnection.finer('close: was disconnected');
         break;
     }
@@ -340,12 +326,16 @@ class LdapConnection extends Ldap {
     _bindDN = DN ?? _bindDN;
     _password = password ?? _password;
 
-    var r = await _cmgr.process(BindRequest(_bindDN, _password));
+    return _doBind(BindRequest(_bindDN, _password));
+  }
+
+  Future<LdapResult> _doBind(BindRequest bindRequest) async {
+    var r = await _cmgr.process(bindRequest);
     if (r.resultCode == ResultCode.OK) {
       loggerConnection.finer('bind: success');
-      _state = ConnectionState.bound;
+      state = ConnectionState.bound;
+      _lastBindRequest = bindRequest;
     }
-
     return r;
   }
 
@@ -400,7 +390,7 @@ class LdapConnection extends Ldap {
   // An Abandon of message Id=0 can be used to keep an ldap connection alive.
   // See https://stackoverflow.com/questions/313575/ldap-socket-keep-alive
   void abandonRequest({required int messageId}) {
-    _cmgr.sendLdapBytes(LDAPMessage(messageId,AbandonRequest(messageId)));
+    _cmgr.sendLdapBytes(LDAPMessage(messageId, AbandonRequest(messageId)));
   }
   //================================================================
 
@@ -426,6 +416,12 @@ class LdapConnection extends Ldap {
   }
 
   bool get isBound => state == ConnectionState.bound;
+
+  bool get isReady => state == ConnectionState.ready || isBound;
+
+  @override
+  String toString() =>
+      'LdapConnection($_host:$_port id=$_connectionId, state=$state)';
 }
 
 //================================================================
@@ -442,9 +438,6 @@ enum ConnectionState {
 
   /// Connection is open, ready for requests, and has BINDed with credentials
   bound,
-
-  /// Connection should be open, but is not.
-  disconnected,
 
   /// Connection is in an error state
   error

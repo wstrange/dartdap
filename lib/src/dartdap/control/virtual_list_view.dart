@@ -2,7 +2,7 @@ import 'control.dart';
 import 'package:asn1lib/asn1lib.dart';
 
 /// Virtual List View Controls
-/// See [https://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv-09]
+/// See https://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv-09
 
 /// VLV Request Control. The client sends this to the server to request a VLV search
 class VLVRequestControl extends Control {

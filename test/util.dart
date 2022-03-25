@@ -566,3 +566,18 @@ void expectSingleAttributeValueStartsWith(
   var s = attrs.values.first as String;
   expect(s.startsWith(startsWith), isTrue);
 }
+
+// Utility to print search results
+Future<void> printSearchResults(SearchResult searchResult) async {
+  var result = await searchResult.getLdapResult();
+  print('got result = $result');
+  if (result.resultCode == ResultCode.OK ||
+      result.resultCode == ResultCode.SIZE_LIMIT_EXCEEDED) {
+    print('ok');
+    await searchResult.stream.forEach((entry) {
+      print('entry: $entry');
+    });
+  } else {
+    print('ldap error ${result.resultCode}');
+  }
+}

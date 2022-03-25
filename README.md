@@ -35,9 +35,7 @@ The following [examples](example) are provided:
 * [pool.dart](example/pool.dart) - Connection pool example
 * [paged_search.dart](example/paged_search.dart) - demonstrates how to use the paged search control
 
-Note:  As of version 0.5.0, A connection pool is also provided, and is the recommended way to access
-Ldap.  The documentation is lacking here. Assistance welcome!
-
+Note:  As of version 0.5.0, An experimental connection pool is also provided. Please read [pool.md](pool.md).
 
 #### Create an LDAP connection
 
@@ -97,7 +95,6 @@ the search request. The SDK does not automatically follow referrals.
 There are two search methods:
 * `ldap.search` takes a dart `Filter` object. 
 * `ldap.query` takes an https://tools.ietf.org/html/rfc2254 string to construct the filter
-
 
 
 ### Adding entries
@@ -311,6 +308,10 @@ new Logger("ldap").level = Level.OFF;
 
 
 ## Breaking changes
+
+### 0.6.2
+
+LdapConnectionPool has been refactored.
 
 ### 0.6.0
 

@@ -1,5 +1,9 @@
 # Dartdap Change Log
 
+## 0.6.2
+
+Experimental refactor of LdapConnectionPool.
+
 ## 0.6.1
 
 * Added a 30 second timeout to the socket.connect()

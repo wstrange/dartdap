@@ -1,44 +1,8 @@
-import 'package:dartdap/src/dartdap/control/control.dart';
-import 'package:dartdap/src/dartdap/core/filter.dart';
-import 'package:dartdap/src/dartdap/core/ldap_result.dart';
-import 'package:dartdap/src/dartdap/core/modification.dart';
-import 'package:dartdap/src/dartdap/core/search_result.dart';
 import 'package:dartdap/src/dartdap/protocol/ldap_protocol.dart';
 import '../../../dartdap.dart';
-import 'ldap_connection.dart';
 import 'dart:async';
-import 'ldap.dart';
+import 'package:collection/collection.dart';
 
-// Some prior art:
-// See https://github.com/brettwooldridge/HikariCP
-// todo: this is where we set retry, etc.
-/// Unbound approach:
-///   LDAPConnection connection = new LDAPConnection(address, port);
-//    BindResult bindResult = connection.bind(bindDN, password);
-//    LDAPConnectionPool connectionPool = new LDAPConnectionPool(connection, 10);
-// Create a new LDAP connection pool with 10 connections spanning multiple
-// servers using a server set.
-// RoundRobinServerSet serverSet = new RoundRobinServerSet(addresses, ports);
-// SimpleBindRequest bindRequest = new SimpleBindRequest(bindDN, password);
-// LDAPConnectionPool connectionPool =
-// new LDAPConnectionPool(serverSet, bindRequest, 10);
-
-// https://docs.ldap.com/ldap-sdk/docs/javadoc/com/unboundid/ldap/sdk/FailoverServerSet.html
-// DS SDK
-// https://backstage.forgerock.com/docs/ds/7/javadoc/org/forgerock/opendj/ldap/ConnectionPool.html
-// implemented LdapClient and close()
-// Uses same model - pass a client
-// SharedConnectionPool​(LdapClient client, int poolSize)
-// https://backstage.forgerock.com/docs/ds/7/javadoc/org/forgerock/opendj/ldap/SharedConnectionPool.html
-
-// typedef Future<LdapResult> LdapFunction();
-
-///
-/// TODO
-/// https://api.dart.dev/stable/2.10.4/dart-async/runZonedGuarded.html
-///
-///
-///
 class LdapPoolException implements Exception {
   final String msg;
   final LdapResult? result;
@@ -46,15 +10,14 @@ class LdapPoolException implements Exception {
   LdapPoolException(this.msg, [this.result]);
 }
 
+typedef LdapFunction = Future<bool> Function(LdapConnection c);
+
 /// LdapConnectionPool implements a very simple connection pool handler.
 ///
 /// To create a pool, pass in an [LdapConnection]:
 /// ```
 ///    var pool = LdapConnectionPool(ldapConnection);
 /// ```
-/// The pool will create up to [_poolSize] instances by cloning the connection. The
-/// socket connection
-/// will be retried up to [_maxOpenRetries] times.
 ///
 /// The pool implements the [LdapConnection] interface. You can directly
 /// use the pool instance:
@@ -71,12 +34,10 @@ class LdapPoolException implements Exception {
 /// pool.releaseConnection(c);
 /// ```
 /// The later approach is preferred if you want to alter the bind credentials
-/// or resuse the same connection.
+/// or reuse the same connection.
 ///
 /// Features not yet implemented:
 /// * Health Checks
-/// * TCP Keep alive on the connection
-/// * Retry operation (other than open(), operations are not retried)
 /// * ldap referral handling
 /// * Multiple host support, HA fail over etc.
 ///
@@ -86,52 +47,60 @@ class LdapConnectionPool extends Ldap {
   final int _poolSize;
   final int _maxOpenRetries;
   late List<LdapConnection> _connections;
+  final Future<bool> Function(LdapConnection c) _keepAliveFunction;
+  final int _keepAliveTimerSeconds;
 
   ///
-  /// Create a connection pool based on the ldap [connection]. The pool
-  /// will be up to [poolSize] copies of the connection. Connections in
-  /// the pool will be retried up to [maxOpenRetries].
-  LdapConnectionPool(LdapConnection connection,
-      {poolSize = 5, maxOpenRetries = 10})
-      : _protoConnection = connection,
+  /// Create a connection pool based on a prototype [LdapConnection]. The pool
+  /// will be up to [poolSize] copies of the connection. An
+  /// attempt to open the connection up to [maxOpenRetries] will be made
+  /// with an interval of 10 seconds between each attempt.
+  /// Every [keepAliveTimerSeconds] the pool will send a keep alive
+  /// request to the server. The default keep alive function
+  /// sends an Ldap Abandon request with message id = 0. Most servers
+  /// will ignore this request.
+  ///
+  LdapConnectionPool(
+    LdapConnection connection, {
+    poolSize = 5,
+    maxOpenRetries = 10,
+    keepAliveTimerSeconds = 30,
+    LdapFunction keepAliveFunction = _defaultKeepAliveFunction,
+  })  : _protoConnection = connection,
         _poolSize = poolSize,
-        _maxOpenRetries = maxOpenRetries {
+        _maxOpenRetries = maxOpenRetries,
+        _keepAliveFunction = keepAliveFunction,
+        _keepAliveTimerSeconds = keepAliveTimerSeconds {
     assert(_poolSize >= 1 && _poolSize < 20);
     var l = <LdapConnection>[];
     for (var i = 0; i < _poolSize; ++i) {
       var c = LdapConnection.copy(_protoConnection);
-      c.connectionInfo.id = i;
+      c.connectionInfo.id = c.connectionId;
       l.add(c);
     }
     _connections = List.unmodifiable(l);
+
+    // create a keep alive timer
+    Timer.periodic(Duration(seconds: _keepAliveTimerSeconds), (timer) {
+      _connections.forEach((connection) {
+        _keepAliveFunction(connection);
+      });
+    });
   }
 
-  /// Return a [LdapConnection] from the pool. If [bind] is true (default)
+  /// Return a [LdapConnection] from the pool. If [bind] is true
   /// An ldap bind will be performed using the credentials provided in the
   /// original [LdapConnection] used to create the pool.
-  Future<LdapConnection> getConnection({bool bind = true}) async {
-    // https://github.com/dart-lang/sdk/issues/42947  firstWhere does not work here
-    // var c = _connections.firstWhere((c) => c.connectionInfo.inUse == false , orElse: () => null);
+  Future<LdapConnection> getConnection({bool bind = false}) async {
     loggerPool.finest('pool getConnection bind=$bind');
-    LdapConnection? c;
-    for (final cx in _connections) {
-      if (cx.connectionInfo.inUse == false) {
-        c = cx;
-        break;
-      }
-    }
-
-    // TODO: The connection pool logic is totally broken....
-    // This is a hack to work around the problem until I get time to
-    // create a proper fix.
-    // The pool is getting exhausted on every call - since connections
+    var c =
+        _connections.firstWhereOrNull((c) => c.connectionInfo.inUse == false);
     if (c == null) {
-      // /// FIXME
-      throw LdapPoolException('All pool connections are in use');
+      throw LdapPoolException(
+          'No available connections in the pool. Does your code leak connections?');
     }
 
-    if (c.state == ConnectionState.closed ||
-        c.state == ConnectionState.disconnected) {
+    if (c.state == ConnectionState.closed) {
       await _open(c);
     }
 
@@ -146,12 +115,21 @@ class LdapConnectionPool extends Ldap {
     return c;
   }
 
-  void releaseConnection(LdapConnection c) {
+  /// Release a connection back to the pool
+  /// If repairBadConnection is true, try to repair the connection by closing/opening
+  ///
+  Future<void> releaseConnection(LdapConnection c,
+      {bool repairBadConnection = false}) async {
     c.connectionInfo.inUse = false;
+    if (repairBadConnection) {
+      try {
+        await c.close();
+        await _open(c);
+      } catch (e) {
+        loggerPool.severe('Could not repair $c');
+      }
+    }
   }
-
-  // @override
-  // bool get isBound => _protoConnection.isBound;
 
   @override
   Future<LdapResult> add(String dn, Map<String, dynamic> attrs) {
@@ -162,7 +140,7 @@ class LdapConnectionPool extends Ldap {
 
   @override
   Future<LdapResult> bind({String? DN, String? password}) async {
-    LdapConnection c = await getConnection(bind: false);
+    var c = await getConnection(bind: false);
     try {
       LdapResult result;
       if (DN != null && password != null) {
@@ -173,12 +151,10 @@ class LdapConnectionPool extends Ldap {
       }
       loggerPool.finest(() => 'Bind result $result');
       return result;
-    }
-    on LdapException catch(e) {
+    } on LdapException catch (e) {
       loggerPool.severe(e);
-    }
-    finally {
-        releaseConnection(c);
+    } finally {
+      await releaseConnection(c);
     }
     throw LdapPoolException('Could not bind');
   }
@@ -245,12 +221,12 @@ class LdapConnectionPool extends Ldap {
       var sr = await c.search(baseDN, filter, attributes,
           scope: scope, sizeLimit: sizeLimit, controls: controls);
       return sr;
-    } catch (e) {
-      loggerPool.severe('search error', e);
+    } catch (e, stacktrace) {
+      loggerPool.severe('search error $e. Stack $stacktrace', stacktrace);
       rethrow;
     } finally {
       if (c != null) {
-        releaseConnection(c);
+        await releaseConnection(c);
       }
     }
   }
@@ -292,35 +268,36 @@ class LdapConnectionPool extends Ldap {
   }
 
   // Call the supplied ldap function that returns an ldap result
+  // Used to wrap pool calls for all everything other than searches
   Future<LdapResult> _ldapFunction(
       Future<LdapResult> Function(LdapConnection) f) async {
     LdapConnection? c;
     try {
-      c = await getConnection(bind: true);
+      c = await getConnection();
       var r = await f(c);
       return r;
     } on LdapException catch (e) {
-      loggerPool.warning('LdapPool exception', e);
+      loggerPool.severe('LdapPool exception', e);
+      rethrow;
+    } catch (e) {
+      loggerPool.severe('LdapPool other exception', e);
       rethrow;
     } finally {
       if (c != null) {
-        releaseConnection(c);
+        await releaseConnection(c);
       }
     }
   }
 
-  // Calls a user supplied function to check the health of a specific connection
-  // Note that a bind() is not automatically done on the connection.
-  // TODO: This is not implemented yet
-  // Future<LdapResult> _ldapHealthCheck(
-  //     LdapConnection c, Future<LdapResult> Function(LdapConnection) f) async {
-  //   try {
-  //     // call the user supplied function
-  //     var result = await f(c);
-  //     return result;
-  //   } catch (e) {
-  //     loggerPool.warning('Health check failed', e);
-  //     rethrow;
-  //   }
-  // }
+  // default function to keep a connection alive.
+  /// Sends an abandon of message id 0 which the server will ignore
+  ///
+  static Future<bool> _defaultKeepAliveFunction(LdapConnection c) async {
+    // abandon request of id = 0 will be a no-op for the server
+    if (c.isReady) {
+      c.abandonRequest(messageId: 0);
+      loggerPool.fine('Keep alive $c');
+    }
+    return true;
+  }
 }

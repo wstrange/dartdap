@@ -111,7 +111,7 @@ Logger loggerSendBytes = Logger('ldap.send.bytes');
 
 /// Logger for received LDAP messages
 ///
-Logger loggeRecvLdap = Logger('ldap.recv.ldap');
+Logger loggerRecvLdap = Logger('ldap.recv.ldap');
 
 /// Logger for received ASN.1 objects
 ///

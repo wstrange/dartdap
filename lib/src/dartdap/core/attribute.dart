@@ -48,7 +48,7 @@ class Attribute {
       _values.containsAll(other._values) &&
       other._values.containsAll(_values);
 
-  /// Converts a map of simple strings or list values into a Map of [Attributes].
+  /// Converts a map of simple strings or list values into a Map of [Attribute].
   ///
   ///     var attrs = Attribute.newAttributeMap({
   ///       'objectClass' : [ 'top', 'person', 'inetPerson' ],

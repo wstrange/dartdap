@@ -317,7 +317,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
 
       try {
         await bad.open();
-        expect(false, isTrue);
+        fail('should not get here');
       } on LdapSocketServerNotFoundException catch (e) {
         // TODO: confirm behaviour and fix dartdap if necessary
         //

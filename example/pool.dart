@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:dartdap/dartdap.dart';
 import 'package:logging/logging.dart';
 
-// final adminPassword = 'SomePassword';
-final adminPassword = 'gkwBPFz1W6Owr3Yy7CwfFFLCFpI8hPHi';
+final adminPassword = 'password';
+final ou = 'dc=example,dc=com';
 
 /// A sample showing the use of the connection pool
 ///
@@ -22,24 +22,25 @@ Future<void> example() async {
 
   // Create a prototype connection
   var connection =
-      LdapConnection(port: 1389, bindDN: 'uid=admin', password: adminPassword);
+      LdapConnection(port: 1636, bindDN: 'uid=admin', password: adminPassword, ssl: true,
+        badCertificateHandler: (cert) => true);
   // The pool is created from the connection. The pool implements the Ldap Interface
   var pool = LdapConnectionPool(connection);
 
   try {
     var searchResult = await pool
-        .search('ou=identities', filter, ['dn', 'objectclass'], sizeLimit: 10);
+        .search(ou, filter, ['dn', 'objectclass'], sizeLimit: 10);
 
     await printResults(searchResult);
 
     // repeat search - to see if bind happens again
     searchResult = await pool
-        .search('ou=identities', filter, ['dn', 'objectclass'], sizeLimit: 5);
+        .search(ou, filter, ['dn', 'objectclass'], sizeLimit: 5);
     await printResults(searchResult);
 
     // Try search on a bad DN
     searchResult = await pool
-        .search('ou=identitiesXX', filter, ['dn', 'objectclass'], sizeLimit: 5);
+        .search('ou=FooXXX', filter, ['dn', 'objectclass'], sizeLimit: 5);
     await printResults(searchResult);
   } catch (e) {
     print('Exception --->$e  ${e.runtimeType}');

@@ -39,11 +39,9 @@ final testPersonAttrs = {
 Future populateEntries(
     LdapConnection ldap, DN branchDN, DN testPersonDN) async {
   var addResult = await ldap.add(branchDN.dn, branchAttrs);
-  assert(addResult is LdapResult);
   assert(addResult.resultCode == 0);
 
   addResult = await ldap.add(testPersonDN.dn, testPersonAttrs);
-  assert(addResult is LdapResult);
   assert(addResult.resultCode == 0);
 }
 

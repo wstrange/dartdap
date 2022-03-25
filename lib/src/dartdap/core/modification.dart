@@ -36,12 +36,17 @@ class Modification {
   /// TODO: This is a hack. Create a nicer way of handling this
   ///
   /// Utility method that creates a list of modifications
-  /// when given a [modList] of triplets consiting of
-  /// modType - string value in the set [a,d,r,i]
+  /// when given a [modList] of triplets consisting of
+  /// modType - string value in the set `[a,d,r,i]`
   ///    (for add, delete, replace, increment)
-  /// attribute,values
+  /// followed by attribute,values
   ///
-  /// For example, the list ['r','sn', 'Mickey Mouse','i', 'age',null]
+  /// For example, the list
+  /// ```
+  /// ['r','sn', 'Mickey Mouse','i', 'age',null]
+  /// ```
+  /// replaces the sn attribute with Mickey Mouse, and increments the
+  /// age attribute by one.
   ///
   static List<Modification> modList(List modList) {
     var list = <Modification>[];

@@ -1,6 +1,5 @@
 import 'control.dart';
 import 'package:asn1lib/asn1lib.dart';
-import 'sort_key.dart';
 
 // https://tools.ietf.org/html/rfc2891
 

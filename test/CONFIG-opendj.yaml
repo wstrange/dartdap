@@ -3,6 +3,19 @@
 # To run tests using this configuration, create a "CONFIG.yaml" symlink to it.
 # See README.md for details.
 
+
+# By default DS requires a secure connection for uid=admin. You can change the policy using:
+#  dsconfig set-password-policy-prop \
+#  --policy-name Root\ Password\ Policy \
+#  --set require-secure-authentication:false \
+#  --hostname warrens-air.lan \
+#  --port 4444 \
+#  --bindDn uid=admin \
+#  --bindPassword ****** \
+#  --trustAll \
+#  --no-prompt
+
+
 directories:
   ldap:
     host: localhost
@@ -11,7 +24,7 @@ directories:
     validate-certificate: false
     bindDN: uid=admin
     password: password
-    testDN: dc=example,dc=com
+    testDN: ou=test,dc=example,dc=com
 
   ldaps:
     host: localhost
@@ -20,7 +33,7 @@ directories:
     validate-certificate: false
     bindDN: uid=admin
     password: password
-    testDN: dc=example,dc=com
+    testDN: ou=test,dc=example,dc=com
 
   default:
     host: localhost
@@ -29,7 +42,7 @@ directories:
     validate-certificate: false
     bindDN: uid=admin
     password: password
-    testDN: dc=example,dc=com
+    testDN: ou=test,dc=example,dc=com
 
 
 logging:

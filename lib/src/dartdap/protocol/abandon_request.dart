@@ -5,7 +5,7 @@ part of ldap_protocol;
 // AbandonRequest ::= [APPLICATION 16] MessageID
 class AbandonRequest extends RequestOp {
 
-  int _messageId; // the message ID to cancel
+  final int _messageId; // the message ID to cancel
 
   // Abandon the request specified by messageId
   // Note that an Abandon of message Id 0 can be used
@@ -13,7 +13,7 @@ class AbandonRequest extends RequestOp {
   // See https://stackoverflow.com/questions/313575/ldap-socket-keep-alive
   AbandonRequest(this._messageId): super(ABANDON_REQUEST);
 
-  get messageId => _messageId;
+  int get messageId => _messageId;
 
 
   @override

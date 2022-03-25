@@ -29,7 +29,7 @@ void runTests(util.ConfigDirectory configDirectory) {
 
 
   test('Send periodic abandon requests to simulate keep-alive', () async {
-    for(int i=0; i < 5; ++i) {
+    for(var i=0; i < 5; ++i) {
       await Future.delayed(Duration(seconds: 1));
       ldap.abandonRequest(messageId: 0);
     }
@@ -39,7 +39,7 @@ void runTests(util.ConfigDirectory configDirectory) {
     await ldap.close();
     await ldap.open();
 
-    for(int i=0; i < 5; ++i) {
+    for(var i=0; i < 5; ++i) {
       await Future.delayed(Duration(seconds: 1));
       ldap.abandonRequest(messageId: 0);
     }

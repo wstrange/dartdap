@@ -370,11 +370,11 @@ class ResultCode {
 
   /// The equality operator
   ///
-  /// Returns true if and only if the [value] of the two are the same.
+  /// Returns true if and only if the [other] of the two are the same.
 
   @override
-  bool operator ==(Object that) =>
-      (that is ResultCode && _value == that._value);
+  bool operator ==(Object other) =>
+      (other is ResultCode && _value == other._value);
 
   @override
   String toString() => message(_value);
