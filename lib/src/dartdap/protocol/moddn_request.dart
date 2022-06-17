@@ -34,7 +34,7 @@ class ModDNRequest extends RequestOp {
     seq.add(ASN1OctetString(_dn));
     seq.add(ASN1OctetString(_newRDN));
     seq.add(ASN1Boolean(_deleteOldRDN));
-    if (_newSuperiorDN != null) seq.add(ASN1OctetString(_newSuperiorDN));
+    if (_newSuperiorDN != null) seq.add(ASN1OctetString(_newSuperiorDN, tag: 0x80));
     return seq;
   }
 }

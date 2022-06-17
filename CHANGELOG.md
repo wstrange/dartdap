@@ -1,4 +1,7 @@
 # Dartdap Change Log
+## 0.6.3
+
+* Fixed ASN.1 tag encoding bug on modrdn new superior. #48
 
 ## 0.6.2
 
