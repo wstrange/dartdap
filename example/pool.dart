@@ -21,26 +21,29 @@ Future<void> example() async {
   var filter = Filter.present('objectclass');
 
   // Create a prototype connection
-  var connection =
-      LdapConnection(port: 1636, bindDN: 'uid=admin', password: adminPassword, ssl: true,
-        badCertificateHandler: (cert) => true);
+  var connection = LdapConnection(
+      port: 1636,
+      bindDN: 'uid=admin',
+      password: adminPassword,
+      ssl: true,
+      badCertificateHandler: (cert) => true);
   // The pool is created from the connection. The pool implements the Ldap Interface
   var pool = LdapConnectionPool(connection);
 
   try {
-    var searchResult = await pool
-        .search(ou, filter, ['dn', 'objectclass'], sizeLimit: 10);
+    var searchResult =
+        await pool.search(ou, filter, ['dn', 'objectclass'], sizeLimit: 10);
 
     await printResults(searchResult);
 
     // repeat search - to see if bind happens again
-    searchResult = await pool
-        .search(ou, filter, ['dn', 'objectclass'], sizeLimit: 5);
+    searchResult =
+        await pool.search(ou, filter, ['dn', 'objectclass'], sizeLimit: 5);
     await printResults(searchResult);
 
     // Try search on a bad DN
-    searchResult = await pool
-        .search('ou=FooXXX', filter, ['dn', 'objectclass'], sizeLimit: 5);
+    searchResult = await pool.search('ou=FooXXX', filter, ['dn', 'objectclass'],
+        sizeLimit: 5);
     await printResults(searchResult);
   } catch (e) {
     print('Exception --->$e  ${e.runtimeType}');

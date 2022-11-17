@@ -82,9 +82,9 @@ class LdapConnectionPool extends Ldap {
 
     // create a keep alive timer
     Timer.periodic(Duration(seconds: _keepAliveTimerSeconds), (timer) {
-      _connections.forEach((connection) {
+      for (var connection in _connections) {
         _keepAliveFunction(connection);
-      });
+      }
     });
   }
 

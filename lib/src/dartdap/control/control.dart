@@ -50,8 +50,9 @@ abstract class Control {
     // todo: Parse the object, return
     var controls = <Control>[];
 
-    obj.elements.forEach(
-        (control) => controls.add(_parseControl(control as ASN1Sequence)));
+    for (var control in obj.elements) {
+      controls.add(_parseControl(control as ASN1Sequence));
+    }
     return controls;
   }
 

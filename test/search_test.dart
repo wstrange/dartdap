@@ -28,20 +28,18 @@ Future populateEntries(LdapConnection ldap, DN testDN) async {
       'objectclass': ['organizationalUnit'],
       'description': descriptionStr
     });
-  }
-  catch(e) {
+  } catch (e) {
     // ignore  - since it might already exist
     print('ignore $e');
   }
 
-    var addResult = await ldap.add(testDN.dn, {
-      'objectclass': ['organizationalUnit'],
-      'description': descriptionStr
-    });
-    // ignore error if it already exists
-    assert(addResult.resultCode == ResultCode.ENTRY_ALREADY_EXISTS ||
+  var addResult = await ldap.add(testDN.dn, {
+    'objectclass': ['organizationalUnit'],
+    'description': descriptionStr
+  });
+  // ignore error if it already exists
+  assert(addResult.resultCode == ResultCode.ENTRY_ALREADY_EXISTS ||
       addResult.resultCode == 0);
-
 
   // Create subentries
 

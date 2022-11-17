@@ -24,7 +24,7 @@ class ServerSideSortRequestControl extends Control {
 
     var sortKeyseq = ASN1Sequence();
 
-    sortKeys.forEach((key) {
+    for (var key in sortKeys) {
       //_clogger.finest('Adding sort key $key');
       var s = ASN1Sequence();
       s.add(ASN1OctetString(key.attributeDescription));
@@ -39,7 +39,7 @@ class ServerSideSortRequestControl extends Control {
         s.add(b);
       }
       sortKeyseq.add(s);
-    });
+    }
     // The control value is an octet string...
     seq.add(ASN1OctetString(sortKeyseq.encodedBytes));
     //_clogger.finest('asn1 = $seq');

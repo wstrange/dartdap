@@ -378,4 +378,7 @@ class ResultCode {
 
   @override
   String toString() => message(_value);
+
+  @override
+  int get hashCode => _value.hashCode;
 }

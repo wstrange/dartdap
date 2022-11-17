@@ -62,11 +62,11 @@ class SimplePagedResultsControl extends Control {
   SimplePagedResultsControl.fromASN1(ASN1OctetString s) {
     var wrapped = octetString2Sequence(s);
     var seq = wrapped.elements[0] as ASN1Sequence;
-    var _size = seq.elements[0] as ASN1Integer;
-    size = _size.intValue;
+    var eSize = seq.elements[0] as ASN1Integer;
+    size = eSize.intValue;
 
-    var _c = seq.elements[1] as ASN1OctetString;
-    _cookie = _c.valueBytes();
+    var c = seq.elements[1] as ASN1OctetString;
+    _cookie = c.valueBytes();
   }
 
   @override

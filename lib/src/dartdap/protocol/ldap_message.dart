@@ -68,10 +68,10 @@ class LDAPMessage {
       : _protocolTag = rop.protocolOpCode {
     _obj = rop.toASN1();
     if (controls.isNotEmpty) {
-      controls.forEach((control) {
+      for (var control in controls) {
         _controls.add(control.toASN1());
         loggerSendLdap.finest('Adding control $control');
-      });
+      }
     }
   }
 

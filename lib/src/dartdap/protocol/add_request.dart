@@ -33,9 +33,9 @@ class AddRequest extends RequestOp {
       var s = ASN1Sequence();
       s.add(ASN1OctetString(attr.name));
       var ss = ASN1Set(); // fixes #21
-      attr.values.forEach((dynamic val) {
+      for (var val in attr.values) {
         ss.add(ASN1OctetString(val));
-      });
+      }
       s.add(ss);
       attrSeq.add(s);
     });

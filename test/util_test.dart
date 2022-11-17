@@ -18,7 +18,6 @@ import 'util.dart' as util;
 void commonTestsOnAnyConfig(util.Config c, {bool ignoreDirectories = true}) {
   // Looking for a non-existent directory configuration
 
-
   if (!ignoreDirectories) {
     // Note: sometimes these tests may be skipped: and that is ok. That happens
     // if there is no preferred config file (so the default is loaded) or there

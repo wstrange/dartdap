@@ -23,13 +23,13 @@ class ModifyRequest extends RequestOp {
 
     var modSeq = ASN1Sequence();
 
-    _mods.forEach((Modification m) {
+    for (var m in _mods) {
       var s = ASN1Sequence();
       // Fix for #21 - this should be an enum.
       s.add(ASN1Enumerated(m.operation));
       s.add(_encodeAttrTypeAndValues(m.attributeName, m.values));
       modSeq.add(s);
-    });
+    }
 
     seq.add(modSeq);
 
@@ -48,9 +48,9 @@ class ModifyRequest extends RequestOp {
     s.add(ASN1OctetString(attrName));
     // Fix for #21 - this should be a Set, not a Sequence
     var ss = ASN1Set();
-    values.forEach((v) {
+    for (var v in values) {
       ss.add(ASN1OctetString(v));
-    });
+    }
     s.add(ss);
     return s;
   }

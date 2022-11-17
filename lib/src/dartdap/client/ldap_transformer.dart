@@ -51,19 +51,19 @@ StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
       // todo: Would make sense to move this kind of logic into the asn1 package
       if (2 <= buf.length) {
         // Enough data for the start of the length field
-        var first_length_byte = buf[1]; // note: tag is at position 0
-        if (first_length_byte & 0x80 == 0) {
+        var firstLengthByte = buf[1]; // note: tag is at position 0
+        if (firstLengthByte & 0x80 == 0) {
           // Single byte length field
           length_size = 1;
-          value_size = first_length_byte & 0x7F;
+          value_size = firstLengthByte & 0x7F;
         } else {
           // Multi-byte length field
-          var num_length_bytes = (first_length_byte & 0x7F);
-          if (2 + num_length_bytes <= buf.length) {
+          var numLengthBytes = (firstLengthByte & 0x7F);
+          if (2 + numLengthBytes <= buf.length) {
             // Enough data for the entire length field
-            length_size = 1 + num_length_bytes;
+            length_size = 1 + numLengthBytes;
             value_size = 0;
-            for (var x = 2; x < num_length_bytes + 2; x++) {
+            for (var x = 2; x < numLengthBytes + 2; x++) {
               value_size = value_size! << 8;
               value_size |= buf[x] & 0xFF;
             }
@@ -74,9 +74,9 @@ StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
       if (value_size != null && (1 + length_size + value_size) <= buf.length) {
         // Got length and there is sufficient data for the complete ASN1 object
 
-        var message_size = (1 + length_size + value_size); // tag, length, data
+        var messageSize = (1 + length_size + value_size); // tag, length, data
 
-        loggerRecvBytes.finer(() => 'parsed ASN.1 object: $message_size bytes');
+        loggerRecvBytes.finer(() => 'parsed ASN.1 object: $messageSize bytes');
         loggerRecvAsn1.fine(
             () => 'ASN.1 object received: tag=${buf[0]}, length=$value_size');
         loggerRecvAsn1.finest(() =>
@@ -91,7 +91,7 @@ StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
         // Create LDAPMessage from all the bytes of the complete ASN1 object.
 
         var msg = LDAPMessage.fromBytes(buf);
-        assert(msg.messageLength == message_size);
+        assert(msg.messageLength == messageSize);
 
         // Put on output stream
 
@@ -102,12 +102,12 @@ StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
         // Update buf: discard the message's bytes and keep any remaining
         // bytes. If no bytes remain, set buf to null to exit the do-while processing loop.
 
-        if (buf.length == message_size) {
+        if (buf.length == messageSize) {
           // All bytes have been processed
           break;
         } else {
           // Still some bytes unprocessed: leave for next iteration of do-while loop
-          buf = Uint8List.view(buf.buffer, buf.offsetInBytes + message_size);
+          buf = Uint8List.view(buf.buffer, buf.offsetInBytes + messageSize);
         }
       } else {
         // Insufficient data for a complete ASN1 object.
@@ -136,10 +136,8 @@ StreamTransformer<Uint8List, LDAPMessage> createLdapTransformer() {
               'OSStatus = -9805: connection closed gracefully error -9805') {
         // Connection closed gracefully: ignore this, since it occurs
         // due to application deliberately closing the connection
-        loggerRecvBytes.finest('LDAP stream transformer: closed gracefully' +
-            ((leftover == null)
-                ? ''
-                : ': ${leftover?.length} bytes left over'));
+        loggerRecvBytes.finest(
+            'LDAP stream transformer: closed gracefully${(leftover == null) ? '' : ': ${leftover?.length} bytes left over'}');
         return;
       }
     }

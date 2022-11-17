@@ -1,18 +1,25 @@
 name: dartdap
-version: 0.6.3
+version: 0.6.5
 description: >
     LDAP v3 client library for Dart. Supports basic LDAP operations, add, delete, search, modify against
     any LDAP v3 compliant server.
 homepage: https://github.com/wstrange/dartdap
 environment:
-  sdk: '>=2.12.0  <3.0.0'
+  sdk: '>=2.18.0  <3.0.0'
+
 
 dependencies:
-  asn1lib: "^1.0.0"
+  asn1lib: "^1.4.0"
   logging: "^1.0.0"
-  petitparser: "^4.1.0"
+  petitparser: "^5.1.0"
   collection: "^1.15.0"
+
 dev_dependencies:
   test: "^1.16.2"
   yaml: "^3.0.0"
-  pedantic: "^1.11.0"
+  lints: ^2.0.1
+
+
+#dependency_overrides:
+#  asn1lib:
+#    path: ../asn1lib/

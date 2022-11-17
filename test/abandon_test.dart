@@ -7,7 +7,6 @@ import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 import 'util.dart' as util;
 
-
 void runTests(util.ConfigDirectory configDirectory) {
   late LdapConnection ldap;
 
@@ -27,9 +26,8 @@ void runTests(util.ConfigDirectory configDirectory) {
     await Future.delayed(Duration(seconds: 1));
   });
 
-
   test('Send periodic abandon requests to simulate keep-alive', () async {
-    for(var i=0; i < 5; ++i) {
+    for (var i = 0; i < 5; ++i) {
       await Future.delayed(Duration(seconds: 1));
       ldap.abandonRequest(messageId: 0);
     }
@@ -39,7 +37,7 @@ void runTests(util.ConfigDirectory configDirectory) {
     await ldap.close();
     await ldap.open();
 
-    for(var i=0; i < 5; ++i) {
+    for (var i = 0; i < 5; ++i) {
       await Future.delayed(Duration(seconds: 1));
       ldap.abandonRequest(messageId: 0);
     }

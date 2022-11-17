@@ -133,7 +133,9 @@ class VLVResponseControl extends Control {
     var x = (seq.elements.first as ASN1Sequence);
 
     // todo: confirm order of response
-    x.elements.forEach((e) => clogger.finest(' ${e.runtimeType}  $e'));
+    for (var e in x.elements) {
+      clogger.finest(' ${e.runtimeType}  $e');
+    }
     targetPosition = (x.elements[0] as ASN1Integer).intValue;
     contentCount = (x.elements[1] as ASN1Integer).intValue;
     extraParam = (x.elements[2] as ASN1Integer).intValue;

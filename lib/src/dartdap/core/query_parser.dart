@@ -86,13 +86,13 @@ class QueryParserDefinition extends QueryGrammarDefinition {
   // flatten the nested list - omitting the * token. See the substring() method
   List<String> _flatten(List each) {
     var s = <String>[];
-    each.forEach((val) {
+    for (var val in each) {
       if (val is List) {
         s.addAll(_flatten(val));
       } else if (val is String) {
         s.add(val);
       }
-    });
+    }
     return s;
   }
 
@@ -206,7 +206,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser _any() => STAR() & (ref0(value) & STAR()).star();
 
   //  attr       = AttributeDescription from Section 4.1.5 of [1]
-  Parser attr() => pattern('a-zA-Z0-9\-.').plus();
+  Parser attr() => pattern('a-zA-Z0-9-.').plus();
 
   // todo:
   //  matchingrule = MatchingRuleId from Section 4.1.9 of [1]

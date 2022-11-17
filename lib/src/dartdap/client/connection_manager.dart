@@ -162,9 +162,8 @@ class ConnectionManager {
   /// The actual TCP/IP connection is not established.
   ///
 
-  ConnectionManager(this._connection,
-      {SecurityContext? tlsSecurityContext})
-      : _context = tlsSecurityContext ;
+  ConnectionManager(this._connection, {SecurityContext? tlsSecurityContext})
+      : _context = tlsSecurityContext;
 
   //================================================================
   // Connecting
@@ -213,7 +212,8 @@ class ConnectionManager {
           // errorCode 61 = 'Connection refused'
           throw LdapSocketRefusedException(
               e, _connection.host, _connection.port);
-        } else if (e.osError?.errorCode == 8) {
+        }
+        if (e.osError?.errorCode == 8) {
           // errorCode 8 = 'nodename nor servname provided, or not known'
           throw LdapSocketServerNotFoundException(e, _connection.host);
         }
@@ -247,12 +247,12 @@ class ConnectionManager {
           'Got extended response ${rop.responseName} code=${rop.ldapResult.resultCode}');
     }
 
-    var pending_op = _pendingResponseMessages[m.messageId];
+    var pendingOp = _pendingResponseMessages[m.messageId];
 
     // If this is not true, the server sent us possibly
     // malformed LDAP. What should we do??
     // On disconnect / shutdown server seems to send messageId = 0, 0x78 EXTENDED_RESPONSE
-    if (pending_op == null) {
+    if (pendingOp == null) {
       var msg =
           'Server sent an unexpected message id = ${m.messageId} opCode=0x${m.protocolTag.toRadixString(16)}';
       loggerRecvLdap.severe(msg);
@@ -260,7 +260,7 @@ class ConnectionManager {
       return;
     }
 
-    if (pending_op.processResult(rop)) {
+    if (pendingOp.processResult(rop)) {
       // op is now complete. Remove it from pending q
       _pendingResponseMessages.remove(m.messageId);
     }

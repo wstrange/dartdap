@@ -42,7 +42,7 @@ Future main() async {
 
     var cookie = <int>[];
     if (results.controls.isNotEmpty) {
-      results.controls.forEach((control) {
+      for (var control in results.controls) {
         print('Control $control');
         if (control is SimplePagedResultsControl) {
           if (control.isEmptyCookie) {
@@ -51,7 +51,7 @@ Future main() async {
             cookie = control.cookie;
           }
         }
-      });
+      }
 
       // Update the control for the next page of results.
       // Note the DS server sets the returned page size to 0

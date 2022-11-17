@@ -142,9 +142,9 @@ class Filter {
       case Filter.TYPE_OR:
         assert(subFilters.isNotEmpty);
         var aset = ASN1Set(tag: filterType);
-        subFilters.forEach((Filter subf) {
+        for (var subf in subFilters) {
           aset.add(subf.toASN1());
-        });
+        }
         return aset;
 
       case Filter.TYPE_PRESENCE:
@@ -274,8 +274,9 @@ class SubstringFilter extends Filter {
       sSeq.add(ASN1OctetString(initial, tag: SubstringFilter.TYPE_SUBINITIAL));
     }
     if (any.isNotEmpty) {
-      any.forEach((v) =>
-          sSeq.add(ASN1OctetString(v, tag: SubstringFilter.TYPE_SUBANY)));
+      for (var v in any) {
+        sSeq.add(ASN1OctetString(v, tag: SubstringFilter.TYPE_SUBANY));
+      }
     }
     if (_final != null) {
       sSeq.add(
@@ -297,4 +298,8 @@ class SubstringFilter extends Filter {
       other._initial == _initial &&
       other._final == _final &&
       _eq(other._any, _any);
+
+  @override
+  int get hashCode =>
+      Object.hash(_filterType, _attributeName, _initial, _final, _any);
 }

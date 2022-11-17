@@ -83,7 +83,6 @@ String _op2String(int op) {
       return 'COMPARE_RESP';
     case ABANDON_REQUEST:
       return 'ABANDON_REQ';
-  // todo add more...
     default:
       return op.toRadixString(16);
   }

@@ -5,6 +5,7 @@
 /// [REPLACE] replaces an attribute value with a new value
 /// [INCREMENT] increments a numeric attribute value
 ///
+
 class Modification {
   static const int ADD = 0;
   static const int DELETE = 1;
@@ -50,12 +51,12 @@ class Modification {
   ///
   static List<Modification> modList(List modList) {
     var list = <Modification>[];
-    modList.forEach((x) {
+    for (var x in modList) {
       assert(x.length == 3);
       String op = x[0];
       var attr = x[1];
       var vals = x[2];
-      if (!(vals is List)) vals = [vals];
+      if (vals is! List) vals = [vals];
 
       switch (op) {
         case 'a':
@@ -71,7 +72,7 @@ class Modification {
           list.add(Modification.increment(attr, vals));
           break;
       }
-    });
+    }
     return list;
   }
 }

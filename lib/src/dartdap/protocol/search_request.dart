@@ -48,9 +48,9 @@ class SearchRequest extends RequestOp {
     var seq = _startSequence();
 
     var attrSet = ASN1Sequence();
-    _attributes.forEach((String attr) {
+    for (var attr in _attributes) {
       attrSet.add(ASN1OctetString(attr));
-    });
+    }
 
     seq
       ..add(ASN1OctetString(_baseDN))

@@ -42,53 +42,43 @@ void runTests(util.ConfigDirectory configDirectory) {
   test('socket reconnection test', () async {
     for (var i = 0; i < 5; ++i) {
       try {
-        var r = await pool.query(
-            configDirectory.testDN.dn, '(objectclass=*)',
+        var r = await pool.query(configDirectory.testDN.dn, '(objectclass=*)',
             ['objectclass', 'dn']);
         var ldapResult = await r.getLdapResult();
         var numResults = await r.stream.length;
         print('pass $i ldapResult = $ldapResult number results=$numResults\n');
         await Future.delayed(Duration(seconds: 5));
-      }
-      catch(e) {
+      } catch (e) {
         fail('Test failed with exception $e');
       }
     }
   }, timeout: Timeout(Duration(seconds: 400)));
 
-
-
   test('two connections test', () async {
-
     var c1 = await pool.getConnection(bind: true);
-    var c2 = await pool.getConnection(bind:true);
+    var c2 = await pool.getConnection(bind: true);
 
     for (var i = 0; i < 5; ++i) {
       try {
-        var r = await c1.query(
-            configDirectory.testDN.dn, '(objectclass=*)',
+        var r = await c1.query(configDirectory.testDN.dn, '(objectclass=*)',
             ['objectclass', 'dn']);
         var ldapResult = await r.getLdapResult();
         var numResults = await r.stream.length;
         print('c1 $i ldapResult = $ldapResult number results=$numResults\n');
 
-        r = await c2.query(
-            configDirectory.testDN.dn, '(objectclass=*)',
+        r = await c2.query(configDirectory.testDN.dn, '(objectclass=*)',
             ['objectclass', 'dn']);
         ldapResult = await r.getLdapResult();
         numResults = await r.stream.length;
         print('c2 $i ldapResult = $ldapResult number results=$numResults\n');
 
         await Future.delayed(Duration(seconds: 5));
-      }
-      catch(e) {
+      } catch (e) {
         fail('Test failed with exception $e');
-      }
-      finally {
+      } finally {
         await pool.releaseConnection(c1);
         await pool.releaseConnection(c2);
       }
     }
   }, timeout: Timeout(Duration(seconds: 400)));
-
 }

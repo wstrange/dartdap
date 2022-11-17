@@ -231,58 +231,58 @@ class Config {
               _filename, 'not map: "$_directoriesItem/$name"');
         }
 
-        const _itemHost = 'host';
-        const _itemPort = 'port';
-        const _itemSsl = 'ssl';
-        const _itemValidateCertificate = 'validate-certificate';
-        const _itemBindDn = 'bindDN';
-        const _itemPassword = 'password';
-        const _itemTestDn = 'testDN';
+        const itemHost = 'host';
+        const itemPort = 'port';
+        const itemSsl = 'ssl';
+        const itemValidateCertificate = 'validate-certificate';
+        const itemBindDn = 'bindDN';
+        const itemPassword = 'password';
+        const itemTestDn = 'testDN';
 
         if (strict) {
           // Check for unexpected items in the directory configuration
           for (final key in d.keys) {
             if (![
-              _itemHost,
-              _itemPort,
-              _itemSsl,
-              _itemValidateCertificate,
-              _itemBindDn,
-              _itemPassword,
-              _itemTestDn,
+              itemHost,
+              itemPort,
+              itemSsl,
+              itemValidateCertificate,
+              itemBindDn,
+              itemPassword,
+              itemTestDn,
             ].contains(key)) {
               // key is not one of the expected items
 
               final correctKey = {
-                'hostname': _itemHost,
-                'address': _itemHost,
-                'SSL': _itemSsl,
-                'TLS': _itemSsl,
-                'tls': _itemSsl,
-                'validate': _itemValidateCertificate,
-                'validatecert': _itemValidateCertificate,
-                'validateCert': _itemValidateCertificate,
-                'validate-cert': _itemValidateCertificate,
-                'validatecertificate': _itemValidateCertificate,
-                'validateCertificate': _itemValidateCertificate,
-                'verify': _itemValidateCertificate,
-                'verifycert': _itemValidateCertificate,
-                'verifyCert': _itemValidateCertificate,
-                'verify-cert': _itemValidateCertificate,
-                'verifycertificate': _itemValidateCertificate,
-                'verifyCertificate': _itemValidateCertificate,
-                'verify-certificate': _itemValidateCertificate,
-                'binddn': _itemBindDn,
-                'binddN': _itemBindDn,
-                'bindDn': _itemBindDn,
-                'passwd': _itemPassword,
-                'secret': _itemPassword,
-                'testdn': _itemTestDn,
-                'testDn': _itemTestDn,
-                'testdN': _itemTestDn,
-                'basedn': _itemTestDn, // Calling this item 'testDN', because
-                'baseDn': _itemTestDn, // 'baseDN' easily mistaken for 'bindDN'.
-                'basedN': _itemTestDn,
+                'hostname': itemHost,
+                'address': itemHost,
+                'SSL': itemSsl,
+                'TLS': itemSsl,
+                'tls': itemSsl,
+                'validate': itemValidateCertificate,
+                'validatecert': itemValidateCertificate,
+                'validateCert': itemValidateCertificate,
+                'validate-cert': itemValidateCertificate,
+                'validatecertificate': itemValidateCertificate,
+                'validateCertificate': itemValidateCertificate,
+                'verify': itemValidateCertificate,
+                'verifycert': itemValidateCertificate,
+                'verifyCert': itemValidateCertificate,
+                'verify-cert': itemValidateCertificate,
+                'verifycertificate': itemValidateCertificate,
+                'verifyCertificate': itemValidateCertificate,
+                'verify-certificate': itemValidateCertificate,
+                'binddn': itemBindDn,
+                'binddN': itemBindDn,
+                'bindDn': itemBindDn,
+                'passwd': itemPassword,
+                'secret': itemPassword,
+                'testdn': itemTestDn,
+                'testDn': itemTestDn,
+                'testdN': itemTestDn,
+                'basedn': itemTestDn, // Calling this item 'testDN', because
+                'baseDn': itemTestDn, // 'baseDN' easily mistaken for 'bindDN'.
+                'basedN': itemTestDn,
               }[key];
 
               final suggestion =
@@ -295,34 +295,34 @@ class Config {
 
         final dir = ConfigDirectory();
 
-        dir.host = _getString(d, name, _itemHost);
-        dir.ssl = _getBool(d, name, _itemSsl, defaultValue: false);
+        dir.host = _getString(d, name, itemHost);
+        dir.ssl = _getBool(d, name, itemSsl, defaultValue: false);
         dir.port =
-            _getInt(d, name, _itemPort, defaultValue: dir.ssl ? 636 : 389);
-        dir.bindDN = _getString(d, name, _itemBindDn);
-        dir.password = _getString(d, name, _itemPassword);
+            _getInt(d, name, itemPort, defaultValue: dir.ssl ? 636 : 389);
+        dir.bindDN = _getString(d, name, itemBindDn);
+        dir.password = _getString(d, name, itemPassword);
         dir.validateCertificate =
-            _getBool(d, name, _itemValidateCertificate, defaultValue: true);
+            _getBool(d, name, itemValidateCertificate, defaultValue: true);
 
-        final _base = _getString(d, name, _itemTestDn);
-        if (_base.isEmpty) {
+        final base = _getString(d, name, itemTestDn);
+        if (base.isEmpty) {
           throw ConfigFileException(
-              _filename, 'missing: "$_directoriesItem/$name/$_itemTestDn"');
+              _filename, 'missing: "$_directoriesItem/$name/$itemTestDn"');
         }
-        dir.testDN = DN(_base);
+        dir.testDN = DN(base);
 
         if (dir.host.isEmpty) {
           throw ConfigFileException(
-              _filename, 'missing: "$_directoriesItem/$name/$_itemHost"');
+              _filename, 'missing: "$_directoriesItem/$name/$itemHost"');
         }
         if (dir.port < 1 || 65535 < dir.port) {
           throw ConfigFileException(
-              _filename, 'out of range: "$_directoriesItem/$name/$_itemPort"');
+              _filename, 'out of range: "$_directoriesItem/$name/$itemPort"');
         }
 
         if (dir.bindDN.isEmpty || dir.password.isEmpty) {
           throw ConfigFileException(_filename,
-              '$_itemBindDn without $_itemPassword: "$_directoriesItem/$name"');
+              '$itemBindDn without $itemPassword: "$_directoriesItem/$name"');
         }
 
         // Store the directory configuration in the map
@@ -454,10 +454,10 @@ class Config {
 
   String _getString(YamlMap map, String name, String param,
       {String defaultValue = ''}) {
-    final _value = map[param];
-    if (_value is String) {
-      return _value;
-    } else if (_value == null) {
+    final value = map[param];
+    if (value is String) {
+      return value;
+    } else if (value == null) {
       return defaultValue;
     } else {
       throw ConfigFileException(
@@ -466,10 +466,10 @@ class Config {
   }
 
   int _getInt(YamlMap map, String name, String param, {int defaultValue = 0}) {
-    final _value = map[param];
-    if (_value is int) {
-      return _value;
-    } else if (_value == null) {
+    final value = map[param];
+    if (value is int) {
+      return value;
+    } else if (value == null) {
       return defaultValue;
     } else {
       throw ConfigFileException(_filename, 'value is not int: "$name/$param"');
@@ -478,10 +478,10 @@ class Config {
 
   bool _getBool(YamlMap map, String path, String param,
       {bool defaultValue = false}) {
-    final _value = map[param];
-    if (_value is bool) {
-      return _value;
-    } else if (_value == null) {
+    final value = map[param];
+    if (value is bool) {
+      return value;
+    } else if (value == null) {
       return defaultValue;
     } else {
       throw ConfigFileException(_filename, 'value is not bool: "$path/$param"');

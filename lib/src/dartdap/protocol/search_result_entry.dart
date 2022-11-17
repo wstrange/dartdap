@@ -36,7 +36,7 @@ class SearchResultEntry extends ResponseOp {
 
     _searchEntry = SearchEntry(dn);
 
-    seq.elements.forEach((attr) {
+    for (var attr in seq.elements) {
       var a = attr as ASN1Sequence;
       var attrName = a.elements[0] as ASN1OctetString;
 
@@ -48,7 +48,7 @@ class SearchResultEntry extends ResponseOp {
           Attribute(attrName.stringValue, valSet);
 
       loggerRecvLdap.finest('attribute: ${attrName.stringValue}=$valSet');
-    });
+    }
 
     // controls are optional.
     if (s.elements.length >= 3) {

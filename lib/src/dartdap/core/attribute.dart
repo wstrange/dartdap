@@ -67,4 +67,7 @@ class Attribute {
     });
     return newmap;
   }
+
+  @override
+  int get hashCode => Object.hash(_name, _values);
 }

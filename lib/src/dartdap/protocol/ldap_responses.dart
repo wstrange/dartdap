@@ -50,7 +50,7 @@ class ExtendedResponse extends ResponseOp {
   static const int TYPE_EXTENDED_RESPONSE_VALUE = 0x8B;
 
   ExtendedResponse(LDAPMessage m) : super(m) {
-    if( m.elements.length >= 3) {
+    if (m.elements.length >= 3) {
       responseName = _elementAsString(m.elements[2]);
     }
     // check for optional response
@@ -59,8 +59,8 @@ class ExtendedResponse extends ResponseOp {
     }
   }
 
-  String _elementAsString(ASN1Object _obj) {
-    var octets = ASN1OctetString.fromBytes(_obj.encodedBytes);
+  String _elementAsString(ASN1Object obj) {
+    var octets = ASN1OctetString.fromBytes(obj.encodedBytes);
     return octets.stringValue;
   }
 }

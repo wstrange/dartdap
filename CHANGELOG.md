@@ -1,4 +1,10 @@
 # Dartdap Change Log
+
+## 0.6.5 
+
+* Upgraded asn1 and petitparser dependencies
+* Upgraded to new dart linter. Applied lint rules.
+
 ## 0.6.3
 
 * Fixed ASN.1 tag encoding bug on modrdn new superior. #48

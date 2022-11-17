@@ -5,7 +5,7 @@ class LdapUtil {
   ///
   static String escapeString(String s) {
     var buf = StringBuffer();
-    s.codeUnits.forEach((c) {
+    for (var c in s.codeUnits) {
       switch (c) {
         case 0x2a: // *
         case 0x28: // )
@@ -19,7 +19,7 @@ class LdapUtil {
           buf.writeCharCode(c);
           break;
       }
-    });
+    }
 
     return buf.toString();
   }
@@ -29,10 +29,10 @@ class LdapUtil {
   static String toHexString(List<int> bytes) {
     var buf = StringBuffer();
 
-    bytes.forEach((b) {
+    for (var b in bytes) {
       buf.write(b.toRadixString(16));
       buf.write(' ');
-    });
+    }
     return buf.toString();
   }
 }
