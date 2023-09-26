@@ -1,5 +1,10 @@
 # Dartdap Change Log
 
+## 0.7.0
+
+* Fixed #56 (don't throw exception on unknown control)
+* Upgraded SDK and asn1 dependencies. 
+
 ## 0.6.5 
 
 * Upgraded asn1 and petitparser dependencies

@@ -51,12 +51,15 @@ abstract class Control {
     var controls = <Control>[];
 
     for (var control in obj.elements) {
-      controls.add(_parseControl(control as ASN1Sequence));
+      var c = _parseControl(control as ASN1Sequence);
+      if (c != null) {
+        controls.add(c);
+      }
     }
     return controls;
   }
 
-  static Control _parseControl(ASN1Sequence s) {
+  static Control? _parseControl(ASN1Sequence s) {
     var oid = (s.elements.first as ASN1OctetString).stringValue;
     clogger.finest('Got control $oid');
     switch (oid) {
@@ -69,8 +72,9 @@ abstract class Control {
         return SimplePagedResultsControl.fromASN1(
             s.elements[1] as ASN1OctetString);
       default:
-        throw Exception('Control $oid not implemented');
+        clogger.warning('Control $oid not implemented');
     }
+    return null;
   }
 
   // Some ldap controls wrap a sequence as an octet string.
