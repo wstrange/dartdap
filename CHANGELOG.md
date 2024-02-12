@@ -1,5 +1,9 @@
 # Dartdap Change Log
 
+## 0.7.1
+
+* Fixed paged search #58
+
 ## 0.7.0
 
 * Fixed #56 (don't throw exception on unknown control)

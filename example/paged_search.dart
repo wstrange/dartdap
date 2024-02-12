@@ -11,9 +11,13 @@ Future main() async {
   Logger.root.level = Level.INFO;
 
   var ldap = LdapConnection(
-      host: 'localhost', port: 1389, bindDN: 'uid=admin', password: 'password');
+      host: 'localhost',
+      port: 1389,
+      ssl: false,
+      bindDN: 'uid=admin',
+      password: 'password');
 
-  var baseDN = 'ou=people,ou=identities';
+  var baseDN = 'dc=example,dc=com';
   var attrs = ['dn', 'uid', 'sn'];
   var pageSize = 100;
 
@@ -25,25 +29,37 @@ Future main() async {
   var done = false;
   var count = 0;
 
+  await ldap.open();
+
   while (!done) {
+
     print('**** Query for $pageSize entries **** total count=$count');
+    late SearchResult results;
 
-    var results = await ldap
-        .query(baseDN, '(objectclass=*)', attrs, controls: [simplePaged, sss]);
+    try {
+      results = await ldap
+              .query(baseDN, '(objectclass=*)', attrs, controls: [simplePaged, sss]);
 
-    await for (var entry in results.stream) {
-      // uncomment if you want to see the entries. Slow...
-      print('Got entry ${entry.dn} attrs = ${entry.attributes}');
-      ++count;
+
+      await for (var entry in results.stream) {
+        // uncomment if you want to see the entries. Slow...
+        print('$count: Got entry ${entry.dn} attrs = ${entry.attributes}');
+        ++count;
+      }
+
+      //var sr = await results.getLdapResult();
+      //print('LDAP result: $sr');
+
+
+    } catch (e,s) {
+      print('LDAP search exception $e\n$s');
     }
-    var sr = await results.getLdapResult();
 
-    print('LDAP result: $sr');
 
     var cookie = <int>[];
     if (results.controls.isNotEmpty) {
       for (var control in results.controls) {
-        print('Control $control');
+        // print('Control $control');
         if (control is SimplePagedResultsControl) {
           if (control.isEmptyCookie) {
             done = true;
@@ -59,5 +75,9 @@ Future main() async {
     }
   }
 
-  await ldap.close();
+  try {
+    await ldap.close();
+  } catch (e) {
+    print(e);
+  }
 }

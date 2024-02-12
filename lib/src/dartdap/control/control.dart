@@ -81,7 +81,7 @@ abstract class Control {
   // this unwraps those back to a sequence.
   ASN1Sequence octetString2Sequence(ASN1OctetString s) {
     var bytes = s.encodedBytes;
-    bytes[0] = SEQUENCE_TYPE;
+    bytes[0] = SEQUENCE_TYPE | CONSTRUCTED_BIT;
     return ASN1Sequence.fromBytes(bytes);
   }
 

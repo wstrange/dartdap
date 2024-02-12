@@ -72,7 +72,7 @@ void runTests(util.ConfigDirectory configDirectory) {
         numResults = await r.stream.length;
         print('c2 $i ldapResult = $ldapResult number results=$numResults\n');
 
-        await Future.delayed(Duration(seconds: 5));
+        await Future.delayed(Duration(seconds: 3));
       } catch (e) {
         fail('Test failed with exception $e');
       } finally {
