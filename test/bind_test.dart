@@ -301,7 +301,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
       assert(false);
       expect(bad.state, equals(LdapConnectionState.closed));
     }, timeout: Timeout(Duration(seconds: 3))
-        // , skip: 'this never fails and the test timesout'
+        // , skip: 'this never fails and the test times out'
         );
     */
 
@@ -319,7 +319,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
         await bad.open();
         fail('should not get here');
       } on LdapSocketServerNotFoundException catch (e) {
-        // TODO: confirm behaviour and fix dartdap if necessary
+        // TODO: confirm behavior and fix dartdap if necessary
         //
         // Previously, LdapSocketRefusedException was expected and
         // LdapSocketServerNotFoundException was commented out.
@@ -334,7 +334,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
       }
     });
 
-    test('using LDAPS on non-existant host', () async {
+    test('using LDAPS on non-existent host', () async {
       var bad =
           LdapConnection(host: badHost, ssl: secure.ssl, port: secure.port);
 
@@ -342,7 +342,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
         await bad.open();
         expect(false, isTrue);
       } catch (e) {
-        // TODO:  confirm behaviour and fix dartdap if necessary (see above)
+        // TODO:  confirm behavior and fix dartdap if necessary (see above)
 
         expect(e, const TypeMatcher<LdapSocketServerNotFoundException>());
         //expect(e, const TypeMatcher<LdapSocketRefusedException>());
@@ -350,7 +350,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
       }
     });
 
-    test('using LDAP on non-existant port', () async {
+    test('using LDAP on non-existent port', () async {
       var bad =
           LdapConnection(host: normal.host, ssl: normal.ssl, port: badPort);
 
@@ -364,7 +364,7 @@ void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
       }
     });
 
-    test('using LDAPS on non-existant port', () async {
+    test('using LDAPS on non-existent port', () async {
       var bad =
           LdapConnection(host: secure.host, ssl: secure.ssl, port: badPort);
 

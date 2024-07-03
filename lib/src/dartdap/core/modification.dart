@@ -1,7 +1,7 @@
 /// An LDAP modification operation type.
 ///
 /// [ADD] adds a new value to an attribute.
-/// [DELETE] deletes a value from an attribute or delets the attribute
+/// [DELETE] deletes a value from an attribute or delete the attribute
 /// [REPLACE] replaces an attribute value with a new value
 /// [INCREMENT] increments a numeric attribute value
 ///

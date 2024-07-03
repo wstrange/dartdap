@@ -43,7 +43,7 @@ class _StreamPendingOp extends _PendingOp {
   late SearchResult _searchResult;
   SearchResult get searchResult => _searchResult;
 
-  _StreamPendingOp(LDAPMessage m) : super(m) {
+  _StreamPendingOp(super.m) {
     _searchResult = SearchResult(_controller.stream);
   }
 
@@ -91,7 +91,7 @@ class _StreamPendingOp extends _PendingOp {
 class _FuturePendingOp extends _PendingOp {
   var completer = Completer<LdapResult>();
 
-  _FuturePendingOp(LDAPMessage m) : super(m);
+  _FuturePendingOp(super.m);
 
   @override
   bool processResult(ResponseOp op) {
@@ -214,7 +214,7 @@ class ConnectionManager {
               e, _connection.host, _connection.port);
         }
         if (e.osError?.errorCode == 8) {
-          // errorCode 8 = 'nodename nor servname provided, or not known'
+          // errorCode 8 = 'nodename nor server name provided, or not known'
           throw LdapSocketServerNotFoundException(e, _connection.host);
         }
       }
@@ -234,13 +234,13 @@ class ConnectionManager {
 
   void _handleLDAPMessage(LDAPMessage m) {
     loggerRecvLdap.finest(
-        'pendign = $_pendingResponseMessages, outgoing = $_outgoingMessageQueue');
-    // call response handler to figure out what kind of resposnse
+        'pending = $_pendingResponseMessages, outgoing = $_outgoingMessageQueue');
+    // call response handler to figure out what kind of response
     // the message contains.
     var rop = ResponseHandler.handleResponse(m);
     // match it to a pending operation based on message id
     // todo: AN extended protocol op may not match an outstanding request
-    // hanndle this case
+    // handle this case
 
     if (rop is ExtendedResponse) {
       loggerRecvLdap.fine(
@@ -284,7 +284,7 @@ class ConnectionManager {
           throw LdapSocketRefusedException(
               error, _connection.host, _connection.port);
         } else if (error.osError?.errorCode == 8) {
-          // errorCode 8 = 'nodename nor servname provided, or not known'
+          // errorCode 8 = 'nodename nor server name provided, or not known'
           throw LdapSocketServerNotFoundException(error, _connection.host);
         }
       }
@@ -386,7 +386,7 @@ class ConnectionManager {
 
   // Call the [flush] method so we can use [catchError] to detect errors
   // Note: this is experimental. So far no errors/exceptions have been seen.
-  // TODO: Expiriment with non flush
+  // TODO: Experiment with non flush
   // try {
   //   _socket?.flush().then((v) {
   //     loggerSendBytes

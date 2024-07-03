@@ -1,3 +1,6 @@
+analyzer:
+  errors:
+    dangling_library_doc_comments: ignore
 include: package:lints/recommended.yaml
 
 # This package was created before these constant rules were best practice.

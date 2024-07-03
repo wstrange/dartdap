@@ -6,9 +6,9 @@
 /// A search result sort key as defined in RFC 2891 is used to specify how search
 /// result entries should be ordered. Sort keys are used with the server side
 /// sort request control
-/// {@link org.forgerock.opendj.ldap.controls.ServerSideSortRequestControl}, but
+/// org.forgerock.opendj.ldap.controls.ServerSideSortRequestControl, but
 /// could also be used for performing client side sorting as well.
-/// <p>
+///
 /// The following example illustrates how a single sort key may be used to sort
 /// entries as they are returned from a search operation using the {@code cn}
 /// attribute as the sort key:
@@ -31,6 +31,7 @@
 ///
 ///RFC 2891 - LDAP Control
 ///   Extension for Server Side Sorting of Search Results http:tools.ietf.org/html/rfc2891
+library;
 
 class SortKey {
   bool isReverseOrder;
@@ -47,5 +48,5 @@ class SortKey {
 
   @override
   String toString() =>
-      'SortKey($attributeDescription,isreverse=$isReverseOrder,matchingRule:$orderMatchingRule)';
+      'SortKey($attributeDescription,isReverse=$isReverseOrder,matchingRule:$orderMatchingRule)';
 }

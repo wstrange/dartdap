@@ -8,7 +8,7 @@ part of ldap_protocol;
 //              serverSaslCreds    [7] OCTET STRING OPTIONAL }
 
 class BindResponse extends ResponseOp {
-  BindResponse(LDAPMessage m) : super(m);
+  BindResponse(super.m);
 }
 
 /// Search result done
@@ -16,13 +16,13 @@ class BindResponse extends ResponseOp {
 ///    SearchResultDone ::= [APPLICATION 5] LDAPResult
 
 class SearchResultDone extends ResponseOp {
-  SearchResultDone(LDAPMessage m) : super(m);
+  SearchResultDone(super.m);
 }
 
 //  ModifyResponse ::= [APPLICATION 7] LDAPResult
 //
 class ModifyResponse extends ResponseOp {
-  ModifyResponse(LDAPMessage m) : super(m);
+  ModifyResponse(super.m);
 }
 
 /// A generic LDAP result.
@@ -33,7 +33,7 @@ class ModifyResponse extends ResponseOp {
 ///      CompareResponse ::= [APPLICATION 15] LDAPResult
 ///
 class GenericResponse extends ResponseOp {
-  GenericResponse(LDAPMessage m) : super(m);
+  GenericResponse(super.m);
 }
 
 // ExtendedResponse ::= [APPLICATION 24] SEQUENCE {

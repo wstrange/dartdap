@@ -20,7 +20,7 @@ import 'connection_info.dart';
 /// (if encountered when attempting to establish a TLS/SSL connection).
 /// The callback function should return true to accept the certificate (and
 /// the security consequences of doing so), or false to reject it. If no
-/// certificate callback is provided, the default behaviour is to throw
+/// certificate callback is provided, the default behavior is to throw
 /// the [LdapCertificateException] if a bad certificate is encountered.
 ///
 /// ## Connection management

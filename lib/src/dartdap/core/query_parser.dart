@@ -8,7 +8,7 @@ final _parser = _queryDefinition.build();
 
 Filter parseQuery(String input) {
   var result = _parser.parse(input);
-  if (result.isSuccess) {
+  if (result is Success) {
     return result.value;
   } else {
     throw LdapParseException(
