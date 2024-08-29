@@ -7,3 +7,5 @@ export 'query_parser.dart';
 export 'search_result.dart';
 export 'search_scope.dart';
 export 'ldap_util.dart';
+export 'dn.dart';
+export 'rdn.dart';

@@ -1,5 +1,9 @@
 # Dartdap Change Log
 
+## 0.7.3
+
+- WIP: Properly escape commas
+
 ## 0.7.2
 
 - Upgraded packages to support latest version

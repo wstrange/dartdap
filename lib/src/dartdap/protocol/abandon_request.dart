@@ -1,4 +1,4 @@
-part of ldap_protocol;
+part of 'ldap_protocol.dart';
 // Abandon an LDAP operation. The server may not honour this request.
 // A response is not expected.
 

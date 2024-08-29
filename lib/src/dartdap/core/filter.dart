@@ -85,7 +85,7 @@ class Filter {
   ///
   /// The [pattern] must be a [String] of the form 'attr=match', where _attr_ is
   /// the attribute name and _match_ is a value that has at least one `*`
-  /// character. There can be wildcard `*` chararcters at the beginning, middle
+  /// character. There can be wildcard `*` characters at the beginning, middle
   /// or end of _match_.
   ///
   /// The _match_ must not be a single `*` (e.g. 'foo=*' is not permitted). If

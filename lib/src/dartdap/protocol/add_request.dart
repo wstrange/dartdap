@@ -1,4 +1,4 @@
-part of ldap_protocol;
+part of 'ldap_protocol.dart';
 
 class AddRequest extends RequestOp {
   final String _dn; // dn of entry we are adding

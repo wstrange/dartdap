@@ -1,4 +1,4 @@
-part of ldap_protocol;
+part of 'ldap_protocol.dart';
 
 class BindRequest extends RequestOp {
   final String _bindDN;

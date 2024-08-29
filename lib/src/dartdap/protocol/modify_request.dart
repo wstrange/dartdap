@@ -1,4 +1,4 @@
-part of ldap_protocol;
+part of 'ldap_protocol.dart';
 
 /// LDAP Modify Request
 class ModifyRequest extends RequestOp {
