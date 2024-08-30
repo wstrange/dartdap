@@ -12,6 +12,7 @@
 ///
 ///
 
+import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 
@@ -20,10 +21,15 @@ import 'util.dart' as util;
 void main() {
   final config = util.Config();
   late LdapConnection ldap;
-  late DN branchDN;
-  late DN testPersonDN;
 
   setUp(() async {
+    Logger.root.onRecord.listen((LogRecord rec) {
+      print(
+          '${rec.time}: ${rec.loggerName}: ${rec.level.name}: ${rec.message}');
+    });
+
+    Logger.root.level = Level.INFO;
+
     var l = config.directory(util.noLdapsDirectoryName);
     ldap = l.getConnection();
 
@@ -67,22 +73,25 @@ void main() {
   test('search for role with escaped comma using equals', () async {
     // final userDN = 'cn=fred,ou=users,dc=example,dc=com';
     final userDN = r'cn=fred\2c smith,ou=users,dc=example,dc=com';
-
     final dn = 'cn=adminRole,dc=example,dc=com';
 
     final filter = Filter.equals("roleOccupant", userDN);
     var r = await ldap.search(dn, filter, []);
-    final foundIt = false;
+    var foundIt = false;
     await for (final e in r.stream) {
       print(e);
+      expect(e.dn, equals(dn));
+      foundIt = true;
     }
+    expect(foundIt, true);
   });
 
-  test('get role with an escapled query', () async {
+  test('get role with an escaped query', () async {
     // final userDN = 'cn=fred,ou=users,dc=example,dc=com';
-    final filter = r'(roleOccupant=fred\2c smith,ou=users,dc=example,dc=com)';
-
+    final filter =
+        r'(roleOccupant=cn=fred\5c, smith,ou=users,dc=example,dc=com)';
     final dn = 'cn=adminRole,dc=example,dc=com';
+
     var r = await ldap.query(dn, filter, ['cn', 'roleOccupant']);
     await for (final e in r.stream) {
       print(e);
@@ -98,5 +107,7 @@ void main() {
       'cn': r'fred\, smith',
       'sn': 'fred',
     });
+
+    expect(r.resultCode, equals(ResultCode.OK));
   });
 }

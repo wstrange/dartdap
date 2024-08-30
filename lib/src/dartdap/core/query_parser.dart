@@ -58,6 +58,18 @@ class QueryParserDefinition extends QueryGrammarDefinition {
         var operator = token.value as String;
         var attrName = each[0];
         var val = each[2];
+
+        // print('val = $val');
+
+        // todo: This is where we need to handle the escaping of the value
+        // convert \5c to \
+
+        // TODO FIXME - temp
+        if (val is String) {
+          val = val.replaceAll(r'\5c', r'\');
+          val = val.replaceAll(r'\,', r'\2c');
+          print('***** val = "$val"');
+        }
         switch (operator) {
           case '=':
             return Filter.equals(attrName, val);
@@ -206,7 +218,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser _any() => STAR() & (ref0(value) & STAR()).star();
 
   //  attr       = AttributeDescription from Section 4.1.5 of [1]
-  Parser attr() => pattern('a-zA-Z0-9-.').plus();
+  Parser attr() => pattern('a-zA-Z0-9.').plus();
 
   // todo:
   //  matchingrule = MatchingRuleId from Section 4.1.9 of [1]
@@ -216,5 +228,5 @@ class QueryGrammarDefinition extends GrammarDefinition {
   // See https://tools.ietf.org/html/rfc4512
   // Note: The petit pattern uses ^ to invert the match.
   // Works - but is not complete / correct.
-  Parser value() => pattern('a-zA-Z0-9-._\\').plus();
+  Parser value() => pattern(r'a-zA-Z0-9 \,=', 'attribte value').plus();
 }

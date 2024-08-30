@@ -345,7 +345,7 @@ class LdapConnection extends Ldap {
       {int scope = SearchScope.SUB_LEVEL,
       int sizeLimit = 0,
       List<Control> controls = const <Control>[]}) async {
-    loggerConnection.fine('search');
+    loggerConnection.fine('search filter=$filter, baseDN=$baseDN');
 
     return _cmgr.processSearch(
         SearchRequest(baseDN, filter, attributes, scope, sizeLimit), controls);
