@@ -11,8 +11,6 @@ class LdapUtil {
         case 0x28: // )
         case 0x29: // )
         case 0x00: // null
-          // Temporary fix for https://github.com/wstrange/dartdap/issues/60
-          // case 0x5c: // \
           buf.write('\\');
           buf.write(c.toRadixString(16));
           break;

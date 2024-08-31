@@ -27,8 +27,8 @@ class Filter {
   int get filterType => _filterType;
 
   // The assertion value for this filter.
-  final String? _assertionValue;
-  String? get assertionValue => _assertionValue;
+  final dynamic _assertionValue;
+  dynamic get assertionValue => _assertionValue;
   String? _attributeName;
   String? get attributeName => _attributeName;
 
@@ -64,7 +64,7 @@ class Filter {
       [this._attributeName, this._assertionValue, this._subFilters = const []]);
 
   /// Creates a [Filter] that matches an entry that has an attribute with the given value.
-  static Filter equals(String attributeName, String attrValue) =>
+  static Filter equals(String attributeName, dynamic attrValue) =>
       Filter(TYPE_EQUALITY, attributeName, attrValue);
 
   /// Creates a [Filter] that matches entries that matches all of the [filters].
@@ -135,7 +135,7 @@ class Filter {
       case Filter.TYPE_APPROXIMATE_MATCH:
         var seq = ASN1Sequence(tag: filterType);
         seq.add(ASN1OctetString(attributeName));
-        seq.add(ASN1OctetString(LdapUtil.escapeString(assertionValue!)));
+        seq.add(assertionValueAsOctetString);
         return seq;
 
       case Filter.TYPE_AND:
@@ -183,6 +183,13 @@ class Filter {
       _attributeName.hashCode ^
       _subFilters.hashCode ^
       _eq.hashCode;
+
+  ASN1OctetString get assertionValueAsOctetString {
+    if (_assertionValue is ASN1OctetString) {
+      return _assertionValue as ASN1OctetString;
+    }
+    return ASN1OctetString(LdapUtil.escapeString(_assertionValue!));
+  }
 }
 
 /// A Substring filter
