@@ -72,7 +72,6 @@ void main() {
     // clean up
     await ldap.delete(roleDN);
     await ldap.delete(fredDN);
-
     await ldap.close();
   });
 
