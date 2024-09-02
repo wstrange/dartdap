@@ -1,3 +1,4 @@
+import 'package:asn1lib/asn1lib.dart';
 import 'package:dartdap/dartdap.dart';
 import 'package:petitparser/petitparser.dart';
 
@@ -15,24 +16,9 @@ Filter parseQuery(String input) {
         'Cant parse filter \'$input\'. Error is ${result.message}');
   }
 }
-//
-// class QueryParser<Filter> extends GrammarParser {
-//   QueryParser() : super(QueryParserDefinition());
-//
-//   // Parse the rfc2254 search filter and and return a [Filter]
-//   // throws [LdapParseException] if the input can not be parsed.
-//   // TODO: Consider caching queries
-//   Filter getFilter(String input) {
-//     var result = parse(input);
-//
-//     if (result.isSuccess) {
-//       return result.value;
-//     } else {
-//       throw LdapParseException(
-//           'Cant parse filter \'$input\'. Error is ${result.message}');
-//     }
-//   }
-// }
+
+// Regex for a backslash followed by two hex digits
+final _regex = RegExp(r'\\([0-9a-fA-F]{2})');
 
 // The grammar turns the parsed stream into a Filter
 class QueryParserDefinition extends QueryGrammarDefinition {
@@ -58,6 +44,9 @@ class QueryParserDefinition extends QueryGrammarDefinition {
         var operator = token.value as String;
         var attrName = each[0];
         var val = each[2];
+
+        val = _toASN1OctetString(val);
+
         switch (operator) {
           case '=':
             return Filter.equals(attrName, val);
@@ -115,6 +104,16 @@ class QueryParserDefinition extends QueryGrammarDefinition {
             any: any,
             finalValue: finalVal);
       });
+
+  // Returns an ASN1OctetString.
+  ASN1OctetString _toASN1OctetString(String val) =>
+      ASN1OctetString(_decodeEscapedHex(val));
+
+  String _decodeEscapedHex(String input) {
+    return input.replaceAllMapped(_regex, (match) {
+      return String.fromCharCode(int.parse(match.group(1)!, radix: 16));
+    });
+  }
 }
 
 // Typedef to keep pedantic happy
@@ -206,7 +205,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser _any() => STAR() & (ref0(value) & STAR()).star();
 
   //  attr       = AttributeDescription from Section 4.1.5 of [1]
-  Parser attr() => pattern('a-zA-Z0-9-.').plus();
+  Parser attr() => pattern('a-zA-Z0-9.').plus();
 
   // todo:
   //  matchingrule = MatchingRuleId from Section 4.1.9 of [1]
@@ -216,5 +215,5 @@ class QueryGrammarDefinition extends GrammarDefinition {
   // See https://tools.ietf.org/html/rfc4512
   // Note: The petit pattern uses ^ to invert the match.
   // Works - but is not complete / correct.
-  Parser value() => pattern('a-zA-Z0-9-._\\').plus();
+  Parser value() => pattern(r'a-zA-Z0-9 \,=', 'attribte value').plus();
 }

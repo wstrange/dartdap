@@ -44,11 +44,11 @@ constructor.
 
 These properties of the connection can be changed from their defaults:
 
-- hostname (defaults to "localhost");
-- ssl: false is plain LDAP, true is LDAPS (LDAP  over SSL/TLS) (defaults to false);
-- port: port number (defaults to standard port for LDAP/LDAPS: 389 or 636);
-- bindDN: distinguished name for binding, null means unauthenticated (default is null);
-- password: password for binding.
+* hostname (defaults to "localhost");
+* ssl: false is plain LDAP, true is LDAPS (LDAP  over SSL/TLS) (defaults to false);
+* port: port number (defaults to standard port for LDAP/LDAPS: 389 or 636);
+* bindDN: distinguished name for binding, null means unauthenticated (default is null);
+* password: password for binding.
 
 These properties can be set using named parameters to the constructor,
 or with the `setProtocol` and `setAuthentication` methods.
@@ -64,7 +64,7 @@ using the "await for" syntax).
 
 The `SearchEntry` contains the entry's distinguished name and the
 attributes returned.
-The `dn` is a String. The `attributes` is a `Map` from the name of 
+The `dn` is a String. The `attributes` is a `Map` from the name of
 the attribute (a String) to an `Attribute`.
 
 An `Attribute` has a `values` member, which returns a `Set` of the
@@ -82,20 +82,19 @@ to ensure it gets closed even if an exception is thrown.
 The close method returns a Future, which completes when the
 connection is completely closed.
 
-
 ### Searching
 
-A search request returns a stream of SearchResults. 
+A search request returns a stream of SearchResults.
 
-There is *EXPERIMENTAL* support for search result references (referrals)
+There is _EXPERIMENTAL_ support for search result references (referrals)
 
 If SearchResult.referrals[] is not empty, it is an array of strings which are the DNs to repeat
 the search request. The SDK does not automatically follow referrals.
 
 There are two search methods:
-* `ldap.search` takes a dart `Filter` object. 
-* `ldap.query` takes an https://tools.ietf.org/html/rfc2254 string to construct the filter
 
+* `ldap.search` takes a dart `Filter` object.
+* `ldap.query` takes an <https://tools.ietf.org/html/rfc2254> string to construct the filter
 
 ### Adding entries
 
@@ -113,7 +112,7 @@ try {
 
 } on LdapException catch (e) {
   // some other problem
- 
+
 }
 ```
 
@@ -150,9 +149,9 @@ try {
   r = await ldap.compare("ou=Engineering,dc=example,dc=com",
                          "description", "Engineering Dept");
   if (r.resultCode == ResultCode.COMPARE_FALSE) {
-  
+
   } else if (r.resultCode == ResultCode.COMPARE_TRUE) {
-  
+
   } else {
     assert(false);
   }
@@ -183,14 +182,13 @@ responsible for performing any Bind() operations, handling any disconnects, or
 retrying on failure.
 
 As of 0.5.0, a protoype LdapConnectionPool() is provided that handles some of the
-these tasks. The pool implements the Ldap() interface, and will attempt to bind() 
-with the provided credentials, and will retry a connection if the server is not 
+these tasks. The pool implements the Ldap() interface, and will attempt to bind()
+with the provided credentials, and will retry a connection if the server is not
 available.
 
 The Connection pool is still experimental, and provides only basic functionality.
 
 See the documentation of `LdapConnection` and `LdapConnectionPool` for more details.
-
 
 ## Exceptions
 
@@ -198,7 +196,6 @@ Methods in the package throws exceptions which are subclasses
 of the `LdapException` abstract class.
 
 See the documentaiton of `LdapException` for more details.
-
 
 ## Logging
 
@@ -214,44 +211,44 @@ The following loggers are used:
 
 Logger: `ldap.control`
 
-- finest = parsing of controls
+* finest = parsing of controls
 
 Logger: `ldap.session`
 
-- warnings = certificate issues
-- fine = connections successfully established, and closing them
-- finer = details about attempts to establish a connection
+* warnings = certificate issues
+* fine = connections successfully established, and closing them
+* finer = details about attempts to establish a connection
 
 Logger: `ldap.send.ldap` for the LDAP messages sent.
 
-- fine = LDAP messages sent.
-- finest = details of LDAP message construction
+* fine = LDAP messages sent.
+* finest = details of LDAP message construction
 
 Logger: `ldap.send.bytes` for the raw bytes sent to the socket.
 Probably only useful when debugging the dartdap package.
 
-- severe = errors/exceptions when sending
-- fine = number of raw bytes sent
+* severe = errors/exceptions when sending
+* fine = number of raw bytes sent
 
 Logger: `ldap.recv.ldap` for the LDAP messages receive
 (i.e. received ASN.1 objects processed as LDAP messages).
 
-- fine = LDAP messages received.
-- finer = LDAP messages processing.
+* fine = LDAP messages received.
+* finer = LDAP messages processing.
 
 Logger: `ldap.recv.asn1` for the ASN.1 objects received (i.e. parsed
 from the raw bytes received). Probably only useful when debugging the
 dartdap package.
 
-- fine = ASN.1 messages successfully parsed from the raw bytes
-- finest = shows the actual bytes making up the value of the ASN.1 message
+* fine = ASN.1 messages successfully parsed from the raw bytes
+* finest = shows the actual bytes making up the value of the ASN.1 message
 
 Logger: `ldap.recv.bytes` for the raw bytes received from the
   socket.  Probably only useful when debugging the dartdap package.
 
-- fine = number of raw bytes read
-- finer = parsing activity of converting the bytes into ASN.1 objects
-- finest = shows the actual bytes received and the number in the buffer to parse
+* fine = number of raw bytes read
+* finer = parsing activity of converting the bytes into ASN.1 objects
+* finest = shows the actual bytes received and the number in the buffer to parse
 
 ### Logging Examples
 
@@ -306,7 +303,6 @@ from the package:
 new Logger("ldap").level = Level.OFF;
 ```
 
-
 ## Breaking changes
 
 ### 0.6.2
@@ -318,7 +314,7 @@ LdapConnectionPool has been refactored.
 * The library user is now responsible for waiting for all LDAP operations to complete before
 calling connection.close()
 
-### 0.5.0 
+### 0.5.0
 
 There are many breaking changes in 0.5.0. The most signifcant are:
 
@@ -335,7 +331,7 @@ See the [CHANGELOG.md](CHANGELOG.md)
 
 ### Version 0.1.x to 0.2.x
 
-- `LdapConnection` changed to support automatic
+* `LdapConnection` changed to support automatic
   connection/reconnections (and authentication when needed). This
   allows connections to be safely reused (i.e. kept open for later
   operations without having to re-open the connection). Previously,
@@ -347,51 +343,51 @@ See the [CHANGELOG.md](CHANGELOG.md)
   always expect LDAP operations could fail and to open a new
   connection if it fails (verbose and inelegant code).
 
-- The `search` method returns a _Future_ to a `SearchResult`.
+* The `search` method returns a _Future_ to a `SearchResult`.
   Previously, it returned the SearchResult synchronously.  This change
   was necessary because (with the introduction of automatic
   connections) a search could cause the connection to be opened, and
   bind request to be sent, before the search request is actually sent.
 
-- Renaming of other classes and methods to consistently follow the
+* Renaming of other classes and methods to consistently follow the
   Dart naming
   [conventions](https://www.dartlang.org/effective-dart/style/).  For
   example, `LDAPConnection` becomes `LdapConnection`, `LDAPResult`
   becomes `LdapResult`, `LDAPUtil` becomes `LdapUtil`.
 
-- Exception raised if a bad certificate is encountered when opening a
+* Exception raised if a bad certificate is encountered when opening a
   SSL/TLS connection. Provide a bad certificate handler function, if
   the application wants to override the default behaviour. Other than
   for testing, accepting bad certificates is a security risk: so, the
   default behaviour is the safer option.
 
-- Internal classes hidden from public interface
+* Internal classes hidden from public interface
   (e.g. `ConnectionManager`, `LDAPUtil`).
 
-- `LDAPConfiguration` removed.
+* `LDAPConfiguration` removed.
 
 ### Version 0.0.x to 0.1.x
 
-- Library is now called "dartdap" instead of "ldap_client".  There was
+* Library is now called "dartdap" instead of "ldap_client".  There was
   a disconnect in the naming: package X was imported, but only library
   Y was imported. That would have been ok if it had multiple
   libraries, but it currently only contains one publicly visible
   library. Also, many of the classes could apply an LDAP server too.
 
-- `LDAPException` renamed to `LdapException` to follow the Dart naming
+* `LDAPException` renamed to `LdapException` to follow the Dart naming
   [conventions](https://www.dartlang.org/effective-dart/style/).
 
-- New exception classed defined for all the LDAP result error
+* New exception classed defined for all the LDAP result error
   conditions. All LDAP operations now throws these new
   exceptions. Instead of checking the resultCode in the LDAPResult
   returned by the LDAP operations, catch the new exceptions.
 
-- `SocketException` exceptions are now being internally caught and
+* `SocketException` exceptions are now being internally caught and
   thrown as `LdapSocketException` objects. This make it easier to detect
   common failure conditions. Instead of catching `SocketException`,
   catch the new `LdapSocketException` or one of its subclasses.
 
-- `LDAPConfiguration` is deprecated. Programs should use whatever
+* `LDAPConfiguration` is deprecated. Programs should use whatever
   configuration mechanism they normally use (e.g. databases or
   configuration files) rather than having to use a special
   configuration mechanism only for dartdap (and still having
@@ -399,11 +395,11 @@ See the [CHANGELOG.md](CHANGELOG.md)
   program). It is also unsafe due to a race condition that could
   occur if multiple connections are being established.
 
-- Internal organisation of libraries/imports/exports have been
+* Internal organisation of libraries/imports/exports have been
   cleaned up. This should not be noticable by existing code,
   unless it was directly referencing those internal libraries
   or files.
 
 ## References
 
-https://tools.ietf.org/html/rfc4511
+<https://tools.ietf.org/html/rfc4511>

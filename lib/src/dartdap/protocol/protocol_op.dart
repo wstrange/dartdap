@@ -1,4 +1,4 @@
-part of ldap_protocol;
+part of 'ldap_protocol.dart';
 
 // todo: Do we need this base class. Really only applies to requests
 
@@ -16,7 +16,7 @@ class ProtocolOp {
 }
 
 abstract class RequestOp extends ProtocolOp {
-  RequestOp(int opcode) : super(opcode);
+  RequestOp(super.opcode);
 
   /// Subclasses must implement this method to convert their
   /// representation to an ASN1Sequence

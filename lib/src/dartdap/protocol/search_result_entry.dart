@@ -1,4 +1,4 @@
-part of ldap_protocol;
+part of 'ldap_protocol.dart';
 
 /// LDAP Search Entry represent a single search result item.
 ///

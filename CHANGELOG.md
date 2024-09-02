@@ -1,5 +1,9 @@
 # Dartdap Change Log
 
+## 0.7.3
+
+- #60 Properly escape commas in ldap search and query
+
 ## 0.7.2
 
 - Upgraded packages to support latest version
@@ -69,7 +73,7 @@ Fix #28
 
 ## 0.4.0-beta
 
-- New Feature: LDAP query parser. implements https://tools.ietf.org/html/rfc2254
+- New Feature: LDAP query parser. implements <https://tools.ietf.org/html/rfc2254>
   See [ldap.query](https://pub.dev/documentation/dartdap/latest/dartdap/LdapConnection/query.html)
 - Breaking change: The Filter.substring() constructor now specifies the attribute and patterns
   separately.
@@ -85,8 +89,8 @@ Fix #28
 
 ## 0.3.3
 
-- socket.destroy() https://github.com/wstrange/dartdap/issues/20
-- Experimental support for ldap search referrals: https://github.com/wstrange/dartdap/issues/19
+- socket.destroy() <https://github.com/wstrange/dartdap/issues/20>
+- Experimental support for ldap search referrals: <https://github.com/wstrange/dartdap/issues/19>
 
 ## 0.3.2
 

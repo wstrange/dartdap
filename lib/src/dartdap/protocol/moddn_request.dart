@@ -1,4 +1,4 @@
-part of ldap_protocol;
+part of 'ldap_protocol.dart';
 
 //
 // * Modify DN Request.

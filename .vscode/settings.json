@@ -2,9 +2,13 @@
     "cSpell.words": [
         "dartdap",
         "forgerock",
+        "LDAPDN",
         "LDAPS",
+        "newmap",
         "nodename",
         "petitparser",
+        "SUBINITIAL",
         "vals"
-    ]
+    ],
+    "cSpell.enabled": false
 }

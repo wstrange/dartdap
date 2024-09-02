@@ -1,4 +1,4 @@
-part of ldap_protocol;
+part of 'ldap_protocol.dart';
 
 //
 // * Envelope for LDAP message protocol exchange
