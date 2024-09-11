@@ -20,7 +20,12 @@ const ldapsDirectoryName = 'ldaps';
 
 /// Name of a directory configuration that must use LDAP (i.e. without TLS).
 
-const noLdapsDirectoryName = 'ldap';
+const ldapDirectoryName = 'ldap';
+
+LdapConnection defaultConnection() {
+  var c = Config();
+  return c.directory(Config.defaultDirectoryName).getConnection();
+}
 
 //################################################################
 /// Test configuration.

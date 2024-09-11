@@ -1,5 +1,9 @@
 # Dartdap Change Log
 
+## 0.7.4
+
+- #63 handle underscore _ in query
+
 ## 0.7.3
 
 - #60 Properly escape commas in ldap search and query

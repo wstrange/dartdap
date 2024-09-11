@@ -7,7 +7,7 @@
 import 'dart:async';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
-import 'util.dart' as util;
+import 'config.dart' as util;
 
 //----------------------------------------------------------------
 
@@ -233,7 +233,7 @@ void main() {
   final config = util.Config();
 
   group('tests over LDAPS', () {
-    var c = config.directory(util.ldapsDirectoryName);
+    var c = config.directory(util.ldapDirectoryName);
     runTests(c);
-  }, skip: config.skipIfMissingDirectory(util.ldapsDirectoryName));
+  }, skip: config.skipIfMissingDirectory(util.ldapDirectoryName));
 }

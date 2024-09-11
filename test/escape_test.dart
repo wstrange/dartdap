@@ -18,14 +18,14 @@ import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 
-import 'util.dart' as util;
+import 'config.dart' as util;
 
 void main() {
   final config = util.Config();
   late LdapConnection ldap;
 
-  final fredDNEscaped = r'cn=fred\2C smith,ou=users,dc=example,dc=com';
-  final fredDN = r'cn=fred\, smith,ou=users,dc=example,dc=com';
+  final fredDNEscaped = r'cn=fred\2C _smith,ou=users,dc=example,dc=com';
+  final fredDN = r'cn=fred\, _smith,ou=users,dc=example,dc=com';
   final roleDN = 'cn=adminRole,dc=example,dc=com';
 
   Logger.root.onRecord.listen((LogRecord rec) {
@@ -35,7 +35,7 @@ void main() {
   Logger.root.level = Level.INFO;
 
   setUpAll(() async {
-    var l = config.directory(util.noLdapsDirectoryName);
+    var l = config.directory(util.ldapDirectoryName);
     ldap = l.getConnection();
 
     await ldap.open();
@@ -99,7 +99,7 @@ void main() {
   test('get role with an escaped query', () async {
     // the backslash is escaped in the filter
     final filter =
-        r'(roleOccupant=cn=fred\5c, smith,ou=users,dc=example,dc=com)';
+        r'(roleOccupant=cn=fred\5c, _smith,ou=users,dc=example,dc=com)';
 
     var r = await ldap.query(roleDN, filter, ['cn', 'roleOccupant']);
     var foundIt = false;
@@ -112,7 +112,7 @@ void main() {
   });
 
   test('add user with a comma', () async {
-    final dn = r'cn=fred\, smith,ou=users,dc=example,dc=com';
+    final dn = r'cn=fred\, _smith,ou=users,dc=example,dc=com';
     await ldap.delete(dn);
 
     var r = await ldap.add(dn, {

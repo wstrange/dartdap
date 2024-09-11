@@ -1,13 +1,13 @@
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
-import 'util.dart' as util;
+import 'config.dart' as util;
 
 Future<void> main() async {
   final config = util.Config();
 
   group('Pool tests over LDAPS', () {
-    runTests(config.directory(util.ldapsDirectoryName));
-  }, skip: config.skipIfMissingDirectory(util.ldapsDirectoryName));
+    runTests(config.directory(util.ldapDirectoryName));
+  }, skip: config.skipIfMissingDirectory(util.ldapDirectoryName));
 }
 
 // Connection Pool tests

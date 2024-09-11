@@ -215,5 +215,5 @@ class QueryGrammarDefinition extends GrammarDefinition {
   // See https://tools.ietf.org/html/rfc4512
   // Note: The petit pattern uses ^ to invert the match.
   // Works - but is not complete / correct.
-  Parser value() => pattern(r'a-zA-Z0-9 \,=', 'attribte value').plus();
+  Parser value() => pattern(r'a-zA-Z0-9 \,=_', 'attribute value').plus();
 }

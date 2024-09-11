@@ -8,7 +8,7 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 
-import 'util.dart' as util;
+import 'config.dart' as util;
 
 //----------------------------------------------------------------
 
@@ -133,8 +133,8 @@ void main() async {
 
   // Get the configurations for the two types of connections
 
-  final normal = config.directory(util.noLdapsDirectoryName);
-  final secure = config.directory(util.ldapsDirectoryName);
+  final normal = config.directory(util.ldapDirectoryName);
+  final secure = config.directory(util.ldapDirectoryName);
 
   runTests(normal, secure);
 
@@ -152,9 +152,9 @@ void main() async {
 
 void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
   assert(!normal.ssl,
-      '${util.noLdapsDirectoryName} has TLS when it must be LDAP only');
+      '${util.ldapDirectoryName} has TLS when it must be LDAP only');
   assert(secure.ssl,
-      '${util.ldapsDirectoryName} without TLS when it must be LDAPS');
+      '${util.ldapDirectoryName} without TLS when it must be LDAPS');
 
   //================================================================
   group('connect succeeds', () {

@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:dartdap/dartdap.dart';
 import 'package:test/test.dart';
 
-import 'util.dart' as util;
+import 'config.dart' as util;
 
 Future<void> example(String host, int port, bool ssl, String bindDN,
     String password, DN testDN) async {

@@ -5,7 +5,7 @@
 import 'package:dartdap/dartdap.dart';
 import 'package:test/test.dart';
 
-import 'util.dart' as util;
+import 'config.dart' as util;
 
 //----------------------------------------------------------------
 

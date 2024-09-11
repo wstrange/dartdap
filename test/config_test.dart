@@ -9,7 +9,7 @@
 /// (even if it does not have a 'default' directory defined in it).
 
 import 'package:test/test.dart';
-import 'util.dart' as util;
+import 'config.dart' as util;
 
 //----------------------------------------------------------------
 /// Common tests that can be applied to any config file.
@@ -27,21 +27,20 @@ void commonTestsOnAnyConfig(util.Config c, {bool ignoreDirectories = true}) {
 
     // The secured LDAPS directory (if it is specified) must have TLS
 
-    test('directory: ${util.ldapsDirectoryName}', () {
-      final directoryConfig = c.directory(util.ldapsDirectoryName);
+    test('directory: ${util.ldapDirectoryName}', () {
+      final directoryConfig = c.directory(util.ldapDirectoryName);
 
       expect(directoryConfig.ssl, equals(true),
-          reason: 'TLS expected but not set: "${util.noLdapsDirectoryName}"');
-    }, skip: c.skipIfMissingDirectory(util.ldapsDirectoryName));
+          reason: 'TLS expected but not set: "${util.ldapDirectoryName}"');
+    }, skip: c.skipIfMissingDirectory(util.ldapDirectoryName));
 
     // The non-secured LDAP directory (if it is specified) must not have TLS
 
-    test('directory: ${util.noLdapsDirectoryName}', () {
-      final directoryConfig = c.directory(util.noLdapsDirectoryName);
+    test('directory: ${util.ldapDirectoryName}', () {
+      final directoryConfig = c.directory(util.ldapDirectoryName);
       expect(directoryConfig.ssl, equals(false),
-          reason:
-              'TLS not expected but is set): "${util.noLdapsDirectoryName}"');
-    }, skip: c.skipIfMissingDirectory(util.noLdapsDirectoryName));
+          reason: 'TLS not expected but is set): "${util.ldapDirectoryName}"');
+    }, skip: c.skipIfMissingDirectory(util.ldapDirectoryName));
   }
 }
 
@@ -84,8 +83,8 @@ void main() {
     test('does not specify any directories ', () {
       expect(c.hasDefaultDirectory, isFalse);
       expect(c.hasDirectory(util.Config.defaultDirectoryName), isFalse);
-      expect(c.hasDirectory(util.noLdapsDirectoryName), isFalse);
-      expect(c.hasDirectory(util.ldapsDirectoryName), isFalse);
+      expect(c.hasDirectory(util.ldapDirectoryName), isFalse);
+      expect(c.hasDirectory(util.ldapDirectoryName), isFalse);
       expect(c.directoryNames, isEmpty);
     });
   });
