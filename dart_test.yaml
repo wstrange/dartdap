@@ -1,3 +1,7 @@
 #on_platform:
 #  no_anon_ops:
 #    skip: "Directory does not support anonymous operations"
+
+tags:
+  unit: {}
+  integration: {}

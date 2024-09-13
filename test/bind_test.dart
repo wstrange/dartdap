@@ -136,26 +136,6 @@ void main() async {
   final normal = config.directory(util.ldapDirectoryName);
   final secure = config.directory(util.ldapDirectoryName);
 
-  runTests(normal, secure);
-
-  // TODO: Refactor bind tests to not require TLS.
-  // This will assist automated testing using a GH action / openldap -
-  // where TLS may not be easily configured.
-  //
-  // if (normal != null) {
-  //   // The tests need both LDAP (without TLS) and LDAPS (with TLS) directories
-  //   runTests(normal, secure);
-  // } else {
-  //   test('bind tests', () {}, skip: true); // to produce a skip message
-  // }
-}
-
-void runTests(util.ConfigDirectory normal, util.ConfigDirectory secure) {
-  assert(!normal.ssl,
-      '${util.ldapDirectoryName} has TLS when it must be LDAP only');
-  assert(secure.ssl,
-      '${util.ldapDirectoryName} without TLS when it must be LDAPS');
-
   //================================================================
   group('connect succeeds', () {
     group('anonymous', () {

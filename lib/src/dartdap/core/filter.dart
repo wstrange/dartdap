@@ -96,17 +96,17 @@ class Filter {
 
   /// Creates a [Filter] that matches an entry that contains the [attributeName]
   /// with a value that is greater than or equal to [attrValue].
-  static Filter greaterOrEquals(String attributeName, String attrValue) =>
+  static Filter greaterOrEquals(String attributeName, dynamic attrValue) =>
       Filter(TYPE_GREATER_OR_EQUAL, attributeName, attrValue);
 
   /// Creates a [Filter] that matches an entry that contains the [attributeName]
   /// with a value that is less than or equal to [attrValue].
-  static Filter lessOrEquals(String attributeName, String attrValue) =>
+  static Filter lessOrEquals(String attributeName, dynamic attrValue) =>
       Filter(TYPE_LESS_OR_EQUAL, attributeName, attrValue);
 
   /// Creates a [Filter] that matches an entry that contains the [attributeName]
   /// that approximately matches [attrValue].
-  static Filter approx(String attributeName, String attrValue) =>
+  static Filter approx(String attributeName, dynamic attrValue) =>
       Filter(TYPE_APPROXIMATE_MATCH, attributeName, attrValue);
 
   /// Operator version of the [and] filter factory method.
@@ -172,9 +172,17 @@ class Filter {
   bool operator ==(other) =>
       other is Filter &&
       other._filterType == _filterType &&
-      other._assertionValue == _assertionValue &&
+      _assertionValueEquals(other.assertionValue) &&
       other._attributeName == _attributeName &&
       _eq(other._subFilters, _subFilters);
+
+// Assertion value can be a string or an ASN1OctetString
+  bool _assertionValueEquals(Object? other) =>
+      other == _assertionValue ||
+      (other is String &&
+          _assertionValue is ASN1OctetString &&
+          ASN1OctetString(other) == _assertionValue) ||
+      (other is ASN1OctetString && ASN1OctetString(assertionValue) == other);
 
   @override
   int get hashCode =>

@@ -5,13 +5,13 @@
 import 'dart:async';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
-import 'config.dart' as util;
+import 'util.dart';
 
 void main() {
   late LdapConnection ldap;
 
   setUpAll(() async {
-    ldap = util.defaultConnection();
+    ldap = defaultConnection(ssl: true);
   });
 
   setUp(() async {

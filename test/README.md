@@ -13,21 +13,68 @@ To run all the tests:
 To run tests from a particular test file, specifying the path to the
 test file:
 
-    dart test test/util_test.dart
+    `dart test test/util_test.dart`
 
 To run a particular test in a particular test file, specify the path
 to the test file and the name of the test:
 
-    dart test test/util_test.dart --name 'config file: test/CONFIG-default.yaml missing directory behaviour'
+    `dart test test/util_test.dart --name 'config file: test/CONFIG-default.yaml missing directory behaviour'`
 
-### No setup
+## Running specific tests using tags
 
-Initially, the tests will load the default configuration file from
-"test/CONFIG-default.yaml". Since that configuration does not specify
-any LDAP directories to use, it will skip all the tests that require
-an LDAP directory.
+You can run unit tests that do not require a running LDAP server:
+
+`dart test -t unit`
+
 
 For more comprehensive testing, LDAP directories are required.
+
+
+## Test LDAP Server
+
+A sample OpenLDAP
+server instance using Docker is the simplest way to execute the test suite.
+
+Run the command:
+
+```
+cd test/etc
+./openldap.sh
+
+```
+
+The sample server supports both LDAP (1389) and LDAPS (1636). The server uses a dummy certificate, so
+you will want to use the bad certificate  handler in the `LDAPConnection` setup to ignore it.
+
+See `test/util.dart`.
+
+
+
+## Adding tests
+
+If  your test does not require a running LDAP server (i.e. it is a unit test), add this to the top of your
+test file:
+
+```dart
+@Tags(['unit'])
+library;
+```
+
+If your test is specialized to a specific type of directory, you may want to create a tag for it. For example,
+for ActiveDirectory:
+
+```
+@Tags(['AD'])
+library;
+```
+
+Then run your test using  `dart test -t AD`
+
+
+## Configuring the LDAP Connection
+
+The ldap connection is setup in `test/util.dart`.  The configuration options should be quite straightforward. The configuration provided
+works against the sample OpenLDAP server, and uses LDAPS on port 1636.
 
 ## LDAP directories
 
@@ -40,102 +87,6 @@ Use the default directory, whenever possible, to minimises the amount
 of setup work required to create a test environment. Reuse directory
 configurations whenever possible.
 
-#### Default
-
-Most of the tests require access to a default LDAP directory. A this
-is a LDAP directory that satisfies these requirements:
-
-- Allows BIND to a DN using a password.
-- Has an LDAP entry where the tests can create/delete child entries.
-
-The default directory has the name "default", which is available as
-the constant `Config.defaultDirectoryName`. But there are convenience
-methods available, so that constant is rarely used in code. See
-the documentation in _test/util.dart_ for details.
-
-Note: the default directory can use either LDAP or LDAPS.
-
-#### LDAPS
-
-Some of the tests require access to an LDAPS directory. In addition to
-the requirements for the default directory, connections to this
-directory *must* use LDAPS (i.e. LDAP over TLS).
-
-The LDAPS directory has the name "ldaps", which is available via the
-constant `ldapsDirectoryName` from _util.dart_.
-
-#### LDAP
-
-The BIND tests require access to an LDAP directory. In addition to
-the requirements for the default directory, connections to this
-directory *must* use LDAP (i.e. LDAP without TLS).
-
-The LDAP directory has the name "ldap", which is available via the
-constant `noLdapsDirectoryName` from _util.dart_.
-
-#### Other specialized test directories
-
-Tests with special requirements can also be supported.
-
-Since tests will be skipped if the necessary directory configuration
-is not available, these will only run if the tester has setup a test
-environment for it. So they will not prevent the other tests from
-being run in a different environment.
-
-An extreme example is the default configuration file, which does
-not specify any test directories.
-
-Use directory configuration names that identify the behaviour of the
-LDAP directory, rather how it is implementation.  For example, use
-avoid names like "openldap" or "active-directory", unless the tests
-are designed for implementation specific features of those products.
-
-### Deploying test directories
-
-Since _dartdap_ implements standard LDAP, it should work with any
-implementation of an LDAP directory.
-
-It is outside the scope of this document to describe how to setup a
-test LDAP directory in your test environment. But, for example, the
-_test/SETUP-openldap-centos.sh_ script can be used to deploy a
-standard test LDAP directory on CentOS 7 using OpenLDAP. Please
-consider writing scripts and documentation to help others setup test
-environments with with different LDAP implementations.
-
-## Configuration
-
-### File selection
-
-The tests attempt to load the configuration from a file named
-"test/CONFIG.yaml".  If that file does not exist, it will load the
-"test/CONFIG-default.yaml" file. So to override the default
-configuration, create a "test/CONFIG.yaml" file.
-
-The recommended practice is to create a separate file and make
-"test/CONFIG.yaml" a symbolic link (or shortcut) to it. That allows
-different configuration files to exist, and to change between them by
-changing the symlink.  Do not check-in the "test/CONFIG.yaml" file,
-otherwise it will prevent the default config file from being used by
-other testers until they have setup an LDAP directory that matches
-your environment. The _.gitignore_ file has entries for
-"test/CONFIG.yaml" to prevent it from being accidentally included in the
-source code repository.
-
-For example, the example "test/CONFIG-standard.yaml" configuration
-file assumes SSH port forwarding is used to connect to the LDAP
-directory. So it can be used like this on the local machine:
-
-    $ ln -s CONFIG-standard.yaml CONFIG.yaml
-    $ ssh -L 1389:localhost:389 -L 1636:localhost:636 username@testVM
-
-And the tests run from a different session on the local machine:
-
-    $ dart test
-
-### File contents
-
-The configuration files are YAML files with two items: directories and
-logging. Both of them are optional.
 
 #### Configuration of directories
 
@@ -157,27 +108,7 @@ of the logger and the value is the logging level. The value can either
 be a string value or an integer. See the
 [logging](https://pub.dev/packages/logging) package for more details.
 
-#### Example
 
-``` yaml
-# Example test configuration
-
-directories:
-  default:
-    host: server1.test.example.org
-	port: 636
-	ssl: true
-	validate-certificate: true
-	bindDN: cn=tester,ou=testing,dc=example,dc=com
-	password: secretSoDoNotCheckThisFileIn
-	testDN: ou=test,ou=dartdap,ou=testing,dc=example,dc=com
-  custom:
-    host: server2.test.example.org
-	port: 389
-	ssl: false
-	bindDN: cn=tester,ou=testing,dc=example,dc=com
-	password: secretSoDoNotCheckThisFileIn
-	testDN: ou=test,ou=dartdap,ou=testing,dc=example,dc=com
 
 logging:
   ldap.recv.asn1: FINE
@@ -210,7 +141,7 @@ void main() {
 
   group('tests', () {
     LdapConnection ldap;
-	
+
     setup(() async {
 	  ldap = config.defaultDirectory.connect();
 	});
