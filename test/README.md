@@ -1,5 +1,4 @@
-Testing dartdap
-===============
+# Testing dartdap
 
 ## Running tests
 
@@ -26,9 +25,7 @@ You can run unit tests that do not require a running LDAP server:
 
 `dart test -t unit`
 
-
 For more comprehensive testing, LDAP directories are required.
-
 
 ## Test LDAP Server
 
@@ -37,18 +34,15 @@ server instance using Docker is the simplest way to execute the test suite.
 
 Run the command:
 
-```
+```bash
 cd test/etc
 ./openldap.sh
-
 ```
 
 The sample server supports both LDAP (1389) and LDAPS (1636). The server uses a dummy certificate, so
 you will want to use the bad certificate  handler in the `LDAPConnection` setup to ignore it.
 
 See `test/util.dart`.
-
-
 
 ## Adding tests
 
@@ -70,7 +64,6 @@ library;
 
 Then run your test using  `dart test -t AD`
 
-
 ## Configuring the LDAP Connection
 
 The ldap connection is setup in `test/util.dart`.  The configuration options should be quite straightforward. The configuration provided
@@ -86,7 +79,6 @@ used.
 Use the default directory, whenever possible, to minimises the amount
 of setup work required to create a test environment. Reuse directory
 configurations whenever possible.
-
 
 #### Configuration of directories
 
@@ -108,8 +100,6 @@ of the logger and the value is the logging level. The value can either
 be a string value or an integer. See the
 [logging](https://pub.dev/packages/logging) package for more details.
 
-
-
 logging:
   ldap.recv.asn1: FINE
   ldap.recv.bytes: INFO
@@ -119,6 +109,7 @@ logging:
   ldap.send.ldap: INFO
   ldap.send: FINEST
   ldap: INFO
+
 ```
 
 ## Writing tests
@@ -143,16 +134,16 @@ void main() {
     LdapConnection ldap;
 
     setup(() async {
-	  ldap = config.defaultDirectory.connect();
-	});
+   ldap = config.defaultDirectory.connect();
+ });
 
     tearDown(() async {
-	  await ldap.close();
+   await ldap.close();
     });
 
     test("foobar", () async {
       ... use ldap ...
-	});
+ });
 
   }, skip: config.skipIfMissingDefaultDirectory);
 
@@ -176,7 +167,6 @@ tests to run without needing to modify the code. All test environment
 specific details should be specified in the configuration files.
 
 ## See also
-
 
 - [test](https://pub.dartlang.org/packages/test) package
 

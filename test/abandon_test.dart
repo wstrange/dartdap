@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
-import 'util.dart';
+import 'setup.dart';
 
 void main() {
   late LdapConnection ldap;
