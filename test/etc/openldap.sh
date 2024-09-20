@@ -14,12 +14,13 @@ docker run --rm --name openldap -it -p 1389:1389 -p 1636:1636 \
   --env LDAP_PASSWORDS=password \
   --env LDAP_ROOT=dc=example,dc=com \
   --env LDAP_ADMIN_DN=cn=admin,dc=example,dc=com \
+  --env LDAP_ADD_SCHEMA=yes \
   --env ALLOW_EMPTY_PASSWORD=yes \
   --env LDAP_ENABLE_TLS=yes \
   --env LDAP_TLS_CERT_FILE=/opt/bitnami/openldap/certs/cert.pem \
   --env LDAP_TLS_KEY_FILE=/opt/bitnami/openldap/certs/key.pem \
   --env LDAP_TLS_CA_FILE=/opt/bitnami/openldap/certs/cert.pem \
-  -v $SCRIPT_DIR/certs:/opt/bitnami/openldap/certs \
+  -v "$SCRIPT_DIR"/certs:/opt/bitnami/openldap/certs \
   bitnami/openldap:latest
 
 

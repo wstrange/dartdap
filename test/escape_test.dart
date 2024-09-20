@@ -13,83 +13,87 @@
 ///
 ///// This is tested against an OpenLDAP server
 ///
-
-import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
+import 'setup.dart';
 
-import 'config.dart' as util;
-
-void main() {
-  final config = util.Config();
+void main() async {
   late LdapConnection ldap;
 
+  // \2C is a comma
   final fredDNEscaped = r'cn=fred\2C _smith,ou=users,dc=example,dc=com';
   final fredDN = r'cn=fred\, _smith,ou=users,dc=example,dc=com';
   final roleDN = 'cn=adminRole,dc=example,dc=com';
-
-  Logger.root.onRecord.listen((LogRecord rec) {
-    print('${rec.time}: ${rec.loggerName}: ${rec.level.name}: ${rec.message}');
-  });
-
-  Logger.root.level = Level.INFO;
+  final fred = r'cn=fred, _smith,ou=users,dc=example,dc=com';
 
   setUpAll(() async {
-    var l = config.directory(util.ldapDirectoryName);
-    ldap = l.getConnection();
-
+    ldap = defaultConnection(ssl: true);
     await ldap.open();
-    await ldap.bind(
-        DN: config.defaultDirectory.bindDN,
-        password: config.defaultDirectory.password);
+    await ldap.bind();
+  });
 
-    try {
-      await ldap.delete(roleDN);
-      await ldap.delete(fredDN);
-    } catch (e) {
-      // ignore
-    }
+  setUp(() async {
+    await deleteIfNotExist(ldap, roleDN);
+    await deleteIfNotExist(ldap, fredDN);
 
     // Create the test user with a comma in the RDN
-    await ldap.add(fredDN, {
-      'objectClass': ['inetOrgPerson'],
-      'cn': r'fred\, smith',
-      'sn': 'fred',
-    });
 
-    // Create the test role with the above test user
-    await ldap.add(roleDN, {
-      'cn': 'adminRole',
-      'objectClass': ['top', 'organizationalRole'],
-      'roleOccupant': [
-        'cn=test,ou=users,dc=example,dc=com',
-        fredDNEscaped,
-      ],
-    });
+    try {
+      await ldap.add(fredDN, {
+        'objectClass': ['inetOrgPerson'],
+        'cn': r'fred\, smith',
+        'sn': 'fred',
+      });
+    } catch (e) {
+      // ignore
+      print('Ignored add person Exception: $e');
+    }
+
+    try {
+      // Create the test role with the above test user
+      await ldap.add(roleDN, {
+        'cn': 'adminRole',
+        'objectClass': ['organizationalRole'],
+        'roleOccupant': [
+          fredDNEscaped,
+          'cn=user1,ou=users,dc=example,dc=com',
+        ],
+      });
+    } catch (e) {
+      // ignore
+      print('Ignored add role Exception: $e');
+    }
+
+    // await debugSearch(ldap);
   });
 
-  tearDownAll(() async {
+  tearDown(() async {
     // clean up
-    await ldap.delete(roleDN);
-    await ldap.delete(fredDN);
-    await ldap.close();
+    // await deleteIfNotExist(ldap, roleDN);
+    // await deleteIfNotExist(ldap, fredDN);
   });
+
+  test('nada', () {});
 
   // just here for debugging. Normally skipped
   test('server query', () async {
-    var r = await ldap.query(
-        'dc=example,dc=com', '(objectclass=*)', ['cn', 'dn', 'objectClass']);
+    var r = await ldap.query('dc=example,dc=com', '(objectclass=*)',
+        ['cn', 'dn', 'objectClass', 'roleOccupant']);
     await for (final e in r.stream) {
-      print(e);
+      print('query: $e');
+      e.attributes.forEach((k, v) => print('  $k: $v'));
     }
-  }, skip: true);
+  });
 
   test('search for role with escaped comma using equals', () async {
     final filter = Filter.equals("roleOccupant", fredDNEscaped);
-    var r = await ldap.search(roleDN, filter, []);
+    //final filter = Filter.equals("roleOccupant", fredDN);
+    //final filter = Filter.equals("roleOccupant", fred);
+
+    var r = await ldap.search(roleDN, filter, ['cn', 'roleOccupant']);
     var foundIt = false;
     await for (final e in r.stream) {
-      print(e);
+      print('role matching: $e');
       expect(e.dn, equals(roleDN));
       foundIt = true;
     }

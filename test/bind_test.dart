@@ -298,14 +298,14 @@ void main() async {
     });
 
     test('using LDAP on non-existent port', () async {
-      var bad = LdapConnection(host: 'localhost  ', ssl: false, port: 6666);
+      var bad = LdapConnection(host: 'localhost', ssl: false, port: 6666);
 
       try {
         await bad.open();
         expect(false, isTrue);
       } on LdapSocketRefusedException catch (e) {
         expect(e.remoteServer, equals(normal.host));
-        expect(e.remotePort, equals(badPort));
+        expect(e.remotePort, equals(6666));
         expect(e.localPort, isNotNull);
       }
     });

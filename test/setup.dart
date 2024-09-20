@@ -52,3 +52,11 @@ Future<void> debugSearch(LdapConnection ldap) async {
     print('entry: $entry');
   }
 }
+
+Future<void> deleteIfNotExist(LdapConnection ldap, String dn) async {
+  try {
+    await ldap.delete(dn);
+  } catch (e) {
+    // ignore any exceptions
+  }
+}
