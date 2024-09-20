@@ -211,6 +211,7 @@ class LdapConnection extends Ldap {
   /// - [StateError] when the connection is currently open and the host, port,
   ///   or ssl is changed. Close the connection before making changes.
   ///
+  /// TODO: Create copyWith to copy the LdapConnection??
   LdapConnection(
       {String host = 'localhost',
       bool ssl = false,

@@ -1,5 +1,7 @@
-
 /// Utility for building DNs
+/// TOOD: Add DN validity checking. (see RFC 4514)
+/// TODO: Add DN escaping
+/// TODO: Change API to use DNs instead of Strings
 class DN {
   final String _dn;
 
@@ -12,4 +14,3 @@ class DN {
   @override
   String toString() => _dn;
 }
-

@@ -2,18 +2,13 @@
 //
 //----------------------------------------------------------------
 
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
+import 'package:test/test.dart';
 
-import 'config.dart' as util;
-
-//----------------------------------------------------------------
-
-var badHost = 'doesNotExist.example.com';
-var badPort = 10999; // there must not be anything listing on this port
+import 'setup.dart';
 
 /// Not all ldap servers allow anonymous search
 ///
@@ -22,6 +17,8 @@ var badPort = 10999; // there must not be anything listing on this port
 /// skipped. Set it to true to include those tests.
 
 var allowAnonymousSearch = true;
+
+final testDN = DN('dc=example,dc=com');
 
 //----------------------------------------------------------------
 
@@ -129,28 +126,17 @@ Future<void> _doBind(LdapConnection ldap, DN testDN) async {
 //----------------------------------------------------------------
 
 void main() async {
-  final config = util.Config();
-
   // Get the configurations for the two types of connections
 
-  final normal = config.directory(util.ldapDirectoryName);
-  final secure = config.directory(util.ldapDirectoryName);
+  final normal = defaultConnection(ssl: false);
+  final secure = defaultConnection(ssl: true);
 
   //================================================================
-  group('connect succeeds', () {
-    group('anonymous', () {
-      test('using LDAP', () async {
-        var ldap = LdapConnection(
-            host: normal.host, ssl: normal.ssl, port: normal.port);
-        await ldap.open();
-        // todo - what can we do with anonymous connections on all ldap servers
-      });
-
-      //----------------
-
+  group(
+    'connect succeeds',
+    () {
       test('close test', () async {
-        var ldap = LdapConnection(
-            host: normal.host, ssl: normal.ssl, port: normal.port);
+        var ldap = normal;
 
         expect(ldap.state, equals(ConnectionState.closed));
         expect(ldap.isBound, isFalse);
@@ -161,7 +147,7 @@ void main() async {
         expect(ldap.isBound, isFalse);
 
         // LDAP operations can be performed on an open connection
-        await doLdapOperation(ldap, normal.testDN);
+        await doLdapOperation(ldap, testDN);
 
         // Close the connection
 
@@ -174,11 +160,7 @@ void main() async {
       //----------------
 
       test('using LDAPS', () async {
-        var ldaps = LdapConnection(
-            host: secure.host,
-            ssl: secure.ssl,
-            port: secure.port,
-            badCertificateHandler: (X509Certificate _) => true);
+        var ldaps = secure;
         // Note: setting badCertificateHandler to accept test certificate
 
         expect(ldaps.state, equals(ConnectionState.closed));
@@ -193,7 +175,7 @@ void main() async {
 
         // LDAP operations can be performed on an open connection
 
-        await doLdapOperation(ldaps, normal.testDN);
+        await doLdapOperation(ldaps, testDN);
 
         // Close connection
 
@@ -202,34 +184,22 @@ void main() async {
         expect(ldaps.state, equals(ConnectionState.closed));
         expect(ldaps.isBound, isFalse);
       });
-    }, skip: !allowAnonymousSearch);
+    },
+  );
 
-    group('authenticated', () {
-      test('using LDAP', () async {
-        var ldap = LdapConnection(
-            host: normal.host,
-            ssl: normal.ssl,
-            port: normal.port,
-            bindDN: normal.bindDN,
-            password: normal.password);
+  group('authenticated', () {
+    test('using LDAP', () async {
+      var ldap = normal;
 
-        await _doBind(ldap, normal.testDN);
-      });
+      await _doBind(ldap, testDN);
+    });
 
-      //----------------
+    //----------------
 
-      test('using LDAPS', () async {
-        var ldaps = LdapConnection(
-            host: secure.host,
-            ssl: secure.ssl,
-            port: secure.port,
-            bindDN: normal.bindDN,
-            password: normal.password,
-            badCertificateHandler: (X509Certificate _) => true);
-        // Note: setting badCertificateHandler to accept test certificate
+    test('using LDAPS', () async {
+      var ldaps = secure;
 
-        await _doBind(ldaps, secure.testDN);
-      });
+      await _doBind(ldaps, testDN);
     });
   });
 
@@ -292,8 +262,7 @@ void main() async {
 
   group('TCP/IP socket fails', () {
     test('using LDAP on non-existant host', () async {
-      var bad =
-          LdapConnection(host: badHost, ssl: normal.ssl, port: normal.port);
+      var bad = LdapConnection(host: 'badHost', ssl: false, port: 1389);
 
       try {
         await bad.open();
@@ -310,14 +279,12 @@ void main() async {
         // LdapSocketRefusedException with a different setup?
 
         // expect(e, const TypeMatcher<LdapSocketRefusedException>());
-        expect(e.remoteServer, equals(badHost));
+        expect(e.remoteServer, equals('badHost'));
       }
     });
 
     test('using LDAPS on non-existent host', () async {
-      var bad =
-          LdapConnection(host: badHost, ssl: secure.ssl, port: secure.port);
-
+      var bad = LdapConnection(host: 'badHost', ssl: true, port: 1636);
       try {
         await bad.open();
         expect(false, isTrue);
@@ -331,8 +298,7 @@ void main() async {
     });
 
     test('using LDAP on non-existent port', () async {
-      var bad =
-          LdapConnection(host: normal.host, ssl: normal.ssl, port: badPort);
+      var bad = LdapConnection(host: 'localhost  ', ssl: false, port: 6666);
 
       try {
         await bad.open();
@@ -345,15 +311,14 @@ void main() async {
     });
 
     test('using LDAPS on non-existent port', () async {
-      var bad =
-          LdapConnection(host: secure.host, ssl: secure.ssl, port: badPort);
+      var bad = LdapConnection(host: 'localhost', ssl: true, port: 6666);
 
       try {
         await bad.open();
         expect(false, isTrue);
       } on LdapSocketRefusedException catch (e) {
         expect(e.remoteServer, equals(normal.host));
-        expect(e.remotePort, equals(badPort));
+        expect(e.remotePort, equals(6666));
         expect(e.localPort, isNotNull);
       }
     });
@@ -365,12 +330,7 @@ void main() async {
     //----------------
 
     test('Simple Bind', () async {
-      var ldap = LdapConnection(
-          host: normal.host,
-          ssl: normal.ssl,
-          port: normal.port,
-          bindDN: normal.bindDN,
-          password: normal.password);
+      var ldap = defaultConnection(ssl: false);
 
       expect(ldap.isBound, isFalse);
       expect(ldap.state, equals(ConnectionState.closed));
@@ -399,12 +359,13 @@ void main() async {
 
     //----------------
 
-    test('with bad DN fails', () async {
+    test('with bad credentialsfails', () async {
       var ldap = LdapConnection(
           bindDN: 'uid=badDN',
-          host: normal.host,
-          ssl: normal.ssl,
-          port: normal.port);
+          password: 'foo',
+          host: 'localhost',
+          ssl: false,
+          port: 1389);
 
       expect(ldap.isBound, isFalse);
       expect(ldap.state, equals(ConnectionState.closed));
@@ -416,33 +377,6 @@ void main() async {
       try {
         await ldap.bind();
         fail('Expected bad bind() credentials to throw an error');
-      } catch (e) {
-        expect(e, const TypeMatcher<LdapResultInvalidCredentialsException>());
-      }
-    });
-
-    //----------------
-
-    test('with bad password fails', () async {
-      var ldap = LdapConnection(
-          password: 'badPassword!!',
-          host: normal.host,
-          ssl: normal.ssl,
-          port: normal.port);
-
-      expect(ldap.isBound, isFalse);
-      expect(ldap.state, equals(ConnectionState.closed));
-
-      await ldap.open();
-
-      expect(ldap.isBound, isFalse);
-      expect(ldap.state, equals(ConnectionState.ready));
-
-      // Bind
-
-      try {
-        await ldap.bind();
-        fail('Expected bad password to throw an exception');
       } catch (e) {
         expect(e, const TypeMatcher<LdapResultInvalidCredentialsException>());
       }
