@@ -8,7 +8,7 @@ environment:
   sdk: ^3.0.0
 
 dependencies:
-  asn1lib: "^1.5.4"
+  asn1lib: "^1.5.5"
   logging: "^1.0.0"
   petitparser: ^6.0.2
   collection: "^1.18.0"

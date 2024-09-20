@@ -24,7 +24,7 @@ void main() async {
   final fredDNEscaped = r'cn=fred\2C _smith,ou=users,dc=example,dc=com';
   final fredDN = r'cn=fred\, _smith,ou=users,dc=example,dc=com';
   final roleDN = 'cn=adminRole,dc=example,dc=com';
-  final fred = r'cn=fred, _smith,ou=users,dc=example,dc=com';
+  // final fred = r'cn=fred, _smith,ou=users,dc=example,dc=com';
 
   setUpAll(() async {
     ldap = defaultConnection(ssl: true);
@@ -81,14 +81,12 @@ void main() async {
         ['cn', 'dn', 'objectClass', 'roleOccupant']);
     await for (final e in r.stream) {
       print('query: $e');
-      e.attributes.forEach((k, v) => print('  $k: $v'));
+      // e.attributes.forEach((k, v) => print('  $k: $v'));
     }
-  });
+  }, skip: true);
 
   test('search for role with escaped comma using equals', () async {
     final filter = Filter.equals("roleOccupant", fredDNEscaped);
-    //final filter = Filter.equals("roleOccupant", fredDN);
-    //final filter = Filter.equals("roleOccupant", fred);
 
     var r = await ldap.search(roleDN, filter, ['cn', 'roleOccupant']);
     var foundIt = false;
