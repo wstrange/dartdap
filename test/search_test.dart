@@ -7,7 +7,7 @@
 import 'dart:async';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
-import 'config.dart' as util;
+import 'setup.dart';
 
 //----------------------------------------------------------------
 
@@ -79,16 +79,16 @@ Future purgeEntries(LdapConnection ldap, DN testDN) async {
 
 //----------------------------------------------------------------
 
-void runTests(util.ConfigDirectory configDirectory) {
+void main() async {
   late LdapConnection ldap;
-  late DN testDN;
+  final testDN = DN('ou=People,dc=example,dc=com');
 
   //----------------
+  setUpAll(() async {
+    ldap = defaultConnection();
+  });
 
   setUp(() async {
-    testDN = configDirectory.testDN.concat('ou=People');
-
-    ldap = configDirectory.getConnection();
     await ldap.open();
     await ldap.bind();
     await purgeEntries(ldap, testDN);
@@ -115,8 +115,8 @@ void runTests(util.ConfigDirectory configDirectory) {
     await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 
-      util.expectSingleAttributeValue(entry, 'cn', 'user0');
-      util.expectSingleAttributeValue(entry, 'sn', 'User 0');
+      expectSingleAttributeValue(entry, 'cn', 'user0');
+      expectSingleAttributeValue(entry, 'sn', 'User 0');
 
       expect(entry.attributes.length, equals(2)); // no other attributes
 
@@ -139,8 +139,8 @@ void runTests(util.ConfigDirectory configDirectory) {
     await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 
-      util.expectSingleAttributeValue(entry, 'cn', 'user1');
-      util.expectSingleAttributeValue(entry, 'sn', 'User 1');
+      expectSingleAttributeValue(entry, 'cn', 'user1');
+      expectSingleAttributeValue(entry, 'sn', 'User 1');
 
       expect(entry.attributes.length, equals(2)); // no other attributes
 
@@ -164,8 +164,8 @@ void runTests(util.ConfigDirectory configDirectory) {
       expect(entry, isNotNull);
       expect(entry, const TypeMatcher<SearchEntry>());
 
-      util.expectSingleAttributeValueStartsWith(entry, 'cn', 'user');
-      util.expectSingleAttributeValueStartsWith(entry, 'sn', 'User');
+      expectSingleAttributeValueStartsWith(entry, 'cn', 'user');
+      expectSingleAttributeValueStartsWith(entry, 'sn', 'User');
 
       expect(entry.attributes.length, equals(2)); // no other attributes
 
@@ -188,7 +188,7 @@ void runTests(util.ConfigDirectory configDirectory) {
       expect(entry, isNotNull);
       expect(entry, const TypeMatcher<SearchEntry>());
 
-      util.expectSingleAttributeValueStartsWith(entry, 'cn', 'user');
+      expectSingleAttributeValueStartsWith(entry, 'cn', 'user');
       expect(entry.attributes.length, equals(1)); // no other attributes
 
       count++;
@@ -208,9 +208,7 @@ void runTests(util.ConfigDirectory configDirectory) {
 
     try {
       var searchResults = await ldap.search(
-          configDirectory.testDN.concat('ou=NoSuchEntry').dn,
-          filter,
-          searchAttrs);
+          testDN.concat('ou=NoSuchEntry').dn, filter, searchAttrs);
       // ignore: unused_local_variable
       await for (SearchEntry entry in searchResults.stream) {
         fail('Unexpected result from search under non-existant entry');
@@ -225,15 +223,4 @@ void runTests(util.ConfigDirectory configDirectory) {
     expect(count, equals(0), reason: 'Unexpected number of entries');
     expect(gotException, isTrue);
   });
-}
-
-//----------------------------------------------------------------
-
-void main() {
-  final config = util.Config();
-
-  group('tests over LDAPS', () {
-    var c = config.directory(util.ldapDirectoryName);
-    runTests(c);
-  }, skip: config.skipIfMissingDirectory(util.ldapDirectoryName));
 }
