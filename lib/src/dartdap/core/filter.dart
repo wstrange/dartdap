@@ -1,5 +1,4 @@
 import 'package:asn1lib/asn1lib.dart';
-import 'package:collection/collection.dart';
 import 'ldap_util.dart';
 import 'ldap_exception.dart';
 
@@ -166,31 +165,11 @@ class Filter {
     }
   }
 
-  final Function _eq = const ListEquality().equals;
+  @override
+  bool operator ==(other) => other is Filter && toASN1() == other.toASN1();
 
   @override
-  bool operator ==(other) =>
-      other is Filter &&
-      other._filterType == _filterType &&
-      _assertionValueEquals(other.assertionValue) &&
-      other._attributeName == _attributeName &&
-      _eq(other._subFilters, _subFilters);
-
-// Assertion value can be a string or an ASN1OctetString
-  bool _assertionValueEquals(Object? other) =>
-      other == _assertionValue ||
-      (other is String &&
-          _assertionValue is ASN1OctetString &&
-          ASN1OctetString(other) == _assertionValue) ||
-      (other is ASN1OctetString && ASN1OctetString(assertionValue) == other);
-
-  @override
-  int get hashCode =>
-      _filterType.hashCode ^
-      _assertionValue.hashCode ^
-      _attributeName.hashCode ^
-      _subFilters.hashCode ^
-      _eq.hashCode;
+  int get hashCode => toASN1().hashCode;
 
   ASN1OctetString get assertionValueAsOctetString {
     if (_assertionValue is ASN1OctetString) {
@@ -304,17 +283,4 @@ class SubstringFilter extends Filter {
   @override
   String toString() =>
       'SubstringFilter(initial=$_initial, _any, ${_final != null ? 'final $_final' : ""})';
-
-  @override
-  bool operator ==(other) =>
-      other is SubstringFilter &&
-      other._filterType == _filterType &&
-      other._attributeName == _attributeName &&
-      other._initial == _initial &&
-      other._final == _final &&
-      _eq(other._any, _any);
-
-  @override
-  int get hashCode =>
-      Object.hash(_filterType, _attributeName, _initial, _final, _any);
 }

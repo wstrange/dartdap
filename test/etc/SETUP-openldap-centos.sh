@@ -1,5 +1,7 @@
 #!/bin/sh
 #
+# NOT MAINTAINED - use at your own risk!
+#
 # Setup a standard dartdap test directory using OpenLDAP on CentOS.
 # See README.md for what a "standard" test directory is.
 #
@@ -119,7 +121,7 @@ $PROG: CentOS 8 with LDAPS (LDAP over TLS) is not supported.
      to run with LDAPS enabled.
 EOF
     exit 3  # TODO: add commands to configure TLS and remove this error
-    # Unlike CentOS 7's openldap-server package, installing Symas does not 
+    # Unlike CentOS 7's openldap-server package, installing Symas does not
     # generate a self-signed certificate and setup /etc/openldap/certs.
     # This script will have to do that and also configure OpenLDAP for TLS.
   fi
@@ -446,9 +448,9 @@ if [ "$TLS_SETUP" != 'none' ]; then
 # else
 #   # Disable TLS (actually this should be unnecessary, since the package
 #   # should have installed OpenLDAP without "ldaps://")
-# 
+#
 #   # Edit /etc/sysconfig/slapd to remove "ldaps:///" from SLAPD_URLS
-# 
+#
 #   sed --in-place=.bak \
 #       -e 's|^SLAPD_URLS=.*|SLAPD_URLS="ldapi:/// ldap:///"|' \
 #       /etc/sysconfig/slapd
