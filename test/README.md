@@ -2,12 +2,9 @@
 
 ## Running tests
 
-The _dartdap_ tests are implemented using the Dart
-[test](https://pub.dev/packages/test) package.
-
 To run all the tests:
 
-    dart test
+    `dart test`
 
 To run tests from a particular test file, specifying the path to the
 test file:
@@ -20,7 +17,7 @@ You can run unit tests that do not require a running LDAP server using:
 
 `dart test -t unit`
 
-For more comprehensive testing, LDAP directories are required.
+For more comprehensive testing, an LDAP server is required.
 
 ## Test LDAP Server
 
@@ -55,7 +52,7 @@ library;
 ```
 
 If your test is specialized to a specific type of directory, you may want to create a tag for it. For example,
-for ActiveDirectory:
+for ActiveDirectory you could use:
 
 ```dart
 @Tags(['AD'])
@@ -66,7 +63,5 @@ Then run your test using  `dart test -t AD`
 
 ## Logging
 
-Logging is configured in `setup.dart`. See the comments in the file for an example of
+Logging is configured in `setup.dart`. See the comments there for an example of
 using heirarichal logging and changing the log levels.
-
-
