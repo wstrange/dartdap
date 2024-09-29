@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+# For ForgeRock DS.
 
 # Creates the backend
 dsconfig create-backend \
@@ -10,7 +10,7 @@ dsconfig create-backend \
           --hostname Warrens-MacBook-Air.local \
           --port 4444 \
           --bindDn uid=admin \
-          --bindPassword ****** \
+          --bindPassword password \
           --trustAll \
           --no-prompt
 

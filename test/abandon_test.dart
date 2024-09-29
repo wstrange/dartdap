@@ -5,13 +5,16 @@
 import 'dart:async';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
-import 'util.dart' as util;
+import 'setup.dart';
 
-void runTests(util.ConfigDirectory configDirectory) {
+void main() {
   late LdapConnection ldap;
 
+  setUpAll(() async {
+    ldap = defaultConnection(ssl: true);
+  });
+
   setUp(() async {
-    ldap = configDirectory.getConnection();
     await ldap.open();
     await ldap.bind();
     // Nothing to populate, since these tests exercise the 'add' operation
@@ -42,12 +45,4 @@ void runTests(util.ConfigDirectory configDirectory) {
       ldap.abandonRequest(messageId: 0);
     }
   });
-}
-
-void main() {
-  final config = util.Config();
-
-  group('abandon test', () {
-    runTests(config.directory(util.ldapsDirectoryName));
-  }, skip: config.skipIfMissingDirectory(util.ldapsDirectoryName));
 }

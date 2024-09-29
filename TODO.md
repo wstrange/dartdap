@@ -4,12 +4,12 @@ Notes on things to improve, etc.
 
 ## Misc
 
-* Improve conciseness / usability of API
 * Paged search
 * VLV Search. See [https://tools.ietf.org/html/draft-ietf-ldapext-ldapv3-vlv-09]
 * An LDIF parser would be nice for creating integration test data
 * Do we need to implement flow control so the client does not overwhelm
   the server?
+* Type safety. Things like a DN should be Dart objects, not strings
 
 ## Connection Pooling
 

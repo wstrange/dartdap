@@ -41,7 +41,6 @@ class AddRequest extends RequestOp {
     });
 
     seq.add(attrSeq);
-
     return seq;
   }
 }

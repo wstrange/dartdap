@@ -4,8 +4,7 @@
 
 import 'package:dartdap/dartdap.dart';
 import 'package:test/test.dart';
-
-import 'util.dart' as util;
+import 'setup.dart';
 
 //----------------------------------------------------------------
 
@@ -15,27 +14,32 @@ const bool KEEP_ENTRIES_FOR_DEBUGGING = false;
 
 //----------------------------------------------------------------
 
-void runTests(util.ConfigDirectory directoryConfig) {
+final testDN = DN('dc=example,dc=com');
+
+void main() async {
+  late LdapConnection ldap;
   // Normally, unit tests open the LDAP connection in the [setUp]
   // and close the connection in the [tearDown] functions.
   // Since this integration test demonstrates how the LDAP package
   // is used in a real application, everything is done inside the
   // test instead of using setUp/tearDown functions.
 
+  setUpAll(() async {
+    ldap = defaultConnection();
+  });
   test('add/modify/search/delete', () async {
     //----------------
     // Create the connection (at the start of the test)
 
-    var ldap = directoryConfig.getConnection();
     await ldap.open();
     await ldap.bind();
 
     //----------------
     // The distinguished name is a String value
 
-    var engineeringDN = directoryConfig.testDN.concat('ou=Engineering').dn;
-    var salesDN = directoryConfig.testDN.concat('ou=Sales').dn;
-    var bisDevDN = directoryConfig.testDN.concat('ou=Business Development').dn;
+    var engineeringDN = testDN.concat('ou=Engineering').dn;
+    var salesDN = testDN.concat('ou=Sales').dn;
+    var bisDevDN = testDN.concat('ou=Business Development').dn;
     var supportDN = DN(engineeringDN).concat('ou=Support').dn;
 
     // For testing purposes, make sure entries do not exist before proceeding.
@@ -122,8 +126,7 @@ void runTests(util.ConfigDirectory directoryConfig) {
     // ou=Engineering
 
     var numFound = 0;
-    var searchResult =
-        await ldap.search(directoryConfig.testDN.dn, filter, queryAttrs);
+    var searchResult = await ldap.search(testDN.dn, filter, queryAttrs);
     await for (var entry in searchResult.stream) {
       expect(entry, const TypeMatcher<SearchEntry>());
       numFound++;
@@ -180,11 +183,3 @@ void runTests(util.ConfigDirectory directoryConfig) {
 }
 
 //----------------------------------------------------------------
-
-void main() {
-  final config = util.Config();
-
-  group('tests', () {
-    runTests(config.defaultDirectory);
-  }, skip: config.skipIfMissingDefaultDirectory);
-}

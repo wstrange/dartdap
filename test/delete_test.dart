@@ -8,8 +8,7 @@ import 'dart:async';
 
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
-
-import 'util.dart' as util;
+import 'setup.dart';
 
 //----------------------------------------------------------------
 
@@ -32,6 +31,8 @@ final testPersonAttrs = {
   'sn': testPersonSurname,
   'description': testPersonDescription
 };
+
+final testDN = DN('dc=example,dc=com');
 
 //----------------------------------------------------------------
 // Create entries needed for testing.
@@ -68,18 +69,21 @@ Future purgeEntries(LdapConnection ldap, DN branchDN, DN testPersonDN) async {
 
 //----------------------------------------------------------------
 
-void runTests(util.ConfigDirectory connection) {
+void main() {
   late LdapConnection ldap;
-  late DN testPersonDN;
   late DN branchDN;
+  late DN testPersonDN;
 
-  //----------------
+  setUpAll(() async {
+    ldap = defaultConnection();
+    branchDN = testDN.concat('ou=$branchOU');
+    testPersonDN = branchDN.concat('cn=$testPersonCN');
+  });
 
   setUp(() async {
-    branchDN = connection.testDN.concat('ou=$branchOU');
+    branchDN = testDN.concat('ou=$branchOU');
     testPersonDN = branchDN.concat('cn=$testPersonCN');
 
-    ldap = connection.getConnection();
     await ldap.open();
     await ldap.bind();
 
@@ -110,8 +114,7 @@ void runTests(util.ConfigDirectory connection) {
 
     var count = 0;
 
-    var searchResults =
-        await ldap.search(connection.testDN.dn, filter, searchAttrs);
+    var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
     await for (SearchEntry _ in searchResults.stream) {
       fail('Entry still exists after delete');
       // dead code
@@ -151,10 +154,3 @@ void runTests(util.ConfigDirectory connection) {
 
 //================================================================
 
-void main() {
-  final config = util.Config();
-
-  group('tests over LDAPS', () {
-    runTests(config.directory(util.ldapsDirectoryName));
-  }, skip: config.skipIfMissingDirectory(util.ldapsDirectoryName));
-}

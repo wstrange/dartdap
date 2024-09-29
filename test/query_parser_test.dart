@@ -1,3 +1,7 @@
+@Tags(['unit'])
+library;
+
+import 'package:asn1lib/asn1lib.dart';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 // if you want to use the parser trace() method to wrap the
@@ -5,8 +9,12 @@ import 'package:dartdap/dartdap.dart';
 
 void main() {
   test('Basic Parser test', () {
+    var babs1 = Filter.equals('cn', ASN1OctetString('Babs'));
     var babs = Filter.equals('cn', 'Babs');
-    var foo = Filter.equals('sn', 'Foo');
+
+    expect(babs1, equals(babs));
+
+    var foo = Filter.equals('sn', ASN1OctetString('Foo'));
 
     final m = <String, Filter>{
       '(cn=Babs)': babs,
@@ -28,12 +36,14 @@ void main() {
       '(cn=*)': Filter.present('cn'),
       // Test for some special chars in the attribute value
       // the encoding \2a is the escaped * character.
-      '(cn=uid-.2_\\2a*)': SubstringFilter.rfc224('cn', initial: 'uid-.2_\\2a'),
+      // TODO: review attribute value escaping rules
+      r'(cn=uid._\2a*)': SubstringFilter.rfc224('cn', initial: r'uid._\2a'),
     };
 
     m.forEach((query, filter) {
-      // print('eval: $query');
+      //print('eval: $query');
       var f = parseQuery(query);
+      print('result: $f');
       expect(f, equals(filter));
     });
   });

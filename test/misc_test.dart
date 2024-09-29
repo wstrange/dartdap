@@ -1,3 +1,6 @@
+@Tags(['unit'])
+library;
+
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 

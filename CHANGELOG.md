@@ -1,4 +1,15 @@
 # Dartdap Change Log
+## 0.7.6
+
+- Update asn1lib.
+
+## 0.7.5
+
+- Update asn1lib (fix for ASN1Object equals method which impacted ASN1Set)
+
+## 0.7.4
+
+- #63 handle underscore _ in query
 
 ## 0.7.3
 
