@@ -1,4 +1,7 @@
 # Dartdap Change Log
+## 0.7.6
+
+- Update asn1lib.
 
 ## 0.7.5
 
