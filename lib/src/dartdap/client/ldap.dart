@@ -81,8 +81,8 @@ abstract class Ldap {
   /// Modify the LDAP entry identified by [dn] to a new relative [rdn].
   /// If [deleteOldRDN] is true delete the old entry.
   /// If [newSuperior] is not null, re-parent the entry.
-  Future<LdapResult> modifyDN(DN dn, String rdn,
-      {bool deleteOldRDN = true, String? newSuperior});
+  Future<LdapResult> modifyDN(DN dn, DN rdn,
+      {bool deleteOldRDN = true, DN? newSuperior});
 
   //----------------------------------------------------------------
   /// Performs an LDAP search operation.
@@ -110,8 +110,7 @@ abstract class Ldap {
   ///       // entry.attributes = attributes returned (Map<String,Attribute>)
   ///     }
   /// ```
-  Future<SearchResult> search(
-      DN baseDN, Filter filter, List<String> attributes,
+  Future<SearchResult> search(DN baseDN, Filter filter, List<String> attributes,
       {int scope = SearchScope.SUB_LEVEL,
       int sizeLimit = 0,
       List<Control> controls = const <Control>[]});
@@ -119,8 +118,7 @@ abstract class Ldap {
   /// Like the [search] method, but the filter is constructed using the
   /// [query] string. See https://tools.ietf.org/html/rfc2254
   ///
-  Future<SearchResult> query(
-      DN baseDN, String query, List<String> attributes,
+  Future<SearchResult> query(DN baseDN, String query, List<String> attributes,
       {int scope = SearchScope.SUB_LEVEL,
       int sizeLimit = 0,
       List<Control> controls = const []}) {

@@ -1,4 +1,3 @@
-
 import 'package:dartdap/src/dartdap/protocol/ldap_protocol.dart';
 import '../../../dartdap.dart';
 import 'dart:async';
@@ -201,8 +200,8 @@ class LdapConnectionPool extends Ldap {
   }
 
   @override
-  Future<LdapResult> modifyDN(DN dn, String rdn,
-      {bool deleteOldRDN = true, String? newSuperior}) {
+  Future<LdapResult> modifyDN(DN dn, DN rdn,
+      {bool deleteOldRDN = true, DN? newSuperior}) {
     return _ldapFunction((LdapConnection c) {
       return c.modifyDN(dn, rdn,
           deleteOldRDN: deleteOldRDN, newSuperior: newSuperior);
@@ -210,8 +209,7 @@ class LdapConnectionPool extends Ldap {
   }
 
   @override
-  Future<SearchResult> search(
-      DN baseDN, Filter filter, List<String> attributes,
+  Future<SearchResult> search(DN baseDN, Filter filter, List<String> attributes,
       {int scope = SearchScope.SUB_LEVEL,
       int sizeLimit = 0,
       List<Control> controls = const <Control>[]}) async {

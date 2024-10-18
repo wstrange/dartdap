@@ -371,8 +371,8 @@ class LdapConnection extends Ldap {
   }
 
   @override
-  Future<LdapResult> modifyDN(DN dn, String rdn,
-      {bool deleteOldRDN = true, String? newSuperior}) async {
+  Future<LdapResult> modifyDN(DN dn, DN rdn,
+      {bool deleteOldRDN = true, DN? newSuperior}) async {
     loggerConnection.fine('modifyDN');
     return await _cmgr
         .process(ModDNRequest(dn, rdn, deleteOldRDN, newSuperior));

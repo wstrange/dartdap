@@ -88,7 +88,7 @@ void main() async {
         It always moves the entry - and does not leave the old one
      */
 
-    var tmpRDN = 'ou=Business Development';
+    var tmpRDN = DN('ou=Business Development');
     var r = await ldap.modifyDN(
         salesDN, tmpRDN); // rename 'Sales' to 'Business Development'
     expect(r.resultCode, equals(0), reason: 'Could not rename sales entry');
