@@ -31,7 +31,7 @@ abstract class Ldap {
   ///
   /// [LdapResultEntryAlreadyExistsException] thrown when the entry to add
   /// already exists.
-  Future<LdapResult> add(String dn, Map<String, dynamic> attrs);
+  Future<LdapResult> add(DN dn, Map<String, dynamic> attrs);
 
   //----------------------------------------------------------------
   /// Performs an LDAP BIND operation.
@@ -42,7 +42,7 @@ abstract class Ldap {
   /// operations.
   ///
   /// Returns a Future containing the result of the BIND operation.
-  Future<LdapResult> bind({String? DN, String? password});
+  Future<LdapResult> bind({DN? DN, String? password});
 
   //----------------------------------------------------------------
   /// Performs an LDAP compare operation.
@@ -52,7 +52,7 @@ abstract class Ldap {
   ///
   /// The completed [LdapResult] will have a value of [ResultCode.COMPARE_TRUE]
   /// or [ResultCode.COMPARE_FALSE].
-  Future<LdapResult> compare(String dn, String attrName, String attrValue);
+  Future<LdapResult> compare(DN dn, String attrName, String attrValue);
   //----------------------------------------------------------------
   /// Performs an LDAP delete operation.
   ///
@@ -62,7 +62,7 @@ abstract class Ldap {
   ///
   /// [LdapResultNoSuchObjectException] thrown when the entry to delete did
   /// not exist.
-  Future<LdapResult> delete(String dn);
+  Future<LdapResult> delete(DN dn);
 
   //----------------------------------------------------------------
   /// Performs an LDAP modify operation.
@@ -73,7 +73,7 @@ abstract class Ldap {
   ///
   /// [LdapResultObjectClassViolationException] thrown when the change would
   /// cause the entry to violate LDAP schema rules.
-  Future<LdapResult> modify(String dn, List<Modification> mods);
+  Future<LdapResult> modify(DN dn, List<Modification> mods);
 
   //----------------------------------------------------------------
   /// Performs an LDAP modifyDN operation.
@@ -81,7 +81,7 @@ abstract class Ldap {
   /// Modify the LDAP entry identified by [dn] to a new relative [rdn].
   /// If [deleteOldRDN] is true delete the old entry.
   /// If [newSuperior] is not null, re-parent the entry.
-  Future<LdapResult> modifyDN(String dn, String rdn,
+  Future<LdapResult> modifyDN(DN dn, String rdn,
       {bool deleteOldRDN = true, String? newSuperior});
 
   //----------------------------------------------------------------
@@ -111,7 +111,7 @@ abstract class Ldap {
   ///     }
   /// ```
   Future<SearchResult> search(
-      String baseDN, Filter filter, List<String> attributes,
+      DN baseDN, Filter filter, List<String> attributes,
       {int scope = SearchScope.SUB_LEVEL,
       int sizeLimit = 0,
       List<Control> controls = const <Control>[]});
@@ -120,7 +120,7 @@ abstract class Ldap {
   /// [query] string. See https://tools.ietf.org/html/rfc2254
   ///
   Future<SearchResult> query(
-      String baseDN, String query, List<String> attributes,
+      DN baseDN, String query, List<String> attributes,
       {int scope = SearchScope.SUB_LEVEL,
       int sizeLimit = 0,
       List<Control> controls = const []}) {

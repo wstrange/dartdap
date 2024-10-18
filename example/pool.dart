@@ -4,7 +4,7 @@ import 'package:dartdap/dartdap.dart';
 import 'package:logging/logging.dart';
 
 final adminPassword = 'password';
-final ou = 'dc=example,dc=com';
+final ou = DN('dc=example,dc=com');
 
 /// A sample showing the use of the connection pool
 ///
@@ -23,7 +23,7 @@ Future<void> example() async {
   // Create a prototype connection
   var connection = LdapConnection(
       port: 1636,
-      bindDN: 'uid=admin',
+      bindDN: DN('uid=admin'),
       password: adminPassword,
       ssl: true,
       badCertificateHandler: (cert) => true);
@@ -42,8 +42,8 @@ Future<void> example() async {
     await printResults(searchResult);
 
     // Try search on a bad DN
-    searchResult = await pool.search('ou=FooXXX', filter, ['dn', 'objectclass'],
-        sizeLimit: 5);
+    searchResult = await pool
+        .search(DN('ou=FooXXX'), filter, ['dn', 'objectclass'], sizeLimit: 5);
     await printResults(searchResult);
   } catch (e) {
     print('Exception --->$e  ${e.runtimeType}');

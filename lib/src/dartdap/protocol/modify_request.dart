@@ -2,7 +2,7 @@ part of 'ldap_protocol.dart';
 
 /// LDAP Modify Request
 class ModifyRequest extends RequestOp {
-  final String _dn; // dn of entry we are adding
+  final DN _dn; // dn of entry we are adding
   final List<Modification> _mods; // modifications to make
 
   ModifyRequest(this._dn, this._mods) : super(MODIFY_REQUEST);

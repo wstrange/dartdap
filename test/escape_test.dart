@@ -22,8 +22,8 @@ void main() async {
 
   // \2C is a comma
   final fredDNEscaped = r'cn=fred\2C _smith,ou=users,dc=example,dc=com';
-  final fredDN = r'cn=fred\, _smith,ou=users,dc=example,dc=com';
-  final roleDN = 'cn=adminRole,dc=example,dc=com';
+  final fredDN = DN(r'cn=fred\, _smith,ou=users,dc=example,dc=com');
+  final roleDN = DN('cn=adminRole,dc=example,dc=com');
   // final fred = r'cn=fred, _smith,ou=users,dc=example,dc=com';
 
   setUpAll(() async {
@@ -77,7 +77,7 @@ void main() async {
 
   // just here for debugging. Normally skipped
   test('server query', () async {
-    var r = await ldap.query('dc=example,dc=com', '(objectclass=*)',
+    var r = await ldap.query(DN('dc=example,dc=com'), '(objectclass=*)',
         ['cn', 'dn', 'objectClass', 'roleOccupant']);
     await for (final e in r.stream) {
       print('query: $e');
@@ -92,7 +92,7 @@ void main() async {
     var foundIt = false;
     await for (final e in r.stream) {
       print('role matching: $e');
-      expect(e.dn, equals(roleDN));
+      expect(e, equals(roleDN));
       foundIt = true;
     }
     expect(foundIt, true);
@@ -106,7 +106,7 @@ void main() async {
     var r = await ldap.query(roleDN, filter, ['cn', 'roleOccupant']);
     var foundIt = false;
     await for (final e in r.stream) {
-      expect(e.dn, equals(roleDN));
+      expect(e, equals(roleDN));
       foundIt = true;
       print(e);
     }
@@ -114,7 +114,7 @@ void main() async {
   });
 
   test('add user with a comma', () async {
-    final dn = r'cn=fred\, _smith,ou=users,dc=example,dc=com';
+    final dn = DN(r'cn=fred\, _smith,ou=users,dc=example,dc=com');
     await ldap.delete(dn);
 
     var r = await ldap.add(dn, {

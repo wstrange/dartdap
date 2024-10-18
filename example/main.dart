@@ -13,13 +13,13 @@ Future<void> main() async {
   await example();
 }
 
-var base = 'dc=example,dc=com';
+var base = DN('dc=example,dc=com');
 var filter = Filter.present('objectClass');
 var attrs = ['dn', 'objectclass'];
 
 Future example() async {
   var host = 'localhost';
-  var bindDN = 'uid=admin';
+  var bindDN = DN('uid=admin');
   var password = 'password';
 
   var connection = LdapConnection(

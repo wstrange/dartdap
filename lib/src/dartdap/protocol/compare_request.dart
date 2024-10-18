@@ -7,7 +7,7 @@ part of 'ldap_protocol.dart';
 //                 ava             AttributeValueAssertion }
 
 class CompareRequest extends RequestOp {
-  final String _dn;
+  final DN _dn;
   final String _attrName;
   final dynamic _attrValue;
 

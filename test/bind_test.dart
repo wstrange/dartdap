@@ -34,13 +34,13 @@ FutureOr<void> doLdapOperation(LdapConnection ldap, DN testDN) async {
   // This search actually should not find any results, but that doesn't matter
 
   var searchResults =
-      await ldap.search(testDN.dn, filter, searchAttrs, sizeLimit: 100);
+      await ldap.search(testDN, filter, searchAttrs, sizeLimit: 100);
   var ldapResult = await searchResults.getLdapResult();
   print('bound = ${ldap.isBound}  ssl= ${ldap.isSSL} $ldapResult');
   await for (SearchEntry entry in searchResults.stream) {
     expect(entry, isNotNull);
     expect(entry, const TypeMatcher<SearchEntry>());
-    print('got entry ${entry.dn}');
+    print('got entry $entry');
   }
 }
 
@@ -361,7 +361,7 @@ void main() async {
 
     test('with bad credentialsfails', () async {
       var ldap = LdapConnection(
-          bindDN: 'uid=badDN',
+          bindDN: DN('uid=badDN'),
           password: 'foo',
           host: 'localhost',
           ssl: false,

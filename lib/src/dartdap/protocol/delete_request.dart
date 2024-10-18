@@ -1,7 +1,7 @@
 part of 'ldap_protocol.dart';
 
 class DeleteRequest extends RequestOp {
-  final String _dn; // dn of entry we are deleting
+  final DN _dn; // dn of entry we are deleting
 
   DeleteRequest(this._dn) : super(DELETE_REQUEST);
 

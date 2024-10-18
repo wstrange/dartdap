@@ -1,7 +1,7 @@
 part of 'ldap_protocol.dart';
 
 class BindRequest extends RequestOp {
-  final String _bindDN;
+  final DN _bindDN;
   final String _password;
 
   //
@@ -16,7 +16,7 @@ class BindRequest extends RequestOp {
     var seq = _startSequence();
     var version = ASN1Integer.fromInt(3); // alway v3
     seq.add(version);
-    var bindDn = ASN1OctetString(_bindDN);
+    var bindDn = ASN1OctetString(_bindDN.dn);
     var pw = ASN1OctetString(_password, tag: CRED_TYPE_SIMPLE);
     seq.add(bindDn);
     seq.add(pw);

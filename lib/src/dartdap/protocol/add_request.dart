@@ -1,7 +1,7 @@
 part of 'ldap_protocol.dart';
 
 class AddRequest extends RequestOp {
-  final String _dn; // dn of entry we are adding
+  final DN _dn; // dn of entry we are adding
   final Map<String, Attribute> _attributes; // attribute of object
 
   AddRequest(this._dn, this._attributes) : super(ADD_REQUEST);

@@ -14,7 +14,7 @@ part of 'ldap_protocol.dart';
 //
 
 class ModDNRequest extends RequestOp {
-  final String _dn; // dn of entry we are adding
+  final DN _dn; // dn of entry we are adding
   final String _newRDN; // new RDN
   final bool _deleteOldRDN;
   final String? _newSuperiorDN;

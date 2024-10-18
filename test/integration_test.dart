@@ -37,10 +37,10 @@ void main() async {
     //----------------
     // The distinguished name is a String value
 
-    var engineeringDN = testDN.concat('ou=Engineering').dn;
-    var salesDN = testDN.concat('ou=Sales').dn;
-    var bisDevDN = testDN.concat('ou=Business Development').dn;
-    var supportDN = DN(engineeringDN).concat('ou=Support').dn;
+    var engineeringDN = testDN.concat('ou=Engineering');
+    var salesDN = testDN.concat('ou=Sales');
+    var bisDevDN = testDN.concat('ou=Business Development');
+    var supportDN = engineeringDN.concat('ou=Support');
 
     // For testing purposes, make sure entries do not exist before proceeding.
 
@@ -126,7 +126,7 @@ void main() async {
     // ou=Engineering
 
     var numFound = 0;
-    var searchResult = await ldap.search(testDN.dn, filter, queryAttrs);
+    var searchResult = await ldap.search(testDN, filter, queryAttrs);
     await for (var entry in searchResult.stream) {
       expect(entry, const TypeMatcher<SearchEntry>());
       numFound++;
@@ -141,7 +141,7 @@ void main() async {
 
     numFound = 0;
     await for (var entry
-        in ldap.search(directoryConfig.testDN.dn, notFilter, queryAttrs).stream) {
+        in ldap.search(directoryConfig.testDN, notFilter, queryAttrs).stream) {
       expect(entry, const TypeMatcher<SearchEntry>());
       numFound++;
     }

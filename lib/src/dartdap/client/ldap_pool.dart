@@ -1,3 +1,4 @@
+
 import 'package:dartdap/src/dartdap/protocol/ldap_protocol.dart';
 import '../../../dartdap.dart';
 import 'dart:async';
@@ -132,14 +133,14 @@ class LdapConnectionPool extends Ldap {
   }
 
   @override
-  Future<LdapResult> add(String dn, Map<String, dynamic> attrs) {
+  Future<LdapResult> add(DN dn, Map<String, dynamic> attrs) {
     return _ldapFunction((LdapConnection c) {
       return c.add(dn, attrs);
     });
   }
 
   @override
-  Future<LdapResult> bind({String? DN, String? password}) async {
+  Future<LdapResult> bind({DN? DN, String? password}) async {
     var c = await getConnection(bind: false);
     try {
       LdapResult result;
@@ -179,29 +180,28 @@ class LdapConnectionPool extends Ldap {
   }
 
   @override
-  Future<LdapResult> compare(
-      String dn, String attrName, String attrValue) async {
+  Future<LdapResult> compare(DN dn, String attrName, String attrValue) async {
     return _ldapFunction((LdapConnection c) {
       return c.compare(dn, attrName, attrValue);
     });
   }
 
   @override
-  Future<LdapResult> delete(String dn) {
+  Future<LdapResult> delete(DN dn) {
     return _ldapFunction((LdapConnection c) {
       return c.delete(dn);
     });
   }
 
   @override
-  Future<LdapResult> modify(String dn, List<Modification> mods) {
+  Future<LdapResult> modify(DN dn, List<Modification> mods) {
     return _ldapFunction((LdapConnection c) {
       return c.modify(dn, mods);
     });
   }
 
   @override
-  Future<LdapResult> modifyDN(String dn, String rdn,
+  Future<LdapResult> modifyDN(DN dn, String rdn,
       {bool deleteOldRDN = true, String? newSuperior}) {
     return _ldapFunction((LdapConnection c) {
       return c.modifyDN(dn, rdn,
@@ -211,7 +211,7 @@ class LdapConnectionPool extends Ldap {
 
   @override
   Future<SearchResult> search(
-      String baseDN, Filter filter, List<String> attributes,
+      DN baseDN, Filter filter, List<String> attributes,
       {int scope = SearchScope.SUB_LEVEL,
       int sizeLimit = 0,
       List<Control> controls = const <Control>[]}) async {

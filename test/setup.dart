@@ -34,14 +34,14 @@ LdapConnection defaultConnection({bool ssl = false}) {
   return LdapConnection(
       host: 'localhost',
       password: 'password',
-      bindDN: 'cn=admin,dc=example,dc=com',
+      bindDN: DN('cn=admin,dc=example,dc=com'),
       port: ssl ? 1636 : 1389,
       ssl: ssl,
       // We ignore any certificate errors for testing purposes..
       badCertificateHandler: (cert) => true);
 }
 
-const baseDN = 'dc=example,dc=com';
+const baseDN = DN('dc=example,dc=com');
 final peopleDN = DN('ou=users,$baseDN');
 final groupsDN = DN('ou=groups,$baseDN');
 
@@ -54,7 +54,7 @@ Future<void> debugSearch(LdapConnection ldap) async {
   }
 }
 
-Future<void> deleteIfNotExist(LdapConnection ldap, String dn) async {
+Future<void> deleteIfNotExist(LdapConnection ldap, DN dn) async {
   try {
     await ldap.delete(dn);
   } catch (e) {
