@@ -1,5 +1,3 @@
-/// Unit tests for filter encodings
-
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 

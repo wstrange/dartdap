@@ -24,6 +24,10 @@ void main() async {
   final fredDNEscaped = r'cn=fred\2C _smith,ou=users,dc=example,dc=com';
   final fredDN = DN(r'cn=fred\, _smith,ou=users,dc=example,dc=com');
   final roleDN = DN('cn=adminRole,dc=example,dc=com');
+  final tester = escapeNonAscii('téstè');
+  final testDN = 'cn=$tester,dc=example,dc=com';
+  final testDNEscaped = escapeNonAscii(testDN);
+
   // final fred = r'cn=fred, _smith,ou=users,dc=example,dc=com';
 
   setUpAll(() async {
@@ -36,13 +40,18 @@ void main() async {
     await deleteIfNotExist(ldap, roleDN);
     await deleteIfNotExist(ldap, fredDN);
 
-    // Create the test user with a comma in the RDN
-
+    // Create test users
     try {
       await ldap.add(fredDN, {
         'objectClass': ['inetOrgPerson'],
         'cn': r'fred\, smith',
         'sn': 'fred',
+      });
+
+      await ldap.add(testDNEscaped, {
+        'objectClass': ['inetOrgPerson'],
+        'cn': escapeNonAscii('téstè'),
+        'sn': 'testy tester',
       });
     } catch (e) {
       // ignore
@@ -50,13 +59,14 @@ void main() async {
     }
 
     try {
-      // Create the test role with the above test user
+      // Create the test role with the above test users
       await ldap.add(roleDN, {
         'cn': 'adminRole',
         'objectClass': ['organizationalRole'],
         'roleOccupant': [
           fredDNEscaped,
           'cn=user1,ou=users,dc=example,dc=com',
+          testDNEscaped,
         ],
       });
     } catch (e) {
@@ -64,16 +74,15 @@ void main() async {
       print('Ignored add role Exception: $e');
     }
 
-    // await debugSearch(ldap);
+    //await debugSearch(ldap);
   });
 
   tearDown(() async {
     // clean up
-    // await deleteIfNotExist(ldap, roleDN);
-    // await deleteIfNotExist(ldap, fredDN);
+    await deleteIfNotExist(ldap, roleDN);
+    await deleteIfNotExist(ldap, fredDN);
+    await deleteIfNotExist(ldap, testDNEscaped);
   });
-
-  test('nada', () {});
 
   // just here for debugging. Normally skipped
   test('server query', () async {
@@ -100,15 +109,16 @@ void main() async {
 
   test('get role with an escaped query', () async {
     // the backslash is escaped in the filter
-    final filter =
-        r'(roleOccupant=cn=fred\5c, _smith,ou=users,dc=example,dc=com)';
+    final filter = '(roleOccupant=$fredDNEscaped)';
 
     var r = await ldap.query(roleDN, filter, ['cn', 'roleOccupant']);
     var foundIt = false;
+    var result = await r.getLdapResult();
+    expect(result.resultCode, equals(ResultCode.OK));
     await for (final e in r.stream) {
       expect(e, equals(roleDN));
       foundIt = true;
-      print(e);
+      //print('Found role dn: ${e.dn}');
     }
     expect(foundIt, true);
   });
@@ -124,5 +134,24 @@ void main() async {
     });
 
     expect(r.resultCode, equals(ResultCode.OK));
+  });
+
+  test('get tester user with an escaped query', () async {
+    // the backslash is escaped in the filter
+
+    // either works...
+    // final filter = '(roleOccupant=$testDN)';
+    final filter = '(roleOccupant=$testDNEscaped)';
+
+    var r = await ldap.query(roleDN, filter, ['cn', 'roleOccupant']);
+    var foundIt = false;
+    var result = await r.getLdapResult();
+    expect(result.resultCode, equals(ResultCode.OK));
+    await for (final e in r.stream) {
+      expect(e.dn, equals(roleDN));
+      foundIt = true;
+      print('Found role dn: ${e.dn}');
+    }
+    expect(foundIt, true);
   });
 }

@@ -35,3 +35,4 @@ export 'src/dartdap/client/ldap_connection.dart';
 export 'src/dartdap/core/core.dart';
 export 'src/dartdap/control/control.dart';
 export 'src/dartdap/client/ldap.dart';
+export 'utils.dart';
