@@ -8,7 +8,8 @@ final _queryDefinition = QueryParserDefinition();
 final _parser = _queryDefinition.build();
 
 Filter parseQuery(String input) {
-  var result = _parser.parse(input);
+  var esc = escapeNonAscii(input);
+  var result = _parser.parse(esc);
   if (result is Success) {
     return result.value;
   } else {
@@ -16,9 +17,6 @@ Filter parseQuery(String input) {
         'Cant parse filter \'$input\'. Error is ${result.message}');
   }
 }
-
-// Regex for a backslash followed by two hex digits
-final _regex = RegExp(r'\\([0-9a-fA-F]{2})');
 
 // The grammar turns the parsed stream into a Filter
 class QueryParserDefinition extends QueryGrammarDefinition {
@@ -45,7 +43,7 @@ class QueryParserDefinition extends QueryGrammarDefinition {
         var attrName = each[0];
         var val = each[2];
 
-        val = _toASN1OctetString(val);
+        val = ASN1OctetString(val);
 
         switch (operator) {
           case '=':
@@ -104,16 +102,6 @@ class QueryParserDefinition extends QueryGrammarDefinition {
             any: any,
             finalValue: finalVal);
       });
-
-  // Returns an ASN1OctetString.
-  ASN1OctetString _toASN1OctetString(String val) =>
-      ASN1OctetString(_decodeEscapedHex(val));
-
-  String _decodeEscapedHex(String input) {
-    return input.replaceAllMapped(_regex, (match) {
-      return String.fromCharCode(int.parse(match.group(1)!, radix: 16));
-    });
-  }
 }
 
 // Typedef to keep pedantic happy
