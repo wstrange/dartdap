@@ -1,5 +1,5 @@
-import 'package:dartdap/src/dartdap/protocol/ldap_protocol.dart';
-import '../../../dartdap.dart';
+import 'package:dartdap/src/protocol/ldap_protocol.dart';
+import '../../dartdap.dart';
 import 'dart:async';
 import 'package:collection/collection.dart';
 
