@@ -37,12 +37,12 @@ abstract class Ldap {
   /// Performs an LDAP BIND operation.
   ///
   /// Sends a bind request using the credentials that were set by
-  /// the constructor or passed in via [DN] and [password]. If DN or
+  /// the constructor or passed in via [dn] and [password]. If DN or
   /// password are provided, the values are saved for future bind
   /// operations.
   ///
   /// Returns a Future containing the result of the BIND operation.
-  Future<LdapResult> bind({DN? DN, String? password});
+  Future<LdapResult> bind({DN? dn, String? password});
 
   //----------------------------------------------------------------
   /// Performs an LDAP compare operation.

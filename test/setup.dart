@@ -41,7 +41,7 @@ LdapConnection defaultConnection({bool ssl = false}) {
       badCertificateHandler: (cert) => true);
 }
 
-const baseDN = DN('dc=example,dc=com');
+final baseDN = DN('dc=example,dc=com');
 final peopleDN = DN('ou=users,$baseDN');
 final groupsDN = DN('ou=groups,$baseDN');
 
@@ -54,7 +54,9 @@ Future<void> debugSearch(LdapConnection ldap) async {
   }
 }
 
-Future<void> deleteIfNotExist(LdapConnection ldap, DN dn) async {
+// Try to delete an entry, but ignore any exceptions
+// Used in tests for clean up.
+Future<void> deleteIfExists(LdapConnection ldap, DN dn) async {
   try {
     await ldap.delete(dn);
   } catch (e) {

@@ -321,10 +321,10 @@ class LdapConnection extends Ldap {
   // LDAP operation implementation
 
   @override
-  Future<LdapResult> bind({DN? DN, String? password}) async {
+  Future<LdapResult> bind({DN? dn, String? password}) async {
     loggerConnection.fine('bind: ${_bindDN.isEmpty ? 'anonymous' : _bindDN}');
 
-    _bindDN = DN ?? _bindDN;
+    _bindDN = dn ?? _bindDN;
     _password = password ?? _password;
 
     return _doBind(BindRequest(_bindDN, _password));

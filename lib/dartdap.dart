@@ -27,7 +27,7 @@ to the git repository.
 //----------------
 */
 
-library dartdap;
+library;
 
 export 'src/dartdap/client/ldap_pool.dart';
 export 'src/dartdap/client/connection_manager.dart';

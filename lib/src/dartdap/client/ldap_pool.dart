@@ -139,13 +139,13 @@ class LdapConnectionPool extends Ldap {
   }
 
   @override
-  Future<LdapResult> bind({DN? DN, String? password}) async {
+  Future<LdapResult> bind({DN? dn, String? password}) async {
     var c = await getConnection(bind: false);
     try {
       LdapResult result;
-      if (DN != null && password != null) {
-        loggerPool.finest(() => 'bind($DN)');
-        result = await c.bind(DN: DN, password: password);
+      if (dn != null && password != null) {
+        loggerPool.finest(() => 'bind($dn)');
+        result = await c.bind(dn: dn, password: password);
       } else {
         result = await c.bind();
       }
