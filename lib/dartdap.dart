@@ -29,10 +29,7 @@ to the git repository.
 
 library;
 
-export 'src/client/ldap_pool.dart';
-export 'src/client/connection_manager.dart';
-export 'src/client/ldap_connection.dart';
+export 'src/client/client.dart';
 export 'src/core/core.dart';
 export 'src/control/control.dart';
-export 'src/client/ldap.dart';
-export 'utils.dart';
+export 'src/utils.dart';

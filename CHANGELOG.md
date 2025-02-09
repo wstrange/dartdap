@@ -1,6 +1,6 @@
 # Dartdap Change Log
 ## 0.9.0
-- Added DN class to represent Distinguished Names
+- Added DN class to represent Distinguished Names. This a breaking change. See README notes.
 
 
 ## 0.8.0

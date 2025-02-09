@@ -1,7 +1,11 @@
-import 'package:dartdap/src/protocol/ldap_protocol.dart';
-import '../../dartdap.dart';
 import 'dart:async';
+
 import 'package:collection/collection.dart';
+
+import '../control/control.dart';
+import '../core/core.dart';
+import '../protocol/ldap_protocol.dart';
+import 'client.dart';
 
 class LdapPoolException implements Exception {
   final String msg;

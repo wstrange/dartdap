@@ -1,11 +1,11 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
 
-import 'package:dartdap/dartdap.dart';
-
+import '../control/control.dart';
+import '../core/core.dart';
 import '../protocol/ldap_protocol.dart';
-import 'ldap_transformer.dart';
-import 'dart:async';
+import 'client.dart';
 
 /// Holds a pending LDAP operation that we have issued to the server. We
 /// expect to get a response back from the server for this op. We match

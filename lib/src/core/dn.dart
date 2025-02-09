@@ -1,4 +1,4 @@
-import 'package:dartdap/utils.dart';
+import '../utils.dart';
 
 /// Utility for building DNs
 /// TOOD: Add DN validity checking. (see RFC 4514)

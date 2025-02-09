@@ -1,10 +1,10 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 
-import 'package:dartdap/dartdap.dart';
-
+import '../control/control.dart';
+import '../core/core.dart';
 import '../protocol/ldap_protocol.dart';
-import 'connection_info.dart';
+import 'client.dart';
 
 /// Connection to perform LDAP operations on an LDAP server.
 ///

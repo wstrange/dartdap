@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-/// Escape non-ASCII characters to create a string that is valid for use in filter
+/// Escape non-ASCII characters to create a string that is valid for use in filters
+/// DNs, etc.
 String escapeNonAscii(String input) {
   StringBuffer escaped = StringBuffer();
   for (int codeUnit in utf8.encode(input)) {

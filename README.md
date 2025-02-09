@@ -105,7 +105,7 @@ try {
     "description": "Example organizationalUnit entry"
   };
 
-  await ldap.add("ou=Engineering,dc=example,dc=com", attrs);
+  await ldap.add(DN("ou=Engineering,dc=example,dc=com"), attrs);
 
 } on LdapResultEntryAlreadyExistsException catch (_) {
   // cannot add entry because it already exists
@@ -121,7 +121,7 @@ try {
 ```dart
 try {
   var mod1 = new Modification.replace("description", ["Engineering department"]);
-  await ldap.modify("ou=Engineering,dc=example,dc=com", [mod1]);
+  await ldap.modify(DN("ou=Engineering,dc=example,dc=com"), [mod1]);
 
 } on LdapResultObjectClassViolationException catch (_) {
   // cannot modify entry because it would violate the schema rules
@@ -146,7 +146,7 @@ try {
 
 ```dart
 try {
-  r = await ldap.compare("ou=Engineering,dc=example,dc=com",
+  r = await ldap.compare(DN("ou=Engineering,dc=example,dc=com"),
                          "description", "Engineering Dept");
   if (r.resultCode == ResultCode.COMPARE_FALSE) {
 
@@ -165,7 +165,7 @@ try {
 
 ```dart
 try {
-  await ldap.delete("ou=Business Development,dc=example,dc=com");
+  await ldap.delete(DN("ou=Business Development,dc=example,dc=com"));
 
 } on LdapResultNoSuchObjectException catch (_) {
   // entry did not exist to delete
@@ -304,6 +304,28 @@ new Logger("ldap").level = Level.OFF;
 ```
 
 ## Breaking changes
+
+### 0.9.0
+
+Distinguished names (DNs) are now represented by the `DN` class instead of a String.
+This allows for more rigourous checking of DNs, including escaping and unescaping of special characters.
+
+The various ldap operations are now updated as follows:
+
+```dart
+# Old method
+await ldap.add("ou=Engineering,dc=example,dc=com", attrs);
+# New method
+await ldap.add(DN("ou=Engineering,dc=example,dc=com"), attrs);
+
+# Old method
+await ldap.modify("ou=Engineering,dc=example,dc=com", [mod1]);
+# New method
+await ldap.modify(DN("ou=Engineering,dc=example,dc=com"), [mod1]);
+
+... etc.
+
+```
 
 ### 0.6.2
 

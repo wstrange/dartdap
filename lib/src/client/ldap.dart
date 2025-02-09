@@ -1,4 +1,5 @@
-import 'package:dartdap/dartdap.dart';
+import '../core/core.dart';
+import '../control/control.dart';
 
 // parser that Create LDAP Queries using https://tools.ietf.org/html/rfc2254 syntax
 
