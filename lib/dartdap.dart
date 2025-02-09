@@ -27,12 +27,9 @@ to the git repository.
 //----------------
 */
 
-library dartdap;
+library;
 
-export 'src/dartdap/client/ldap_pool.dart';
-export 'src/dartdap/client/connection_manager.dart';
-export 'src/dartdap/client/ldap_connection.dart';
-export 'src/dartdap/core/core.dart';
-export 'src/dartdap/control/control.dart';
-export 'src/dartdap/client/ldap.dart';
-export 'utils.dart';
+export 'src/client/client.dart';
+export 'src/core/core.dart';
+export 'src/control/control.dart';
+export 'src/utils.dart';

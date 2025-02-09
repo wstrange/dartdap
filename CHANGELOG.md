@@ -1,4 +1,8 @@
 # Dartdap Change Log
+## 0.9.0
+- Added DN class to represent Distinguished Names. This a breaking change. See README notes.
+
+
 ## 0.8.0
 - Added a utility to escape charcters in LDAP strings
 - Updated ldap.query to support escaping of special characters

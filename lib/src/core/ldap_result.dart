@@ -1,3 +1,4 @@
+import 'dn.dart';
 import 'ldap_exception.dart';
 import 'attribute.dart';
 /**
@@ -234,8 +235,8 @@ class LdapResult {
 class SearchEntry {
   /// The entry's distinguished name.
 
-  String get dn => _dn;
-  final String _dn;
+  DN get dn => _dn;
+  final DN _dn;
 
   final List<String> _referrals;
 

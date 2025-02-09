@@ -1,4 +1,4 @@
-import 'package:dartdap/src/dartdap/control/simple_paged_results.dart';
+import 'simple_paged_results.dart';
 import 'package:logging/logging.dart';
 import 'package:asn1lib/asn1lib.dart';
 import 'virtual_list_view.dart';

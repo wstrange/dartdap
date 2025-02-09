@@ -14,10 +14,10 @@ part of 'ldap_protocol.dart';
 //
 
 class ModDNRequest extends RequestOp {
-  final String _dn; // dn of entry we are adding
-  final String _newRDN; // new RDN
+  final DN _dn; // dn of entry we are modifying
+  final DN _newRDN; // new RDN
   final bool _deleteOldRDN;
-  final String? _newSuperiorDN;
+  final DN? _newSuperiorDN;
 
   /// Create a new modify DN (rename) request
   ///
@@ -31,11 +31,11 @@ class ModDNRequest extends RequestOp {
   @override
   ASN1Object toASN1() {
     var seq = _startSequence();
-    seq.add(ASN1OctetString(_dn));
-    seq.add(ASN1OctetString(_newRDN));
+    seq.add(ASN1OctetString(_dn.dn));
+    seq.add(ASN1OctetString(_newRDN.dn));
     seq.add(ASN1Boolean(_deleteOldRDN));
     if (_newSuperiorDN != null) {
-      seq.add(ASN1OctetString(_newSuperiorDN, tag: 0x80));
+      seq.add(ASN1OctetString(_newSuperiorDN?.dn, tag: 0x80));
     }
     return seq;
   }

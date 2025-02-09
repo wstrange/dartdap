@@ -24,7 +24,7 @@ Future populateEntries(LdapConnection ldap, DN testDN) async {
   // TODO: Clean up tests - this OU should exist already..
 
   try {
-    await ldap.add('ou=test,dc=example,dc=com', {
+    await ldap.add(DN('ou=test,dc=example,dc=com'), {
       'objectclass': ['organizationalUnit'],
       'description': descriptionStr
     });
@@ -33,7 +33,7 @@ Future populateEntries(LdapConnection ldap, DN testDN) async {
     print('ignore $e');
   }
 
-  var addResult = await ldap.add(testDN.dn, {
+  var addResult = await ldap.add(testDN, {
     'objectclass': ['organizationalUnit'],
     'description': descriptionStr
   });
@@ -48,7 +48,7 @@ Future populateEntries(LdapConnection ldap, DN testDN) async {
       'objectclass': ['inetorgperson'],
       'sn': 'User $j'
     };
-    var addResult = await ldap.add(testDN.concat('cn=user$j').dn, attrs);
+    var addResult = await ldap.add(testDN.concat('cn=user$j'), attrs);
     assert(addResult.resultCode == 0);
   }
 }
@@ -61,7 +61,7 @@ Future purgeEntries(LdapConnection ldap, DN testDN) async {
 
   for (var j = 0; j < NUM_ENTRIES; ++j) {
     try {
-      await ldap.delete(testDN.concat('cn=user$j').dn);
+      await ldap.delete(testDN.concat('cn=user$j'));
     } catch (e) {
       // ignore any exceptions
     }
@@ -71,7 +71,7 @@ Future purgeEntries(LdapConnection ldap, DN testDN) async {
 
   try {
     // this is designed to clean up any failed tests
-    await ldap.delete(testDN.dn);
+    await ldap.delete(testDN);
   } catch (e) {
     // ignore any exceptions
   }
@@ -111,7 +111,7 @@ void main() async {
 
     var count = 0;
 
-    var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
+    var searchResults = await ldap.search(testDN, filter, searchAttrs);
     await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 
@@ -135,7 +135,7 @@ void main() async {
 
     var count = 0;
 
-    var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
+    var searchResults = await ldap.search(testDN, filter, searchAttrs);
     await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
 
@@ -159,7 +159,7 @@ void main() async {
 
     var count = 0;
 
-    var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
+    var searchResults = await ldap.search(testDN, filter, searchAttrs);
     await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
       expect(entry, const TypeMatcher<SearchEntry>());
@@ -183,7 +183,7 @@ void main() async {
 
     var count = 0;
 
-    var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
+    var searchResults = await ldap.search(testDN, filter, searchAttrs);
     await for (SearchEntry entry in searchResults.stream) {
       expect(entry, isNotNull);
       expect(entry, const TypeMatcher<SearchEntry>());
@@ -208,7 +208,7 @@ void main() async {
 
     try {
       var searchResults = await ldap.search(
-          testDN.concat('ou=NoSuchEntry').dn, filter, searchAttrs);
+          testDN.concat('ou=NoSuchEntry'), filter, searchAttrs);
       // ignore: unused_local_variable
       await for (SearchEntry entry in searchResults.stream) {
         fail('Unexpected result from search under non-existant entry');

@@ -39,10 +39,10 @@ final testDN = DN('dc=example,dc=com');
 
 Future populateEntries(
     LdapConnection ldap, DN branchDN, DN testPersonDN) async {
-  var addResult = await ldap.add(branchDN.dn, branchAttrs);
+  var addResult = await ldap.add(branchDN, branchAttrs);
   assert(addResult.resultCode == 0);
 
-  addResult = await ldap.add(testPersonDN.dn, testPersonAttrs);
+  addResult = await ldap.add(testPersonDN, testPersonAttrs);
   assert(addResult.resultCode == 0);
 }
 
@@ -53,7 +53,7 @@ Future purgeEntries(LdapConnection ldap, DN branchDN, DN testPersonDN) async {
   // Purge test person
 
   try {
-    await ldap.delete(testPersonDN.dn);
+    await ldap.delete(testPersonDN);
   } catch (e) {
     // ignore any exceptions thrown if entry does not exist
   }
@@ -61,7 +61,7 @@ Future purgeEntries(LdapConnection ldap, DN branchDN, DN testPersonDN) async {
   // Purge branch
 
   try {
-    await ldap.delete(branchDN.dn);
+    await ldap.delete(branchDN);
   } catch (e) {
     // ignore any exceptions if entry does not exist
   }
@@ -103,7 +103,7 @@ void main() {
   test('deleting an entry', () async {
     // Delete the entry
 
-    var delResult = await ldap.delete(testPersonDN.dn);
+    var delResult = await ldap.delete(testPersonDN);
     expect(delResult, const TypeMatcher<LdapResult>());
     expect(delResult.resultCode, equals(0));
 
@@ -114,7 +114,7 @@ void main() {
 
     var count = 0;
 
-    var searchResults = await ldap.search(testDN.dn, filter, searchAttrs);
+    var searchResults = await ldap.search(testDN, filter, searchAttrs);
     await for (SearchEntry _ in searchResults.stream) {
       fail('Entry still exists after delete');
       // dead code
@@ -130,7 +130,7 @@ void main() {
     var nosuchDN = branchDN.concat('cn=NoSuchPerson');
 
     try {
-      await ldap.delete(nosuchDN.dn);
+      await ldap.delete(nosuchDN);
       fail('exception not thrown');
     } catch (e) {
       expect(e, const TypeMatcher<LdapResultNoSuchObjectException>());
@@ -144,7 +144,7 @@ void main() {
     // the branch entry cannot be deleted.
 
     try {
-      await ldap.delete(branchDN.dn);
+      await ldap.delete(branchDN);
       fail('exception not thrown');
     } catch (e) {
       expect(e, const TypeMatcher<LdapResultNotAllowedOnNonleafException>());

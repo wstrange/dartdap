@@ -1,10 +1,10 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 
-import 'package:dartdap/dartdap.dart';
-
+import '../control/control.dart';
+import '../core/core.dart';
 import '../protocol/ldap_protocol.dart';
-import 'connection_info.dart';
+import 'client.dart';
 
 /// Connection to perform LDAP operations on an LDAP server.
 ///
@@ -161,7 +161,7 @@ class LdapConnection extends Ldap {
   // These internal members are never null (even though the externally visible
   // methods accept null as valid parameters).
 
-  String _bindDN = ''; // desired values to use, empty string means anonymous
+  DN _bindDN = DN(''); // desired values to use, empty string means anonymous
   String _password = '';
 
   //----------------
@@ -171,7 +171,7 @@ class LdapConnection extends Ldap {
   ///
   /// This value is initially set by the constructor but rebinding
   /// with a new DN can change this value
-  String get bindDN => _bindDN;
+  DN get bindDN => _bindDN;
 
   // Information on the connection. Time created, etc.
   ConnectionInfo connectionInfo = ConnectionInfo();
@@ -216,7 +216,7 @@ class LdapConnection extends Ldap {
       {String host = 'localhost',
       bool ssl = false,
       int port = Ldap.PORT_LDAP,
-      String bindDN = '',
+      DN bindDN = const DN(''),
       String password = '',
       BadCertHandlerType badCertificateHandler = defaultBadCertHandler,
       SecurityContext? context})
@@ -321,10 +321,10 @@ class LdapConnection extends Ldap {
   // LDAP operation implementation
 
   @override
-  Future<LdapResult> bind({String? DN, String? password}) async {
+  Future<LdapResult> bind({DN? dn, String? password}) async {
     loggerConnection.fine('bind: ${_bindDN.isEmpty ? 'anonymous' : _bindDN}');
 
-    _bindDN = DN ?? _bindDN;
+    _bindDN = dn ?? _bindDN;
     _password = password ?? _password;
 
     return _doBind(BindRequest(_bindDN, _password));
@@ -341,8 +341,7 @@ class LdapConnection extends Ldap {
   }
 
   @override
-  Future<SearchResult> search(
-      String baseDN, Filter filter, List<String> attributes,
+  Future<SearchResult> search(DN baseDN, Filter filter, List<String> attributes,
       {int scope = SearchScope.SUB_LEVEL,
       int sizeLimit = 0,
       List<Control> controls = const <Control>[]}) async {
@@ -353,35 +352,34 @@ class LdapConnection extends Ldap {
   }
 
   @override
-  Future<LdapResult> add(String dn, Map<String, dynamic> attrs) async {
+  Future<LdapResult> add(DN dn, Map<String, dynamic> attrs) async {
     loggerConnection.fine('add: $dn');
     return await _cmgr
         .process(AddRequest(dn, Attribute.newAttributeMap(attrs)));
   }
 
   @override
-  Future<LdapResult> delete(String dn) async {
+  Future<LdapResult> delete(DN dn) async {
     loggerConnection.fine('delete: $dn');
     return await _cmgr.process(DeleteRequest(dn));
   }
 
   @override
-  Future<LdapResult> modify(String dn, List<Modification> mods) async {
+  Future<LdapResult> modify(DN dn, List<Modification> mods) async {
     loggerConnection.fine('modify');
     return await _cmgr.process(ModifyRequest(dn, mods));
   }
 
   @override
-  Future<LdapResult> modifyDN(String dn, String rdn,
-      {bool deleteOldRDN = true, String? newSuperior}) async {
+  Future<LdapResult> modifyDN(DN dn, DN rdn,
+      {bool deleteOldRDN = true, DN? newSuperior}) async {
     loggerConnection.fine('modifyDN');
     return await _cmgr
         .process(ModDNRequest(dn, rdn, deleteOldRDN, newSuperior));
   }
 
   @override
-  Future<LdapResult> compare(
-      String dn, String attrName, String attrValue) async {
+  Future<LdapResult> compare(DN dn, String attrName, String attrValue) async {
     loggerConnection.fine('compare');
     return await _cmgr.process(CompareRequest(dn, attrName, attrValue));
   }

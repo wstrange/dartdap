@@ -2,7 +2,7 @@ part of 'ldap_protocol.dart';
 
 /// LDAP Modify Request
 class ModifyRequest extends RequestOp {
-  final String _dn; // dn of entry we are adding
+  final DN _dn; // dn of entry we are adding
   final List<Modification> _mods; // modifications to make
 
   ModifyRequest(this._dn, this._mods) : super(MODIFY_REQUEST);
@@ -19,7 +19,7 @@ class ModifyRequest extends RequestOp {
   @override
   ASN1Object toASN1() {
     var seq = _startSequence();
-    seq.add(ASN1OctetString(_dn));
+    seq.add(ASN1OctetString(_dn.dn));
 
     var modSeq = ASN1Sequence();
 

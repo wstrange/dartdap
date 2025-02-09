@@ -15,6 +15,7 @@
 ///
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
+import '../example/pool.dart';
 import 'setup.dart';
 
 void main() async {
@@ -22,13 +23,11 @@ void main() async {
 
   // \2C is a comma
   final fredDNEscaped = r'cn=fred\2C _smith,ou=users,dc=example,dc=com';
-  final fredDN = r'cn=fred\, _smith,ou=users,dc=example,dc=com';
-  final roleDN = 'cn=adminRole,dc=example,dc=com';
-  final tester = escapeNonAscii('téstè');
-  final testDN = 'cn=$tester,dc=example,dc=com';
-  final testDNEscaped = escapeNonAscii(testDN);
-
-  // final fred = r'cn=fred, _smith,ou=users,dc=example,dc=com';
+  final fredDN = DN(r'cn=fred\, _smith,ou=users,dc=example,dc=com');
+  final roleDN = DN('cn=adminRole,dc=example,dc=com');
+  final testDN = DN('cn=téstè,ou=users,dc=example,dc=com');
+  // final baseUserDN = DN('ou=users,dc=example,dc=com');
+  final testerCN = escapeNonAscii('téstè');
 
   setUpAll(() async {
     ldap = defaultConnection(ssl: true);
@@ -37,8 +36,8 @@ void main() async {
   });
 
   setUp(() async {
-    await deleteIfNotExist(ldap, roleDN);
-    await deleteIfNotExist(ldap, fredDN);
+    await deleteIfExists(ldap, roleDN);
+    await deleteIfExists(ldap, fredDN);
 
     // Create test users
     try {
@@ -48,9 +47,9 @@ void main() async {
         'sn': 'fred',
       });
 
-      await ldap.add(testDNEscaped, {
+      await ldap.add(testDN, {
         'objectClass': ['inetOrgPerson'],
-        'cn': escapeNonAscii('téstè'),
+        'cn': testerCN,
         'sn': 'testy tester',
       });
     } catch (e) {
@@ -66,7 +65,7 @@ void main() async {
         'roleOccupant': [
           fredDNEscaped,
           'cn=user1,ou=users,dc=example,dc=com',
-          testDNEscaped,
+          testDN.dn,
         ],
       });
     } catch (e) {
@@ -79,20 +78,32 @@ void main() async {
 
   tearDown(() async {
     // clean up
-    await deleteIfNotExist(ldap, roleDN);
-    await deleteIfNotExist(ldap, fredDN);
-    await deleteIfNotExist(ldap, testDNEscaped);
+    await deleteIfExists(ldap, roleDN);
+    await deleteIfExists(ldap, fredDN);
+    await deleteIfExists(ldap, testDN);
   });
 
   // just here for debugging. Normally skipped
-  test('server query', () async {
-    var r = await ldap.query('dc=example,dc=com', '(objectclass=*)',
-        ['cn', 'dn', 'objectClass', 'roleOccupant']);
-    await for (final e in r.stream) {
-      print('query: $e');
-      // e.attributes.forEach((k, v) => print('  $k: $v'));
-    }
-  }, skip: true);
+  // test('server query', () async {
+  //   var r = await ldap.query(DN('dc=example,dc=com'), '(objectclass=*)',
+  //       ['cn', 'dn', 'objectClass', 'roleOccupant']);
+  //   await for (final e in r.stream) {
+  //     print('query: $e');
+  //     // e.attributes.forEach((k, v) => print('  $k: $v'));
+  //   }
+
+  //   // get the
+  // }, skip: true);
+
+  test('Find the test user we just created', () async {
+    // now serach by DN
+    var x = await ldap.query(testDN, '(objectClass=*)', ['cn', 'dn'],
+        scope: SearchScope.BASE_LEVEL);
+
+    var result = await x.getLdapResult();
+    expect(result.resultCode, equals(ResultCode.OK));
+    await printResults(x);
+  });
 
   test('search for role with escaped comma using equals', () async {
     final filter = Filter.equals("roleOccupant", fredDNEscaped);
@@ -100,9 +111,25 @@ void main() async {
     var r = await ldap.search(roleDN, filter, ['cn', 'roleOccupant']);
     var foundIt = false;
     await for (final e in r.stream) {
-      //print('role matching: $e');
+      print('role matching: $e');
       expect(e.dn, equals(roleDN));
       foundIt = true;
+      var roleOccupant = e.attributes['roleOccupant'];
+      // iterate through the roleOccupant DNs and make sure we can find the users
+      for (var d in roleOccupant!.values) {
+        var dn = DN(d);
+        print('looking up $dn');
+        var x = await ldap.query(dn, '(objectClass=*)', ['cn', 'dn', 'sn'],
+            scope: SearchScope.BASE_LEVEL);
+        var result = await x.getLdapResult();
+
+        expect(result.resultCode, equals(ResultCode.OK));
+
+        await for (final e in x.stream) {
+          print('found entry: $e');
+          // e.attributes.forEach((k, v) => print('  $k: $v'));
+        }
+      }
     }
     expect(foundIt, true);
   });
@@ -124,7 +151,7 @@ void main() async {
   });
 
   test('add user with a comma', () async {
-    final dn = r'cn=fred\, _smith,ou=users,dc=example,dc=com';
+    final dn = DN(r'cn=fred\, _smith,ou=users,dc=example,dc=com');
     await ldap.delete(dn);
 
     var r = await ldap.add(dn, {
@@ -141,7 +168,7 @@ void main() async {
 
     // either works...
     // final filter = '(roleOccupant=$testDN)';
-    final filter = '(roleOccupant=$testDNEscaped)';
+    final filter = '(roleOccupant=${testDN.dn})';
 
     var r = await ldap.query(roleDN, filter, ['cn', 'roleOccupant']);
     var foundIt = false;

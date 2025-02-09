@@ -29,7 +29,7 @@ final testPersonAttrs = {
 };
 
 final testPersonCN = 'John Citizen';
-final testPersonDN = DN('cn=$testPersonCN,${peopleDN.dn}');
+final testPersonDN = DN('cn=$testPersonCN,$peopleDN');
 
 //----------------------------------------------------------------
 
@@ -39,7 +39,7 @@ Future purgeEntries(LdapConnection ldap, DN testPersonDN, DN branchDN) async {
   // Purge test person
 
   try {
-    await ldap.delete(testPersonDN.dn);
+    await ldap.delete(testPersonDN);
   } catch (e) {
     // ignore any exceptions
   }
@@ -47,7 +47,7 @@ Future purgeEntries(LdapConnection ldap, DN testPersonDN, DN branchDN) async {
   // Purge branch
 
   // try {
-  //   await ldap.delete(branchDN.dn);
+  //   await ldap.delete(branchDN);
   // } catch (e) {
   //   // ignore any exceptions
   // }
@@ -76,7 +76,7 @@ void main() {
   });
 
   test('adding a person entry', () async {
-    var result = await ldap.add(testPersonDN.dn, testPersonAttrs);
+    var result = await ldap.add(testPersonDN, testPersonAttrs);
     expect(result.resultCode, equals(0));
   });
 
@@ -84,7 +84,7 @@ void main() {
     // Attempt to add the test person (without first adding the branch entry)
 
     try {
-      final dn = 'cn=nonExistant, ou=junk, ${peopleDN.dn}';
+      final dn = DN('cn=nonExistant, ou=junk, $peopleDN');
       await ldap.add(dn, testPersonAttrs);
       fail('exception not thrown');
     } catch (e) {
@@ -104,7 +104,7 @@ void main() {
     };
 
     try {
-      await ldap.add(testPersonDN.dn, attrsMissingMandatory);
+      await ldap.add(testPersonDN, attrsMissingMandatory);
       fail('exception not thrown');
     } catch (e) {
       expect(e, const TypeMatcher<LdapResultObjectClassViolationException>());

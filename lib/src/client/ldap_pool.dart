@@ -1,7 +1,11 @@
-import 'package:dartdap/src/dartdap/protocol/ldap_protocol.dart';
-import '../../../dartdap.dart';
 import 'dart:async';
+
 import 'package:collection/collection.dart';
+
+import '../control/control.dart';
+import '../core/core.dart';
+import '../protocol/ldap_protocol.dart';
+import 'client.dart';
 
 class LdapPoolException implements Exception {
   final String msg;
@@ -132,20 +136,20 @@ class LdapConnectionPool extends Ldap {
   }
 
   @override
-  Future<LdapResult> add(String dn, Map<String, dynamic> attrs) {
+  Future<LdapResult> add(DN dn, Map<String, dynamic> attrs) {
     return _ldapFunction((LdapConnection c) {
       return c.add(dn, attrs);
     });
   }
 
   @override
-  Future<LdapResult> bind({String? DN, String? password}) async {
+  Future<LdapResult> bind({DN? dn, String? password}) async {
     var c = await getConnection(bind: false);
     try {
       LdapResult result;
-      if (DN != null && password != null) {
-        loggerPool.finest(() => 'bind($DN)');
-        result = await c.bind(DN: DN, password: password);
+      if (dn != null && password != null) {
+        loggerPool.finest(() => 'bind($dn)');
+        result = await c.bind(dn: dn, password: password);
       } else {
         result = await c.bind();
       }
@@ -179,30 +183,29 @@ class LdapConnectionPool extends Ldap {
   }
 
   @override
-  Future<LdapResult> compare(
-      String dn, String attrName, String attrValue) async {
+  Future<LdapResult> compare(DN dn, String attrName, String attrValue) async {
     return _ldapFunction((LdapConnection c) {
       return c.compare(dn, attrName, attrValue);
     });
   }
 
   @override
-  Future<LdapResult> delete(String dn) {
+  Future<LdapResult> delete(DN dn) {
     return _ldapFunction((LdapConnection c) {
       return c.delete(dn);
     });
   }
 
   @override
-  Future<LdapResult> modify(String dn, List<Modification> mods) {
+  Future<LdapResult> modify(DN dn, List<Modification> mods) {
     return _ldapFunction((LdapConnection c) {
       return c.modify(dn, mods);
     });
   }
 
   @override
-  Future<LdapResult> modifyDN(String dn, String rdn,
-      {bool deleteOldRDN = true, String? newSuperior}) {
+  Future<LdapResult> modifyDN(DN dn, DN rdn,
+      {bool deleteOldRDN = true, DN? newSuperior}) {
     return _ldapFunction((LdapConnection c) {
       return c.modifyDN(dn, rdn,
           deleteOldRDN: deleteOldRDN, newSuperior: newSuperior);
@@ -210,8 +213,7 @@ class LdapConnectionPool extends Ldap {
   }
 
   @override
-  Future<SearchResult> search(
-      String baseDN, Filter filter, List<String> attributes,
+  Future<SearchResult> search(DN baseDN, Filter filter, List<String> attributes,
       {int scope = SearchScope.SUB_LEVEL,
       int sizeLimit = 0,
       List<Control> controls = const <Control>[]}) async {

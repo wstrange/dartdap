@@ -15,7 +15,7 @@ class SearchResultEntry extends ResponseOp {
     loggerRecvLdap.fine(() => 'Search result is a referral');
     var uris = m.protocolOp.elements;
     var l = uris.map((obj) => (obj as ASN1OctetString).stringValue).toList();
-    _searchEntry = SearchEntry('', referrals: l);
+    _searchEntry = SearchEntry(DN(''), referrals: l);
   }
 
   // Creates an entry for a single result. Note that
@@ -27,7 +27,7 @@ class SearchResultEntry extends ResponseOp {
 
     var t = s.elements[0] as ASN1OctetString;
 
-    var dn = t.stringValue;
+    var dn = DN(t.utf8StringValue);
 
     loggerRecvLdap.fine(() => 'Search Result Entry: dn=$dn');
 
@@ -41,8 +41,9 @@ class SearchResultEntry extends ResponseOp {
       var attrName = a.elements[0] as ASN1OctetString;
 
       var vals = a.elements[1] as ASN1Set;
-      var valSet =
-          vals.elements.map((v) => (v as ASN1OctetString).stringValue).toSet();
+      var valSet = vals.elements
+          .map((v) => (v as ASN1OctetString).utf8StringValue)
+          .toSet();
 
       searchEntry.attributes[attrName.stringValue] =
           Attribute(attrName.stringValue, valSet);

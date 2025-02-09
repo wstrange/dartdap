@@ -14,10 +14,10 @@ Future main() async {
       host: 'localhost',
       port: 1389,
       ssl: false,
-      bindDN: 'uid=admin',
+      bindDN: DN('uid=admin'),
       password: 'password');
 
-  var baseDN = 'dc=example,dc=com';
+  var baseDN = DN('dc=example,dc=com');
   var attrs = ['dn', 'uid', 'sn'];
   var pageSize = 100;
 
@@ -32,14 +32,12 @@ Future main() async {
   await ldap.open();
 
   while (!done) {
-
     print('**** Query for $pageSize entries **** total count=$count');
     late SearchResult results;
 
     try {
-      results = await ldap
-              .query(baseDN, '(objectclass=*)', attrs, controls: [simplePaged, sss]);
-
+      results = await ldap.query(baseDN, '(objectclass=*)', attrs,
+          controls: [simplePaged, sss]);
 
       await for (var entry in results.stream) {
         // uncomment if you want to see the entries. Slow...
@@ -49,12 +47,9 @@ Future main() async {
 
       //var sr = await results.getLdapResult();
       //print('LDAP result: $sr');
-
-
-    } catch (e,s) {
+    } catch (e, s) {
       print('LDAP search exception $e\n$s');
     }
-
 
     var cookie = <int>[];
     if (results.controls.isNotEmpty) {

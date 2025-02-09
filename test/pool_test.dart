@@ -36,8 +36,8 @@ void main() async {
   test('socket reconnection test', () async {
     for (var i = 0; i < 5; ++i) {
       try {
-        var r = await pool
-            .query(testDN.dn, '(objectclass=*)', ['objectclass', 'dn']);
+        var r =
+            await pool.query(testDN, '(objectclass=*)', ['objectclass', 'dn']);
         var ldapResult = await r.getLdapResult();
         var numResults = await r.stream.length;
         print('pass $i ldapResult = $ldapResult number results=$numResults\n');
@@ -55,12 +55,12 @@ void main() async {
     for (var i = 0; i < 5; ++i) {
       try {
         var r =
-            await c1.query(testDN.dn, '(objectclass=*)', ['objectclass', 'dn']);
+            await c1.query(testDN, '(objectclass=*)', ['objectclass', 'dn']);
         var ldapResult = await r.getLdapResult();
         var numResults = await r.stream.length;
         print('c1 $i ldapResult = $ldapResult number results=$numResults\n');
 
-        r = await c2.query(testDN.dn, '(objectclass=*)', ['objectclass', 'dn']);
+        r = await c2.query(testDN, '(objectclass=*)', ['objectclass', 'dn']);
         ldapResult = await r.getLdapResult();
         numResults = await r.stream.length;
         print('c2 $i ldapResult = $ldapResult number results=$numResults\n');

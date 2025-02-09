@@ -26,7 +26,7 @@ part of 'ldap_protocol.dart';
 
  */
 class SearchRequest extends RequestOp {
-  final String _baseDN;
+  final DN _baseDN;
   final int _scope;
   final int _sizeLimit;
   //int _derefPolicy = 3; // todo: read spec on this
@@ -53,7 +53,7 @@ class SearchRequest extends RequestOp {
     }
 
     seq
-      ..add(ASN1OctetString(_baseDN))
+      ..add(ASN1OctetString(_baseDN.dn))
       ..add(ASN1Enumerated(_scope))
       ..add(ASN1Enumerated(_derefPolicy))
       ..add(ASN1Integer.fromInt(_sizeLimit))
