@@ -1,5 +1,5 @@
 name: dartdap
-version: 0.9.0
+version: 0.9.1
 description: >
   LDAP v3 client library for Dart. Supports basic LDAP operations, add, delete, search, modify against
   any LDAP v3 compliant server.

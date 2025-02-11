@@ -25,9 +25,9 @@ void main() async {
   final fredDNEscaped = r'cn=fred\2C _smith,ou=users,dc=example,dc=com';
   final fredDN = DN(r'cn=fred\, _smith,ou=users,dc=example,dc=com');
   final roleDN = DN('cn=adminRole,dc=example,dc=com');
-  final testDN = DN('cn=téstè,ou=users,dc=example,dc=com');
+  final testDN = DN('cn=téstè (testy),ou=users,dc=example,dc=com');
   // final baseUserDN = DN('ou=users,dc=example,dc=com');
-  final testerCN = escapeNonAscii('téstè');
+  final testerCN = escapeNonAscii('téstè  (testy)');
 
   setUpAll(() async {
     ldap = defaultConnection(ssl: true);
@@ -163,11 +163,9 @@ void main() async {
     expect(r.resultCode, equals(ResultCode.OK));
   });
 
-  test('get tester user with an escaped query', () async {
+  test('get test user with an escaped query', () async {
     // the backslash is escaped in the filter
 
-    // either works...
-    // final filter = '(roleOccupant=$testDN)';
     final filter = '(roleOccupant=${testDN.dn})';
 
     var r = await ldap.query(roleDN, filter, ['cn', 'roleOccupant']);

@@ -10,7 +10,7 @@ class DN {
   const DN(this._dn);
   DN concat(String prefix) => DN('$prefix,$_dn');
 
-  String get dn => escapeNonAscii(_dn);
+  String get dn => escapeNonAscii(_dn, escapeParentheses: true);
 
   get isEmpty => _dn.isEmpty;
 

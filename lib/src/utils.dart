@@ -2,7 +2,7 @@ import 'dart:convert';
 
 /// Escape non-ASCII characters to create a string that is valid for use in filters
 /// DNs, etc.
-String escapeNonAscii(String input) {
+String escapeNonAscii(String input, {bool escapeParentheses = false}) {
   StringBuffer escaped = StringBuffer();
   for (int codeUnit in utf8.encode(input)) {
     if (codeUnit > 127) {
@@ -12,5 +12,9 @@ String escapeNonAscii(String input) {
       escaped.write(String.fromCharCode(codeUnit));
     }
   }
+  if (escapeParentheses) {
+    return escaped.toString().replaceAll('(', r'\28').replaceAll(')', r'\29');
+  }
+
   return escaped.toString();
 }
