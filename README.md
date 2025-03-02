@@ -305,6 +305,27 @@ new Logger("ldap").level = Level.OFF;
 
 ## Breaking changes
 
+### 0.10.0
+
+Added an `RDN` class to represent relative distinguished names.
+
+RDNs will handle escaping and unescaping of special characters for use in DNs.
+
+A DN can be constructed from a list of RDNs:
+
+```dart
+var dn = DN.fromRDNs([RDN("ou=Engineering"), RDN("dc=example"), RDN("dc=com")]);
+```
+
+For convenience, a full DN can also be constructed from a string provding no special escaping is required:
+
+
+```dart
+var dn = DN("ou=Engineering,dc=example,dc=com");
+```
+
+
+
 ### 0.9.0
 
 Distinguished names (DNs) are now represented by the `DN` class instead of a String.

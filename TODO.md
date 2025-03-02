@@ -43,3 +43,6 @@ remains bound as the last user - not the original user you created with the prot
 
 If you want to frequently bind as a different user (for example to test authentication), create
 a separate pool for that purpose.
+
+
+LdapConnection.copyWith would be handy...

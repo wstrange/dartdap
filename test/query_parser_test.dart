@@ -50,27 +50,26 @@ void main() {
 
   // issue #65
   test('Special characters in filter', () {
-    String dn = r'téstèr';
-    var q = '(roleOccupant=CN=$dn)';
+    var dn = DN('CN=téstèr');
+    var q = '(roleOccupant=$dn)';
 
     var f = parseQuery(q);
 
     expect(f, isA<Filter>());
     expect(f.filterType, equals(Filter.TYPE_EQUALITY));
     expect(f.attributeName, equals('roleOccupant'));
-    var x = ASN1OctetString(r'CN=t\C3\A9st\C3\A8r');
+    var x = ASN1OctetString(r'CN=t\c3\a9st\c3\a8r');
 
     expect(f.assertionValue, equals(x));
   });
 
   test('escaping characters', () {
     var s = r'téstèr';
-    var expected = r't\C3\A9st\C3\A8r';
+    var expected = r't\c3\a9st\c3\a8r';
     var escaped = escapeNonAscii(s);
     expect(escaped, equals(expected));
 
     var t = r'(roleOccupant=cn=fred\5c, _smith,ou=users,dc=example,dc=com)';
-    expect(t, equals(escapeNonAscii(t)),
-        reason: 'escaped chars should not be escaped again');
+    expect(t, equals(escapeNonAscii(t)), reason: 'escaped chars should not be escaped again');
   });
 }

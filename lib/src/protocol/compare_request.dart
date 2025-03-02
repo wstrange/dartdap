@@ -11,13 +11,12 @@ class CompareRequest extends RequestOp {
   final String _attrName;
   final dynamic _attrValue;
 
-  CompareRequest(this._dn, this._attrName, this._attrValue)
-      : super(COMPARE_REQUEST);
+  CompareRequest(this._dn, this._attrName, this._attrValue) : super(COMPARE_REQUEST);
 
   @override
   ASN1Object toASN1() {
     var seq = _startSequence();
-    seq.add(ASN1OctetString(_dn.dn));
+    seq.add(_dn.toOctetString());
 
     var attrSeq = ASN1Sequence();
     attrSeq.add(ASN1OctetString(_attrName));

@@ -53,7 +53,7 @@ class SearchRequest extends RequestOp {
     }
 
     seq
-      ..add(ASN1OctetString(_baseDN.dn))
+      ..add(_baseDN.toOctetString())
       ..add(ASN1Enumerated(_scope))
       ..add(ASN1Enumerated(_derefPolicy))
       ..add(ASN1Integer.fromInt(_sizeLimit))

@@ -16,7 +16,7 @@ class BindRequest extends RequestOp {
     var seq = _startSequence();
     var version = ASN1Integer.fromInt(3); // alway v3
     seq.add(version);
-    var bindDn = ASN1OctetString(_bindDN.dn);
+    var bindDn = _bindDN.toOctetString();
     var pw = ASN1OctetString(_password, tag: CRED_TYPE_SIMPLE);
     seq.add(bindDn);
     seq.add(pw);

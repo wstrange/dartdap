@@ -25,7 +25,7 @@ class AddRequest extends RequestOp {
   @override
   ASN1Object toASN1() {
     var seq = _startSequence();
-    seq.add(ASN1OctetString(_dn.dn));
+    seq.add(_dn.toOctetString());
 
     var attrSeq = ASN1Sequence();
 

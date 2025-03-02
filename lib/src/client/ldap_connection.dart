@@ -216,13 +216,13 @@ class LdapConnection extends Ldap {
       {String host = 'localhost',
       bool ssl = false,
       int port = Ldap.PORT_LDAP,
-      DN bindDN = const DN(''),
+      DN? bindDN,
       String password = '',
       BadCertHandlerType badCertificateHandler = defaultBadCertHandler,
       SecurityContext? context})
       : _host = host,
         _port = port,
-        _bindDN = bindDN,
+        _bindDN = bindDN ?? DN(''),
         _password = password,
         _isSSL = ssl,
         _badCertHandler = badCertificateHandler {
@@ -342,20 +342,16 @@ class LdapConnection extends Ldap {
 
   @override
   Future<SearchResult> search(DN baseDN, Filter filter, List<String> attributes,
-      {int scope = SearchScope.SUB_LEVEL,
-      int sizeLimit = 0,
-      List<Control> controls = const <Control>[]}) async {
+      {int scope = SearchScope.SUB_LEVEL, int sizeLimit = 0, List<Control> controls = const <Control>[]}) async {
     loggerConnection.fine('search filter=$filter, baseDN=$baseDN');
 
-    return _cmgr.processSearch(
-        SearchRequest(baseDN, filter, attributes, scope, sizeLimit), controls);
+    return _cmgr.processSearch(SearchRequest(baseDN, filter, attributes, scope, sizeLimit), controls);
   }
 
   @override
   Future<LdapResult> add(DN dn, Map<String, dynamic> attrs) async {
     loggerConnection.fine('add: $dn');
-    return await _cmgr
-        .process(AddRequest(dn, Attribute.newAttributeMap(attrs)));
+    return await _cmgr.process(AddRequest(dn, Attribute.newAttributeMap(attrs)));
   }
 
   @override
@@ -371,11 +367,9 @@ class LdapConnection extends Ldap {
   }
 
   @override
-  Future<LdapResult> modifyDN(DN dn, DN rdn,
-      {bool deleteOldRDN = true, DN? newSuperior}) async {
+  Future<LdapResult> modifyDN(DN dn, DN rdn, {bool deleteOldRDN = true, DN? newSuperior}) async {
     loggerConnection.fine('modifyDN');
-    return await _cmgr
-        .process(ModDNRequest(dn, rdn, deleteOldRDN, newSuperior));
+    return await _cmgr.process(ModDNRequest(dn, rdn, deleteOldRDN, newSuperior));
   }
 
   @override
@@ -419,8 +413,7 @@ class LdapConnection extends Ldap {
   bool get isReady => state == ConnectionState.ready || isBound;
 
   @override
-  String toString() =>
-      'LdapConnection($_host:$_port id=$_connectionId, state=$state)';
+  String toString() => 'LdapConnection($_host:$_port id=$_connectionId, state=$state)';
 }
 
 //================================================================

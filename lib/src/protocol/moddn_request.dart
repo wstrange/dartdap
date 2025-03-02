@@ -25,17 +25,16 @@ class ModDNRequest extends RequestOp {
   /// the old RDN (if [_deleteOldRDN] is true. If [_newSuperiorDN] is
   /// not null the entry is reparented.
   ///
-  ModDNRequest(this._dn, this._newRDN, this._deleteOldRDN, this._newSuperiorDN)
-      : super(MODIFY_DN_REQUEST);
+  ModDNRequest(this._dn, this._newRDN, this._deleteOldRDN, this._newSuperiorDN) : super(MODIFY_DN_REQUEST);
 
   @override
   ASN1Object toASN1() {
     var seq = _startSequence();
-    seq.add(ASN1OctetString(_dn.dn));
-    seq.add(ASN1OctetString(_newRDN.dn));
+    seq.add(_dn.toOctetString());
+    seq.add(_newRDN.toOctetString());
     seq.add(ASN1Boolean(_deleteOldRDN));
     if (_newSuperiorDN != null) {
-      seq.add(ASN1OctetString(_newSuperiorDN?.dn, tag: 0x80));
+      seq.add(ASN1OctetString(_newSuperiorDN?.toString(), tag: 0x80));
     }
     return seq;
   }

@@ -11,6 +11,7 @@ setupLogging() {
 
   // Root level - all levels below inherit this.
   Logger.root.level = Level.INFO; //
+  // Logger.root.level = Level.FINEST; //
 
   // Examples of selective logging
   // Logger('ldap.send').level = Level.FINE;
@@ -47,10 +48,32 @@ final groupsDN = DN('ou=groups,$baseDN');
 
 Future<void> debugSearch(LdapConnection ldap) async {
   // Search for people
-  var result = await ldap.query(baseDN, '(objectclass=*)', ['dn']);
+  var result = await ldap.query(baseDN, '(objectclass=*)', ['dn', 'cn']);
 
   await for (var entry in result.stream) {
     print('entry: $entry');
+  }
+}
+
+Future<void> setupBaseEntries(LdapConnection ldap) async {
+  try {
+    // Add base entries
+    await addIgnoreIfExists(ldap, baseDN, {
+      'objectClass': ['top', 'domain'],
+      'dc': 'example',
+    });
+
+    await addIgnoreIfExists(ldap, peopleDN, {
+      'objectClass': ['top', 'organizationalUnit'],
+      'ou': 'users',
+    });
+
+    await addIgnoreIfExists(ldap, groupsDN, {
+      'objectClass': ['top', 'organizationalUnit'],
+      'ou': 'groups',
+    });
+  } catch (e) {
+    print('Ignored Error setting up base entries: $e');
   }
 }
 
@@ -64,9 +87,16 @@ Future<void> deleteIfExists(LdapConnection ldap, DN dn) async {
   }
 }
 
+Future<void> addIgnoreIfExists(LdapConnection ldap, DN dn, Map<String, dynamic> attributes) async {
+  try {
+    await ldap.add(dn, attributes);
+  } catch (e) {
+    // ignore any exceptions
+  }
+}
+
 // Utility to check attribute for non null and expected value
-void expectSingleAttributeValue(
-    SearchEntry entry, String attributeName, String expectedValue) {
+void expectSingleAttributeValue(SearchEntry entry, String attributeName, String expectedValue) {
   var attrs = entry.attributes[attributeName];
   if (attrs == null) {
     fail('Attribute $attributeName not found');
@@ -76,8 +106,7 @@ void expectSingleAttributeValue(
 }
 
 // Utility to check attribute for non null and expected value startsWith
-void expectSingleAttributeValueStartsWith(
-    SearchEntry entry, String attributeName, String startsWith) {
+void expectSingleAttributeValueStartsWith(SearchEntry entry, String attributeName, String startsWith) {
   var attrs = entry.attributes[attributeName];
   if (attrs == null) {
     fail('Attribute $attributeName not found');
@@ -91,8 +120,7 @@ void expectSingleAttributeValueStartsWith(
 Future<void> printSearchResults(SearchResult searchResult) async {
   var result = await searchResult.getLdapResult();
   print('got result = $result');
-  if (result.resultCode == ResultCode.OK ||
-      result.resultCode == ResultCode.SIZE_LIMIT_EXCEEDED) {
+  if (result.resultCode == ResultCode.OK || result.resultCode == ResultCode.SIZE_LIMIT_EXCEEDED) {
     print('ok');
     await searchResult.stream.forEach((entry) {
       print('entry: $entry');

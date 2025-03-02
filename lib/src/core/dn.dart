@@ -1,27 +1,48 @@
-import '../utils.dart';
+import 'package:asn1lib/asn1lib.dart';
+import 'package:dartdap/dartdap.dart';
 
 /// Utility for building DNs
 /// TOOD: Add DN validity checking. (see RFC 4514)
 /// TODO: Add DN escaping
 /// TODO: Change API to use DNs instead of Strings
+/// // See https://github.com/pingidentity/ldapsdk/issues/10
+/// // "The syntax for escaping filters is different from the syntax for escaping DNs. "
 class DN {
-  final String _dn;
+  // final String _dn;
+  final List<RDN> _rdns;
 
-  const DN(this._dn);
-  DN concat(String prefix) => DN('$prefix,$_dn');
+  DN(String dn) : _rdns = parseDN(dn);
+  DN.fromRDNs(List<RDN> rdns) : _rdns = rdns;
+  DN concat(String prefix) => DN('$prefix,$this');
 
-  String get dn => escapeNonAscii(_dn, escapeParentheses: true);
+  ASN1OctetString toOctetString() => ASN1OctetString(toString());
 
-  get isEmpty => _dn.isEmpty;
+  List<RDN> get rdns => _rdns;
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is DN && runtimeType == other.runtimeType && _dn == other._dn;
-
-  @override
-  int get hashCode => _dn.hashCode;
+  get isEmpty => _rdns.isEmpty;
 
   @override
-  String toString() => _dn;
+  bool operator ==(Object other) => identical(this, other) || other is DN && toString() == other.toString();
+
+  @override
+  int get hashCode => toString().hashCode;
+
+  @override
+  String toString() => _rdns.map((rdn) => rdn.toString()).join(',');
+
+  DN.preEscaped(String d) : _rdns = d.split(',').map((rdn) => RDN.fromString(rdn, escape: false)).toList();
+}
+
+// Given a DN string, return a list of RDNs
+// The RDNs will have the attribute values escaped
+List<RDN> parseDN(String dn) {
+  // todo: This is not correct, and does handle escaped commas
+  if (dn.isEmpty) {
+    return [];
+  }
+  var rdnStrings = dn.split(',');
+  if (rdnStrings.isEmpty) {
+    throw Exception('Invalid DN: $dn');
+  }
+  return rdnStrings.map((rdn) => RDN.fromString(rdn)).toList();
 }

@@ -11,5 +11,5 @@ class DeleteRequest extends RequestOp {
   //      DelRequest ::= [APPLICATION 10] LDAPDN
 
   @override
-  ASN1Object toASN1() => ASN1OctetString(_dn.dn, tag: DELETE_REQUEST);
+  ASN1Object toASN1() => ASN1OctetString(_dn.toString(), tag: DELETE_REQUEST);
 }
