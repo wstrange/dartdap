@@ -134,5 +134,12 @@ void main() {
     test('non-printable ASCII characters', () {
       expect(escapeRDNvalue(String.fromCharCode(0)), r'\00');
     });
+
+    test('DN with special characters', () {
+      final dn = DN("CN=Tèster1,OU=Castus,OU=Users,OU=MyBusiness,DC=castus,DC=local");
+      expect(dn.rdns.length, 6);
+      expect(dn.rdns[0].attributeValue, r'T\c3\a8ster1');
+      expect(dn.toString(), r'CN=T\c3\a8ster1,OU=Castus,OU=Users,OU=MyBusiness,DC=castus,DC=local');
+    });
   });
 }

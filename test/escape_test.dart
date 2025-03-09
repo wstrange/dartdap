@@ -201,7 +201,8 @@ void main() async {
   });
 
   test('Bind with escaped DN', () async {
-    print('binding with $testDN. Escaped dn: $testDN');
+
+    expect(testDN.toString(), equals(r'cn=t\c3\a9st\c3\a8  (testy),ou=users,dc=example,dc=com'));
 
     // make a new ldap connection for testing the bind
     var l = LdapConnection(
