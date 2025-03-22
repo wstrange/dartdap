@@ -84,14 +84,11 @@ class LdapResult {
 
   /// Constructor
 
-  LdapResult(this._resultCode, this._matchedDN, this._diagnosticMessage,
-      this._referralURLs);
+  LdapResult(this._resultCode, this._matchedDN, this._diagnosticMessage, this._referralURLs);
 
   @override
   String toString() =>
-      ResultCode.message(_resultCode) +
-      _diagnosticMessage +
-      (_matchedDN != null ? ': $_matchedDN' : '');
+      ResultCode.message(_resultCode) + _diagnosticMessage + (_matchedDN != null ? ': $_matchedDN' : '');
 
   /// Converts an LdapResult whose result code is an error into an exception.
   ///
@@ -252,12 +249,12 @@ class SearchEntry {
   /// object.
 
   Map<String, Attribute> get attributes => _attributes;
+
   final Map<String, Attribute> _attributes = <String, Attribute>{};
 
   /// Constructor
 
-  SearchEntry(this._dn, {List<String> referrals = const []})
-      : _referrals = referrals;
+  SearchEntry(this._dn, {List<String> referrals = const []}) : _referrals = referrals;
 
   @override
   String toString() => 'Entry[$_dn,$_attributes]';
@@ -356,8 +353,7 @@ class ResultCode {
 
   /// Returns a human readable string describing the result [code].
 
-  static String message(int code) =>
-      _messages[code] ?? 'LDAP result code $code';
+  static String message(int code) => _messages[code] ?? 'LDAP result code $code';
 
   //===============================================================
 
@@ -374,8 +370,7 @@ class ResultCode {
   /// Returns true if and only if the [other] of the two are the same.
 
   @override
-  bool operator ==(Object other) =>
-      (other is ResultCode && _value == other._value);
+  bool operator ==(Object other) => (other is ResultCode && _value == other._value);
 
   @override
   String toString() => message(_value);

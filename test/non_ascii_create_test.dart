@@ -9,7 +9,7 @@ void main() async {
   // final testCN = '(testy)';
   // final testCN = 'foo';
 
-  final testRDN = RDN('cn', testCN);
+  final testRDN = RDN.fromNameValue('cn', testCN);
   final testDN = DN.fromRDNs([testRDN, ...peopleDN.rdns]);
 
   setUpAll(() async {
