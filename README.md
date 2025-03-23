@@ -305,25 +305,71 @@ new Logger("ldap").level = Level.OFF;
 
 ## Breaking changes
 
-### 0.10.0
+### 0.11.0
 
-Added an `RDN` class to represent relative distinguished names.
+There were several bugs related to handling of special characters in DNs and Attributes. Dart uses utf16 encoded strings, and
+most ldap servers expect utf8 encoded strings. This can cause problems when special characters are used in DNs and Attributes.
+
+To address this, the handling of DNs and RDNs has been improved. These are now proper Dart classes that handle escaping, concatenation and parsing.
+
+An `RDN` class has been added to represent relative distinguished names.
 
 RDNs will handle escaping and unescaping of special characters for use in DNs.
 
-A DN can be constructed from a list of RDNs:
+RDNs can be constructed as follows:
 
 ```dart
-var dn = DN.fromRDNs([RDN("ou=Engineering"), RDN("dc=example"), RDN("dc=com")]);
+// From a String
+var rdn = RDN.fromString("ou=Engineering");
+// From name and value
+var rdn = RDN("ou", "Engineering");
+// From an OctetString. This is useful when the RDN is received from an LDAP server
+var rdn = RDN.fromOctetString("ou", ASN1OctetString("Engineering"));
 ```
 
-For convenience, a full DN can also be constructed from a string provding no special escaping is required:
-
+A DN can be constructed as follows:
 
 ```dart
+// From a String that will be parsed
 var dn = DN("ou=Engineering,dc=example,dc=com");
+// From an OctetString. This is useful when the DN is received from an LDAP server
+var dn = DN.fromOctetString(OctetString.fromUtf8("ou=Engineering,dc=example,dc=com"));
+
+// DN's can be concatenated together using the plus operator:
+var dn1 = DN("dc=example,dc=com");
+var dn2 = DN("ou=Engineering");
+var dn = dn1 + dn2;
+
+// RDNs can be concatenated to a DN
+var dn = RDN("ou=Engineering") + DN("dc=example,dc=com") ;
 ```
 
+#### Attribute handling
+
+Previous versions attempted to returned search results as a `Map<String, Set>`, where the key is the attribute name, and the value is a set of values as Dart objects (mostly Strings).
+
+This can lead to errors for things like a list of DNs returned from an LDAP server. As an example, if you query for role members, you will get a list of DNs as the value of the `member` attribute. Should you escape the String values when sent back to the server or not? The answer is no, the server has already escaped values.
+
+To make this more transparent, `Attribute.values`  returned from search is a Set of ASN1Objects. In most cases these will be ASN1OctetStrings, but they could be other types of ASN1Objects.
+
+If you are going to use the results of a search in another LDAP operation, you should not convert the values to Strings. Instead do something like this:
+
+```dart
+  // result is a SearchResult
+  var memberAttr = result.attributes["member"];
+  for (var attr in memberAttr) {
+      // Do something with the octetString.
+      // If sent back to the server this will be properly escaped
+      var myDN = DN.fromOctetString(attr as ASN1OctetString);
+    }
+```
+As a general rule retain the values as ASN1Objects until you really need them as Dart Objects.
+
+Note that ASN1OctetString.toString() will return the utf8 decoded string. For convenience you can convert objects that you know are strings:
+
+```dart
+  var myString = '$someObjectThatYouKnowisAnOctetString';
+```
 
 
 ### 0.9.0

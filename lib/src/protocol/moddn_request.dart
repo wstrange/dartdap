@@ -30,8 +30,8 @@ class ModDNRequest extends RequestOp {
   @override
   ASN1Object toASN1() {
     var seq = _startSequence();
-    seq.add(_dn.toOctetString());
-    seq.add(_newRDN.toOctetString());
+    seq.add(_dn.octetString);
+    seq.add(_newRDN.octetString);
     seq.add(ASN1Boolean(_deleteOldRDN));
     if (_newSuperiorDN != null) {
       seq.add(ASN1OctetString(_newSuperiorDN?.toString(), tag: 0x80));

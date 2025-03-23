@@ -10,7 +10,7 @@ void main() async {
   // final testCN = 'foo';
 
   final testRDN = RDN.fromNameValue('cn', testCN);
-  final testDN = DN.fromRDNs([testRDN, ...peopleDN.rdns]);
+  final testDN = testRDN + peopleDN;
 
   setUpAll(() async {
     ldap = defaultConnection(ssl: true);
@@ -20,6 +20,7 @@ void main() async {
 
   setUp(() async {
     try {
+      deleteIfExists(ldap, testDN);
       await setupBaseEntries(ldap);
     } catch (e, stack) {
       // ignore

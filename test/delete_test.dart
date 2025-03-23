@@ -12,8 +12,9 @@ import 'setup.dart';
 
 //----------------------------------------------------------------
 
-const branchOU = 'entry_delete_test';
-const branchDescription = 'Branch for $branchOU';
+final branchOU = DN('ou=entry_delete_test');
+final branchDescription = 'Branch for $branchOU';
+final branchDN = branchOU + baseDN;
 
 final branchAttrs = {
   'objectclass': ['organizationalUnit'],
@@ -32,13 +33,12 @@ final testPersonAttrs = {
   'description': testPersonDescription
 };
 
-final testDN = DN('dc=example,dc=com');
+final baseDN = DN('dc=example,dc=com');
 
 //----------------------------------------------------------------
 // Create entries needed for testing.
 
-Future populateEntries(
-    LdapConnection ldap, DN branchDN, DN testPersonDN) async {
+Future populateEntries(LdapConnection ldap, DN branchDN, DN testPersonDN) async {
   var addResult = await ldap.add(branchDN, branchAttrs);
   assert(addResult.resultCode == 0);
 
@@ -71,19 +71,15 @@ Future purgeEntries(LdapConnection ldap, DN branchDN, DN testPersonDN) async {
 
 void main() {
   late LdapConnection ldap;
-  late DN branchDN;
   late DN testPersonDN;
 
   setUpAll(() async {
     ldap = defaultConnection();
-    branchDN = testDN.concat('ou=$branchOU');
-    testPersonDN = branchDN.concat('cn=$testPersonCN');
+
+    testPersonDN = DN('cn=$testPersonCN') + branchDN;
   });
 
   setUp(() async {
-    branchDN = testDN.concat('ou=$branchOU');
-    testPersonDN = branchDN.concat('cn=$testPersonCN');
-
     await ldap.open();
     await ldap.bind();
 
@@ -114,7 +110,7 @@ void main() {
 
     var count = 0;
 
-    var searchResults = await ldap.search(testDN, filter, searchAttrs);
+    var searchResults = await ldap.search(baseDN, filter, searchAttrs);
     await for (SearchEntry _ in searchResults.stream) {
       fail('Entry still exists after delete');
       // dead code
@@ -127,7 +123,7 @@ void main() {
   //----------------
 
   test('deleting a non-existant entry raises an exception', () async {
-    var nosuchDN = branchDN.concat('cn=NoSuchPerson');
+    var nosuchDN = DN('cn=NoSuchPerson') + branchDN;
 
     try {
       await ldap.delete(nosuchDN);
@@ -153,4 +149,3 @@ void main() {
 }
 
 //================================================================
-

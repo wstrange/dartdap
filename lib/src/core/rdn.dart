@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:asn1lib/asn1lib.dart';
+import 'dn.dart';
 
 /// See https://ldap.com/ldap-dns-and-rdns/ for rules for DNs / RDNs
 ///
@@ -24,6 +25,12 @@ class RDN {
     x.setRange(attributeName.octets.length + 1, x.length, attributeValue.octets);
 
     return ASN1OctetString(x);
+  }
+
+  DN operator +(DN dn) {
+    // courerse this to a DN and append the other DN
+    var d = DN.fromOctetString(asn1OctetString);
+    return d + dn;
   }
 
   static RDN fromString(String rdn) {

@@ -15,6 +15,7 @@
 ///
 import 'dart:math';
 
+import 'package:asn1lib/asn1lib.dart';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 import '../example/pool.dart';
@@ -28,12 +29,12 @@ void main() async {
   final fredRDN = RDN.fromNameValue('cn', fredCN);
   final userDN = DN('ou=users,dc=example,dc=com');
 
-  final fredDN = DN.fromRDNs([fredRDN, ...userDN.rdns]);
+  final fredDN = fredRDN + userDN;
   final roleDN = DN('cn=adminRole,dc=example,dc=com');
 
   final testCN = 'téstè  (testy)';
   final testRDN = RDN.fromNameValue('cn', testCN);
-  final testDN = DN.fromRDNs([testRDN, ...userDN.rdns]);
+  final testDN = testRDN + userDN;
 
   setUpAll(() async {
     ldap = defaultConnection(ssl: true);
@@ -96,9 +97,9 @@ void main() async {
 
   tearDown(() async {
     // clean up
-    // await deleteIfExists(ldap, roleDN);
-    // await deleteIfExists(ldap, fredDN);
-    // await deleteIfExists(ldap, testDN);
+    await deleteIfExists(ldap, roleDN);
+    await deleteIfExists(ldap, fredDN);
+    await deleteIfExists(ldap, testDN);
   });
 
   // just here for debugging. Normally skipped
@@ -133,7 +134,7 @@ void main() async {
       var roleOccupant = e.attributes['roleOccupant'];
       // iterate through the roleOccupant DNs and make sure we can find the users
       for (var d in roleOccupant!.values) {
-        var dn = DN(d);
+        var dn = DN.fromOctetString(d as ASN1OctetString);
         print('looking up $dn');
         var x = await ldap.query(dn, '(objectClass=*)', ['cn', 'dn', 'sn'], scope: SearchScope.BASE_LEVEL);
         var result = await x.getLdapResult();
@@ -218,10 +219,10 @@ void main() async {
     var r = await l.bind(dn: testDN, password: 'password');
     expect(r.resultCode, equals(ResultCode.OK));
 
-    // print('binding with $fredDN. Escaped dn: $fredDN');
-    // // now try with Fred
-    // r = await l.bind(dn: fredDN, password: 'password');
-    // expect(r.resultCode, equals(ResultCode.OK));
+    print('binding with $fredDN. Escaped dn: $fredDN');
+    // now try with Fred
+    r = await l.bind(dn: fredDN, password: 'password');
+    expect(r.resultCode, equals(ResultCode.OK));
 
     await l.close();
   });

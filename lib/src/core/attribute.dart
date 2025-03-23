@@ -1,3 +1,6 @@
+import 'package:asn1lib/asn1lib.dart';
+import 'package:collection/collection.dart';
+
 /// Represents an LDAP Attribute.
 ///
 /// Use the [name] property to retrieve the attribute's name and
@@ -5,15 +8,17 @@
 ///
 /// Use the [addValue] method to add another value to the attribute.
 
+final _setEquality = SetEquality<ASN1Object>();
+
 class Attribute {
   final String _name;
-  final Set _values = {};
+  final Set<ASN1Object> _values = {};
 
   /// The name of the attribute.
   String get name => _name;
 
   /// The set of values associated with the attribute.
-  Set get values => _values;
+  Set<ASN1Object> get values => _values;
 
   /// Constructor.
   ///
@@ -24,16 +29,30 @@ class Attribute {
   /// the attribute.
 
   Attribute(String name, dynamic initialValues) : _name = name {
-    if (initialValues is Iterable) {
-      _values.addAll(initialValues);
+    if (initialValues == null) {
+      throw ArgumentError.notNull('initialValues');
+    }
+    if (initialValues is String) {
+      // convert the string to an OctetString
+      addStringValue(initialValues);
+    } else if (initialValues is Iterable) {
+      for (var v in initialValues) {
+        if (v is String) {
+          addStringValue(v);
+        } else {
+          _values.add(v);
+        }
+      }
     } else {
       _values.add(initialValues);
     }
   }
 
-  /// Add a value to the existing values in the attribute.
+  // Add a String value by converting to an OctetString
+  void addStringValue(String s) => _values.add(ASN1OctetString(s));
 
-  bool addValue(dynamic val) => _values.add(val);
+  /// Add a value to the existing values in the attribute.
+  bool addValue(ASN1Object val) => _values.add(val);
 
   // note that when printed in a map, the attr name will be printed - so
   // we just print the value
@@ -44,9 +63,7 @@ class Attribute {
   // and contain the same set of values.
   @override
   bool operator ==(Object other) =>
-      (other is Attribute && _name == other._name) &&
-      _values.containsAll(other._values) &&
-      other._values.containsAll(_values);
+      other is Attribute && _name == other._name && _setEquality.equals(_values, other._values);
 
   /// Converts a map of simple strings or list values into a Map of [Attribute].
   ///
@@ -69,5 +86,5 @@ class Attribute {
   }
 
   @override
-  int get hashCode => Object.hash(_name, _values);
+  int get hashCode => Object.hash(_name, _setEquality.hash(_values));
 }

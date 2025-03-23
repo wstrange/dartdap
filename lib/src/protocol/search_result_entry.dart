@@ -41,7 +41,7 @@ class SearchResultEntry extends ResponseOp {
       var attrName = a.elements[0] as ASN1OctetString;
 
       var vals = a.elements[1] as ASN1Set;
-      var valSet = vals.elements.map((v) => (v as ASN1OctetString).utf8StringValue).toSet();
+      var valSet = vals.elements.map((v) => v).toSet();
 
       searchEntry.attributes[attrName.utf8StringValue] = Attribute(attrName.utf8StringValue, valSet);
 
