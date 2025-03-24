@@ -1,5 +1,10 @@
 # Dartdap Change Log
 
+## 0.11.1
+
+- Improved filter parser to accept special accented characters.
+
+
 ## 0.11.0
 
 - Improved hadnling for DNs and RDNs. These are now proper Dart classes that handle escaping, concatenation and parsing. See the README for more information.

@@ -93,7 +93,7 @@ the search request. The SDK does not automatically follow referrals.
 
 There are two search methods:
 
-* `ldap.search` takes a dart `Filter` object.
+* `ldap.search` takes a dart `Filter` object. This is the preferred method. See note below.
 * `ldap.query` takes an <https://tools.ietf.org/html/rfc2254> string to construct the filter
 
 ### Adding entries
@@ -301,6 +301,39 @@ from the package:
 
 ```dart
 new Logger("ldap").level = Level.OFF;
+
+
+## LDAP Filters and Directory Results.
+
+You are strongly encouraged to use the `Filter` class and `ldap.search()` to construct LDAP filters programatically in preference to using `query` with filter strings.
+
+For example:
+
+```dart
+  var filter = Filter.equals("cn", "John Doe");
+  var filter = Filter.present("cn");
+  var filter = Filter.approx("cn", "John Doe");
+  var filter = Filter.greaterOrEquals("cn", "John Doe");
+  var filter = Filter.lessOrEquals("cn", "John Doe");
+  var filter = Filter.substring("cn", "John Doe");
+  var filter = Filter.and([Filter.equals("cn", "John Doe"), Filter.equals("sn", "Doe")]);
+  var filter = Filter.or([Filter.equals("cn", "John Doe"), Filter.equals("sn", "Doe")]);
+  var filter = Filter.not(Filter.equals("cn", "John Doe"));
+
+  // Avoid this. The parentheses will not be escaped properly.
+  ldap.query(('member=cn=some user with (),dc=foo,dc=bar', ...));
+```
+
+If directory entries contains special characters such as parentheses, commas, *, etc. - you must properly escape them in string filters. This can be
+tricky and often leads to bugs.  Using the Filter class will properly escape these characters (modulo any bugs).
+
+If you get results back from the server that contain special characters, you should not convert them to strings unless you really need to. Instead, use the ASN1Object values directly
+as the server has already properly escaped them. In addition to Strings, you can use DNs or ASN1OctetStrings as the assertion value in Filters. For example `Filter.equals('member', johnDN)`.
+
+As a convenience, the ASN1 library will convert ASN1OctetStrings to a vanilla string when you call toString() on the object. This uses utf-8 decoding to convert the octet string which is what LDAP servers use.
+Note that Dart uses utf-16 encoded strings internally.
+
+
 ```
 
 ## Breaking changes

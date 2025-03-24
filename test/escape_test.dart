@@ -157,7 +157,7 @@ void main() async {
 
   test('get role with an escaped dn using Filter', () async {
     // the backslash is escaped in the filter
-    final filter = Filter.equals('roleOccupant', fredDN.toString());
+    final filter = Filter.equals('roleOccupant', fredDN);
 
     print('filter: $filter');
     var r = await ldap.search(roleDN, filter, ['cn', 'roleOccupant']);
@@ -172,8 +172,7 @@ void main() async {
     expect(foundIt, true);
   });
 
-  test('get role with an escaped query', () async {
-    // the backslash is escaped in the filter
+  test('query role with an DN that has an underscore', () async {
     final filter = '(roleOccupant=$fredDN)';
 
     print('filter: $filter');
@@ -192,7 +191,6 @@ void main() async {
   test('query role for user with an escaped filter query', () async {
     // Because testDN contains parens, we need to escape them
     // for use in the filter.
-    // final filter = '(roleOccupant=$esc)';
     final filter = escapeSpecialCharsInLdapFilter('(roleOccupant=$testDN)');
     print('filter: $filter');
 
@@ -208,10 +206,9 @@ void main() async {
     expect(foundIt, true);
   });
 
-  test('query role for user using constructed Filter', () async {
-    // Because testDN contains parens, we need to escape them
-    // for use in the filter.
-    final filter = Filter.equals('roleOccupant', testDN.toString());
+  test('query role for user using constructed Filter with a DN that contains ()', () async {
+    // testDN contains parens
+    final filter = Filter.equals('roleOccupant', testDN);
 
     var r = await ldap.search(roleDN, filter, ['cn', 'roleOccupant']);
     var foundIt = false;
