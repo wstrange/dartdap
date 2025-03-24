@@ -192,9 +192,8 @@ void main() async {
   test('query role for user with an escaped filter query', () async {
     // Because testDN contains parens, we need to escape them
     // for use in the filter.
-    final esc = escapeNonAscii(testDN.toString(), escapeParentheses: true);
     // final filter = '(roleOccupant=$esc)';
-    final filter = '(roleOccupant=$testDN)';
+    final filter = escapeSpecialCharsInLdapFilter('(roleOccupant=$testDN)');
     print('filter: $filter');
 
     var r = await ldap.query(roleDN, filter, ['cn', 'roleOccupant']);

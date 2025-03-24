@@ -9,42 +9,15 @@ final _queryDefinition = QueryParserDefinition();
 final _parser = _queryDefinition.build();
 
 Filter parseQuery(String input) {
-  var s = escapeLdapFilter(input);
   // For debugging uncomment the next lines
-  print('escaped: $s');
-  // var result = trace(_parser, output: (x) => print(x)).parse(s);
-  var result = _parser.parse(s);
+  // var result = trace(_parser, output: (x) => print(x)).parse(input);
+  var result = _parser.parse(input);
   if (result is Success) {
     print('Filter: ${result.value}');
     return result.value;
   } else {
     throw LdapParseException('Cant parse filter \'$input\'. Error is ${result.message}');
   }
-}
-
-// Escape the input string to make it safe for LDAP filters
-// Note this is not correct for all cases. It passes the
-// leading and trailing parens, but does not escape
-// parens that are suppoed to be part of the filter (and not part of an
-// attribute value)
-// Strongly suggest using programmatic filters instead of the query() function
-String escapeLdapFilter(String value) {
-  // final specialChars = ['*', '\\'];
-
-  // todo: hack to ignore first and last parens
-  var escapedValue = '';
-  for (var i = 1; i < value.length - 1; i++) {
-    final char = value[i];
-    escapedValue += switch (char) {
-      '*' => r'\*',
-      '(' => r'\28',
-      ')' => r'\29',
-      // '\\' => r'\\',
-      // ' ' => r'\20',
-      _ => char,
-    };
-  }
-  return '($escapedValue)';
 }
 
 // The grammar turns the parsed stream into a Filter
