@@ -49,7 +49,9 @@ final groupsDN = DN('ou=groups,$baseDN');
 
 Future<void> debugSearch(LdapConnection ldap) async {
   // Search for people
-  var result = await ldap.query(baseDN, '(objectclass=*)', ['dn', 'cn']);
+  var filter = Filter.present('objectClass');
+  var result = await ldap.search(baseDN, filter, ['dn', 'cn']);
+  // var result = await ldap.query(baseDN, '(objectclass=*)', ['dn', 'cn']);
 
   await for (var entry in result.stream) {
     print('entry: $entry');

@@ -113,12 +113,17 @@ void main() async {
     // get the
   }, skip: false);
 
-  test('Find the test user we just created', () async {
+  test('Find the test users we just created', () async {
     // now serach by DN
     var x = await ldap.query(testDN, '(objectClass=*)', ['cn', 'dn'], scope: SearchScope.BASE_LEVEL);
 
     var result = await x.getLdapResult();
     expect(result.resultCode, equals(ResultCode.OK));
+
+    x = await ldap.query(fredDN, '(objectClass=*)', ['cn', 'dn'], scope: SearchScope.BASE_LEVEL);
+    result = await x.getLdapResult();
+    expect(result.resultCode, equals(ResultCode.OK));
+
     await printResults(x);
   });
 
@@ -150,10 +155,28 @@ void main() async {
     expect(foundIt, true);
   });
 
+  test('get role with an escaped dn using Filter', () async {
+    // the backslash is escaped in the filter
+    final filter = Filter.equals('roleOccupant', fredDN.toString());
+
+    print('filter: $filter');
+    var r = await ldap.search(roleDN, filter, ['cn', 'roleOccupant']);
+    var foundIt = false;
+    var result = await r.getLdapResult();
+    expect(result.resultCode, equals(ResultCode.OK));
+    await for (final e in r.stream) {
+      expect(e.dn, equals(roleDN));
+      foundIt = true;
+      //print('Found role dn: ${e.dn}');
+    }
+    expect(foundIt, true);
+  });
+
   test('get role with an escaped query', () async {
     // the backslash is escaped in the filter
     final filter = '(roleOccupant=$fredDN)';
 
+    print('filter: $filter');
     var r = await ldap.query(roleDN, filter, ['cn', 'roleOccupant']);
     var foundIt = false;
     var result = await r.getLdapResult();
@@ -170,7 +193,9 @@ void main() async {
     // Because testDN contains parens, we need to escape them
     // for use in the filter.
     final esc = escapeNonAscii(testDN.toString(), escapeParentheses: true);
-    final filter = '(roleOccupant=$esc)';
+    // final filter = '(roleOccupant=$esc)';
+    final filter = '(roleOccupant=$testDN)';
+    print('filter: $filter');
 
     var r = await ldap.query(roleDN, filter, ['cn', 'roleOccupant']);
     var foundIt = false;
