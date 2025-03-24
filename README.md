@@ -338,7 +338,7 @@ Note that Dart uses utf-16 encoded strings internally.
 
 ## Breaking changes
 
-### 0.11.0
+### 0.10.0 and 0.11.0
 
 There were several bugs related to handling of special characters in DNs and Attributes. Dart uses utf16 encoded strings, and
 most ldap servers expect utf8 encoded strings. This can cause problems when special characters are used in DNs and Attributes.
