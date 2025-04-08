@@ -27,7 +27,7 @@ class SearchResultEntry extends ResponseOp {
 
     var t = s.elements[0] as ASN1OctetString;
 
-    var dn = DN(t.utf8StringValue);
+    var dn = DN.fromOctetString(t);
 
     loggerRecvLdap.fine(() => 'Search Result Entry: dn=$dn');
 
@@ -41,12 +41,9 @@ class SearchResultEntry extends ResponseOp {
       var attrName = a.elements[0] as ASN1OctetString;
 
       var vals = a.elements[1] as ASN1Set;
-      var valSet = vals.elements
-          .map((v) => (v as ASN1OctetString).utf8StringValue)
-          .toSet();
+      var valSet = vals.elements.map((v) => v).toSet();
 
-      searchEntry.attributes[attrName.stringValue] =
-          Attribute(attrName.stringValue, valSet);
+      searchEntry.attributes[attrName.utf8StringValue] = Attribute(attrName.utf8StringValue, valSet);
 
       loggerRecvLdap.finest('attribute: ${attrName.stringValue}=$valSet');
     }

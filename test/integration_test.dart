@@ -37,10 +37,10 @@ void main() async {
     //----------------
     // The distinguished name is a String value
 
-    var engineeringDN = testDN.concat('ou=Engineering');
-    var salesDN = testDN.concat('ou=Sales');
-    var bisDevDN = testDN.concat('ou=Business Development');
-    var supportDN = engineeringDN.concat('ou=Support');
+    var engineeringDN = DN('ou=Engineering') + testDN;
+    var salesDN = DN('ou=Sales') + testDN;
+    var bisDevDN = DN('ou=Business Development') + testDN;
+    var supportDN = DN('ou=Support') + testDN;
 
     // For testing purposes, make sure entries do not exist before proceeding.
 
@@ -61,8 +61,7 @@ void main() async {
     };
 
     var result = await ldap.add(engineeringDN, attrs);
-    expect(result.resultCode, equals(0),
-        reason: 'Could not add engineering entry');
+    expect(result.resultCode, equals(0), reason: 'Could not add engineering entry');
 
     result = await ldap.add(salesDN, attrs);
     expect(result.resultCode, equals(0), reason: 'Could not add sales entry');
@@ -72,14 +71,11 @@ void main() async {
 
     var mod1 = Modification.replace('description', ['Engineering department']);
     result = await ldap.modify(engineeringDN, [mod1]);
-    expect(result.resultCode, equals(0),
-        reason: 'could not change engineering description attribute');
+    expect(result.resultCode, equals(0), reason: 'could not change engineering description attribute');
 
-    var mod2 = Modification.replace(
-        'description', ['Sales department', 'Business development department']);
+    var mod2 = Modification.replace('description', ['Sales department', 'Business development department']);
     result = await ldap.modify(salesDN, [mod2]);
-    expect(result.resultCode, equals(0),
-        reason: 'Could not change sales description attribute');
+    expect(result.resultCode, equals(0), reason: 'Could not change sales description attribute');
 
     //----
     // Modify: rename
@@ -89,8 +85,7 @@ void main() async {
      */
 
     var tmpRDN = DN('ou=Business Development');
-    var r = await ldap.modifyDN(
-        salesDN, tmpRDN); // rename 'Sales' to 'Business Development'
+    var r = await ldap.modifyDN(salesDN, tmpRDN); // rename 'Sales' to 'Business Development'
     expect(r.resultCode, equals(0), reason: 'Could not rename sales entry');
 
     // Modify: rename and change parent
@@ -110,10 +105,8 @@ void main() async {
     //----
     // Compare
 
-    r = await ldap.compare(
-        engineeringDN, 'description', 'ENGINEERING DEPARTMENT');
-    expect(r.resultCode, equals(ResultCode.COMPARE_TRUE),
-        reason: 'Compare failed');
+    r = await ldap.compare(engineeringDN, 'description', 'ENGINEERING DEPARTMENT');
+    expect(r.resultCode, equals(ResultCode.COMPARE_TRUE), reason: 'Compare failed');
 
     //----------------
     // Search
@@ -131,8 +124,7 @@ void main() async {
       expect(entry, const TypeMatcher<SearchEntry>());
       numFound++;
     }
-    expect(numFound, equals(1),
-        reason: 'Unexpected number of entries in (ou=Engineering)');
+    expect(numFound, equals(1), reason: 'Unexpected number of entries in (ou=Engineering)');
 
     /*
     // not(ou=Engineering)
@@ -155,12 +147,10 @@ void main() async {
 
     if (!KEEP_ENTRIES_FOR_DEBUGGING) {
       result = await ldap.delete(bisDevDN);
-      expect(result.resultCode, equals(0),
-          reason: 'Could not delete business development entry');
+      expect(result.resultCode, equals(0), reason: 'Could not delete business development entry');
 
       result = await ldap.delete(engineeringDN);
-      expect(result.resultCode, equals(0),
-          reason: 'Could not delete engineering entry');
+      expect(result.resultCode, equals(0), reason: 'Could not delete engineering entry');
     }
 
     //----

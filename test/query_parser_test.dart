@@ -58,8 +58,8 @@ void main() {
     expect(f, isA<Filter>());
     expect(f.filterType, equals(Filter.TYPE_EQUALITY));
     expect(f.attributeName, equals('roleOccupant'));
-    var x = ASN1OctetString(r'CN=t\c3\a9st\c3\a8r');
-
+    // The special characters do not need to be escaped in this example
+    var x = ASN1OctetString(r'CN=téstèr');
     expect(f.assertionValue, equals(x));
   });
 

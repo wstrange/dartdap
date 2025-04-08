@@ -1,5 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:asn1lib/asn1lib.dart';
 import 'package:dartdap/dartdap.dart';
+
+const commaChar = 0x2c;
 
 /// Utility for building DNs
 /// TOOD: Add DN validity checking. (see RFC 4514)
@@ -7,19 +11,34 @@ import 'package:dartdap/dartdap.dart';
 /// TODO: Change API to use DNs instead of Strings
 /// // See https://github.com/pingidentity/ldapsdk/issues/10
 /// // "The syntax for escaping filters is different from the syntax for escaping DNs. "
+///
+///
+/// TODO: should be immutable, No need to return RDNs.
 class DN {
-  // final String _dn;
-  final List<RDN> _rdns;
+  final ASN1OctetString _asn1OctetString;
 
-  DN(String dn) : _rdns = parseDN(dn);
-  DN.fromRDNs(List<RDN> rdns) : _rdns = rdns;
-  DN concat(String prefix) => DN('$prefix,$this');
+  DN(String dn) : _asn1OctetString = _toOctetString(parseDN(dn));
 
-  ASN1OctetString toOctetString() => ASN1OctetString(toString());
+  ASN1OctetString get octetString => _asn1OctetString;
 
-  List<RDN> get rdns => _rdns;
+  // Append [second[] DN to the [first] DN and return a new DN.
+  static DN join(DN first, DN second) {
+    var a = first.octetString;
+    var b = second.octetString;
+    var x = Uint8List(a.octets.length + b.octets.length + 1);
+    x.setRange(0, a.octets.length, a.octets);
+    x[a.octets.length] = commaChar;
+    x.setRange(a.octets.length + 1, x.length, b.octets);
+    return DN.fromOctetString(ASN1OctetString(x));
+  }
 
-  get isEmpty => _rdns.isEmpty;
+  // Convenience method to join two DNs
+  DN operator +(DN other) => join(this, other);
+
+  // Create a DN from an ASN1OctetString. This is used when decoding a DN from a search result
+  DN.fromOctetString(ASN1OctetString t) : _asn1OctetString = t;
+
+  get isEmpty => _asn1OctetString.utf8StringValue.isEmpty;
 
   @override
   bool operator ==(Object other) => identical(this, other) || other is DN && toString() == other.toString();
@@ -28,9 +47,7 @@ class DN {
   int get hashCode => toString().hashCode;
 
   @override
-  String toString() => _rdns.map((rdn) => rdn.toString()).join(',');
-
-  DN.preEscaped(String d) : _rdns = d.split(',').map((rdn) => RDN.fromString(rdn, escape: false)).toList();
+  String toString() => _asn1OctetString.utf8StringValue;
 }
 
 // Given a DN string, return a list of RDNs
@@ -45,4 +62,16 @@ List<RDN> parseDN(String dn) {
     throw Exception('Invalid DN: $dn');
   }
   return rdnStrings.map((rdn) => RDN.fromString(rdn)).toList();
+}
+
+ASN1OctetString _toOctetString(List<RDN> rdns) {
+  var b = BytesBuilder();
+  for (int i = 0; i < rdns.length; i++) {
+    b.add(rdns[i].asn1OctetString.octets);
+    if (i < rdns.length - 1) {
+      b.addByte(commaChar);
+    }
+  }
+  var asn1OctetString = ASN1OctetString(Uint8List.fromList(b.toBytes()));
+  return asn1OctetString;
 }

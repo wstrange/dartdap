@@ -16,7 +16,7 @@ class CompareRequest extends RequestOp {
   @override
   ASN1Object toASN1() {
     var seq = _startSequence();
-    seq.add(_dn.toOctetString());
+    seq.add(_dn.octetString);
 
     var attrSeq = ASN1Sequence();
     attrSeq.add(ASN1OctetString(_attrName));

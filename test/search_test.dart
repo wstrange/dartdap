@@ -38,8 +38,7 @@ Future populateEntries(LdapConnection ldap, DN testDN) async {
     'description': descriptionStr
   });
   // ignore error if it already exists
-  assert(addResult.resultCode == ResultCode.ENTRY_ALREADY_EXISTS ||
-      addResult.resultCode == 0);
+  assert(addResult.resultCode == ResultCode.ENTRY_ALREADY_EXISTS || addResult.resultCode == 0);
 
   // Create subentries
 
@@ -48,7 +47,7 @@ Future populateEntries(LdapConnection ldap, DN testDN) async {
       'objectclass': ['inetorgperson'],
       'sn': 'User $j'
     };
-    var addResult = await ldap.add(testDN.concat('cn=user$j'), attrs);
+    var addResult = await ldap.add(DN('cn=user$j') + testDN, attrs);
     assert(addResult.resultCode == 0);
   }
 }
@@ -61,7 +60,7 @@ Future purgeEntries(LdapConnection ldap, DN testDN) async {
 
   for (var j = 0; j < NUM_ENTRIES; ++j) {
     try {
-      await ldap.delete(testDN.concat('cn=user$j'));
+      await ldap.delete(DN('cn=user$j') + testDN);
     } catch (e) {
       // ignore any exceptions
     }
@@ -207,8 +206,7 @@ void main() async {
     var gotException = false;
 
     try {
-      var searchResults = await ldap.search(
-          testDN.concat('ou=NoSuchEntry'), filter, searchAttrs);
+      var searchResults = await ldap.search(DN('ou=NoSuchEntry') + testDN, filter, searchAttrs);
       // ignore: unused_local_variable
       await for (SearchEntry entry in searchResults.stream) {
         fail('Unexpected result from search under non-existant entry');

@@ -19,47 +19,31 @@ String escapeNonAscii(String input, {bool escapeParentheses = false}) {
   return escaped.toString();
 }
 
-// Escape a DN / RDN component
-// See https://ldap.com/ldap-dns-and-rdns/
+/// A utility to escape the input string to make it safe for LDAP filters
+/// Note this is not correct for all cases. It leaves the
+/// leading and trailing parens alone as they are part of the filter.
+/// It assumes embedded parens are escaped - which might not be what you want.
+///
+///
+/// It is strongly suggested to use programmatic filters instead of the query() function
+/// If you really want to use query() you should carefully escape the input string
+/// in your code before passing it to query().  This will break for things
+/// like DNs that use special characters in the DN.
+String escapeSpecialCharsInLdapFilter(String value) {
+  // final specialChars = ['*', '\\'];
 
-String escapeRDNvalue(String val) {
-  if (val.isEmpty) return val;
-
-  final specialChars = r'+<>#;"=\,';
-  final buffer = StringBuffer();
-  // final runes = val.runes.toList();
-  final runes = utf8.encode(val);
-
-  for (int i = 0; i < runes.length; i++) {
-    final char = String.fromCharCode(runes[i]);
-    // Escape special chars and non-printable ASCII
-    if (specialChars.contains(char) || runes[i] < 32) {
-      buffer.write('\\');
-      // Use hex format for non-printable characters
-      if (runes[i] < 16) {
-        buffer.write('0${runes[i].toRadixString(16)}');
-      } else if (runes[i] < 32) {
-        buffer.write(runes[i].toRadixString(16));
-      } else {
-        buffer.write(char);
-      }
-    } else if (runes[i] > 128) {
-      buffer.write('\\');
-      buffer.write(runes[i].toRadixString(16).toLowerCase());
-      // buffer.write(char);
-    } else {
-      buffer.write(char);
-    }
+  // todo: hack to ignore first and last parens
+  var escapedValue = '';
+  for (var i = 1; i < value.length - 1; i++) {
+    final char = value[i];
+    escapedValue += switch (char) {
+      '*' => r'\*',
+      '(' => r'\28',
+      ')' => r'\29',
+      // '\\' => r'\\',
+      // ' ' => r'\20',
+      _ => char,
+    };
   }
-
-  String escapedDn = buffer.toString();
-  // Handle leading/trailing spaces and #
-  if (escapedDn.startsWith(' ') || escapedDn.startsWith('#')) {
-    escapedDn = "\\$escapedDn";
-  }
-  if (escapedDn.endsWith(' ')) {
-    escapedDn = '${escapedDn.substring(0, escapedDn.length - 1)}\\ ';
-  }
-
-  return escapedDn;
+  return '($escapedValue)';
 }

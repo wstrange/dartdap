@@ -1,6 +1,7 @@
 /// Test Setup Utilities
 ///
 
+import 'package:asn1lib/asn1lib.dart';
 import 'package:dartdap/dartdap.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
@@ -48,7 +49,9 @@ final groupsDN = DN('ou=groups,$baseDN');
 
 Future<void> debugSearch(LdapConnection ldap) async {
   // Search for people
-  var result = await ldap.query(baseDN, '(objectclass=*)', ['dn', 'cn']);
+  var filter = Filter.present('objectClass');
+  var result = await ldap.search(baseDN, filter, ['dn', 'cn']);
+  // var result = await ldap.query(baseDN, '(objectclass=*)', ['dn', 'cn']);
 
   await for (var entry in result.stream) {
     print('entry: $entry');
@@ -102,7 +105,9 @@ void expectSingleAttributeValue(SearchEntry entry, String attributeName, String 
     fail('Attribute $attributeName not found');
   }
   expect(attrs.values.length, equals(1));
-  expect(attrs.values.first, equals(expectedValue));
+  var first = attrs.values.first;
+  var b = ASN1OctetString(expectedValue);
+  expect(first, equals(b));
 }
 
 // Utility to check attribute for non null and expected value startsWith
@@ -112,8 +117,9 @@ void expectSingleAttributeValueStartsWith(SearchEntry entry, String attributeNam
     fail('Attribute $attributeName not found');
   }
   expect(attrs.values.length, equals(1));
-  var s = attrs.values.first as String;
-  expect(s.startsWith(startsWith), isTrue);
+  var s = attrs.values.first as ASN1OctetString;
+
+  expect(s.utf8StringValue.startsWith(startsWith), isTrue);
 }
 
 // Utility to print search results

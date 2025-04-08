@@ -1,6 +1,7 @@
 import 'package:asn1lib/asn1lib.dart';
 import 'package:dartdap/dartdap.dart';
 import 'package:petitparser/petitparser.dart';
+// import 'package:petitparser/debug.dart';
 
 // Create LDAP Queries using https://tools.ietf.org/html/rfc2254 syntax
 
@@ -8,13 +9,14 @@ final _queryDefinition = QueryParserDefinition();
 final _parser = _queryDefinition.build();
 
 Filter parseQuery(String input) {
-  var esc = escapeNonAscii(input);
-  var result = _parser.parse(esc);
+  // For debugging uncomment the next lines
+  // var result = trace(_parser, output: (x) => print(x)).parse(input);
+  var result = _parser.parse(input);
   if (result is Success) {
+    print('Filter: ${result.value}');
     return result.value;
   } else {
-    throw LdapParseException(
-        'Cant parse filter \'$input\'. Error is ${result.message}');
+    throw LdapParseException('Cant parse filter \'$input\'. Error is ${result.message}');
   }
 }
 
@@ -60,12 +62,10 @@ class QueryParserDefinition extends QueryGrammarDefinition {
       });
 
   @override
-  Parser<Filter> and() =>
-      super.and().map((each) => Filter.and(List<Filter>.from(each[1])));
+  Parser<Filter> and() => super.and().map((each) => Filter.and(List<Filter>.from(each[1])));
 
   @override
-  Parser<Filter> or() =>
-      super.or().map((each) => Filter.or(List<Filter>.from(each[1])));
+  Parser<Filter> or() => super.or().map((each) => Filter.or(List<Filter>.from(each[1])));
 
   @override
   Parser<Filter> not() => super.not().map((each) => Filter.not(each[1]));
@@ -164,8 +164,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser simple() => ref0(attr) & ref0(filtertype) & ref0(value);
 
   //  filtertype = equal / approx / greater / less
-  Parser filtertype() =>
-      ref0(EQUAL) | ref0(approx) | ref0(GREATER) | ref0(LESS);
+  Parser filtertype() => ref0(EQUAL) | ref0(approx) | ref0(GREATER) | ref0(LESS);
 
   //  present    = attr '=*'
   Parser present() => ref0(attr) & ref1(token, '=*');
@@ -177,12 +176,7 @@ class QueryGrammarDefinition extends GrammarDefinition {
   //  subtstring match
   //  substring  = attr '=' [initial] any [final]
   //  [notation] means 'optional'
-  Parser substring() =>
-      ref0(attr) &
-      ref0(EQUAL) &
-      ref0(initial).optional() &
-      ref0(_any) &
-      ref0(_final).optional();
+  Parser substring() => ref0(attr) & ref0(EQUAL) & ref0(initial).optional() & ref0(_any) & ref0(_final).optional();
 
   //  initial    = value
   Parser initial() => ref0(value);
@@ -203,5 +197,19 @@ class QueryGrammarDefinition extends GrammarDefinition {
   // See https://tools.ietf.org/html/rfc4512
   // Note: The petit pattern uses ^ to invert the match.
   // Works - but is not complete / correct.
-  Parser value() => pattern(r'a-zA-Z0-9 \,=_.', 'attribute value').plus();
+  // existing code:
+  // Parser value() => pattern(r'a-zA-Z0-9 \,=_.', 'attribute value').plus();
+
+  // Parser value() => any().neg(char('*') | char('(') | char(')') | char('\\')).plus();
+  //Parser value() => any().neg(pattern(r'()')).plus();
+
+  // Parser xx() {
+  //   return any().neg(char('*') | char('(') | char(')') | char('\\')).plus();
+  // }
+
+  Parser value() {
+    return any().where((char) => !_special_chars(char)).plus();
+  }
+
+  _special_chars(String c) => c == '*' || c == '(' || c == ')';
 }

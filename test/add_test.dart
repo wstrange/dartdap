@@ -84,7 +84,8 @@ void main() {
     // Attempt to add the test person (without first adding the branch entry)
 
     try {
-      final dn = DN('cn=nonExistant, ou=junk, $peopleDN');
+      var dn = DN('cn=nonExistant,ou=junk') + peopleDN;
+      print(dn);
       await ldap.add(dn, testPersonAttrs);
       fail('exception not thrown');
     } catch (e) {

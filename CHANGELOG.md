@@ -1,8 +1,16 @@
 # Dartdap Change Log
 
+## 0.11.1
+
+- Improved filter parser to accept special accented characters. Temporary wor around for #69
+
+
+## 0.11.0
+
+- Improved hadnling for DNs and RDNs. These are now proper Dart classes that handle escaping, concatenation and parsing. See the README for more information.
+
 ## 0.9.1
 - Escape parens in DN
-
 
 ## 0.9.0
 - Added DN class to represent Distinguished Names. This a breaking change. See README notes.

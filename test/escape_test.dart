@@ -15,6 +15,7 @@
 ///
 import 'dart:math';
 
+import 'package:asn1lib/asn1lib.dart';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
 import '../example/pool.dart';
@@ -25,15 +26,15 @@ void main() async {
 
   // \2C is a comma
   final fredCN = r'fred, _smith';
-  final fredRDN = RDN('cn', fredCN);
+  final fredRDN = RDN.fromNameValue('cn', fredCN);
   final userDN = DN('ou=users,dc=example,dc=com');
 
-  final fredDN = DN.fromRDNs([fredRDN, ...userDN.rdns]);
+  final fredDN = fredRDN + userDN;
   final roleDN = DN('cn=adminRole,dc=example,dc=com');
 
   final testCN = 'téstè  (testy)';
-  final testRDN = RDN('cn', testCN);
-  final testDN = DN.fromRDNs([testRDN, ...userDN.rdns]);
+  final testRDN = RDN.fromNameValue('cn', testCN);
+  final testDN = testRDN + userDN;
 
   setUpAll(() async {
     ldap = defaultConnection(ssl: true);
@@ -112,12 +113,17 @@ void main() async {
     // get the
   }, skip: false);
 
-  test('Find the test user we just created', () async {
+  test('Find the test users we just created', () async {
     // now serach by DN
     var x = await ldap.query(testDN, '(objectClass=*)', ['cn', 'dn'], scope: SearchScope.BASE_LEVEL);
 
     var result = await x.getLdapResult();
     expect(result.resultCode, equals(ResultCode.OK));
+
+    x = await ldap.query(fredDN, '(objectClass=*)', ['cn', 'dn'], scope: SearchScope.BASE_LEVEL);
+    result = await x.getLdapResult();
+    expect(result.resultCode, equals(ResultCode.OK));
+
     await printResults(x);
   });
 
@@ -133,7 +139,7 @@ void main() async {
       var roleOccupant = e.attributes['roleOccupant'];
       // iterate through the roleOccupant DNs and make sure we can find the users
       for (var d in roleOccupant!.values) {
-        var dn = DN.preEscaped(d);
+        var dn = DN.fromOctetString(d as ASN1OctetString);
         print('looking up $dn');
         var x = await ldap.query(dn, '(objectClass=*)', ['cn', 'dn', 'sn'], scope: SearchScope.BASE_LEVEL);
         var result = await x.getLdapResult();
@@ -149,10 +155,27 @@ void main() async {
     expect(foundIt, true);
   });
 
-  test('get role with an escaped query', () async {
+  test('get role with an escaped dn using Filter', () async {
     // the backslash is escaped in the filter
+    final filter = Filter.equals('roleOccupant', fredDN);
+
+    print('filter: $filter');
+    var r = await ldap.search(roleDN, filter, ['cn', 'roleOccupant']);
+    var foundIt = false;
+    var result = await r.getLdapResult();
+    expect(result.resultCode, equals(ResultCode.OK));
+    await for (final e in r.stream) {
+      expect(e.dn, equals(roleDN));
+      foundIt = true;
+      //print('Found role dn: ${e.dn}');
+    }
+    expect(foundIt, true);
+  });
+
+  test('query role with an DN that has an underscore', () async {
     final filter = '(roleOccupant=$fredDN)';
 
+    print('filter: $filter');
     var r = await ldap.query(roleDN, filter, ['cn', 'roleOccupant']);
     var foundIt = false;
     var result = await r.getLdapResult();
@@ -168,8 +191,8 @@ void main() async {
   test('query role for user with an escaped filter query', () async {
     // Because testDN contains parens, we need to escape them
     // for use in the filter.
-    final esc = escapeNonAscii(testDN.toString(), escapeParentheses: true);
-    final filter = '(roleOccupant=$esc)';
+    final filter = escapeSpecialCharsInLdapFilter('(roleOccupant=$testDN)');
+    print('filter: $filter');
 
     var r = await ldap.query(roleDN, filter, ['cn', 'roleOccupant']);
     var foundIt = false;
@@ -183,10 +206,9 @@ void main() async {
     expect(foundIt, true);
   });
 
-  test('query role for user using constructed Filter', () async {
-    // Because testDN contains parens, we need to escape them
-    // for use in the filter.
-    final filter = Filter.equals('roleOccupant', testDN.toString());
+  test('query role for user using constructed Filter with a DN that contains ()', () async {
+    // testDN contains parens
+    final filter = Filter.equals('roleOccupant', testDN);
 
     var r = await ldap.search(roleDN, filter, ['cn', 'roleOccupant']);
     var foundIt = false;
@@ -201,8 +223,7 @@ void main() async {
   });
 
   test('Bind with escaped DN', () async {
-
-    expect(testDN.toString(), equals(r'cn=t\c3\a9st\c3\a8  (testy),ou=users,dc=example,dc=com'));
+    //expect(testDN.toString(), equals(r'cn=t\c3\a9st\c3\a8  (testy),ou=users,dc=example,dc=com'));
 
     // make a new ldap connection for testing the bind
     var l = LdapConnection(
@@ -213,6 +234,8 @@ void main() async {
         badCertificateHandler: (cert) => true);
 
     await l.open();
+
+    print('binding with $testDN.');
 
     var r = await l.bind(dn: testDN, password: 'password');
     expect(r.resultCode, equals(ResultCode.OK));

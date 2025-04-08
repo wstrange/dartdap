@@ -1,4 +1,5 @@
 import 'package:asn1lib/asn1lib.dart';
+import 'dn.dart';
 import 'ldap_util.dart';
 import 'ldap_exception.dart';
 
@@ -20,6 +21,8 @@ import 'ldap_exception.dart';
 /// * [not] - matches if its member filter does not match
 /// * [and] - matches if all of its member filters match
 /// * [or] - matches if at least one of its member filters match
+///
+/// The assertion value can be a [String], [ASN1OctetString], or [DN].
 
 class Filter {
   final int _filterType;
@@ -59,20 +62,16 @@ class Filter {
   /// [equals], [substring], [approx], [greaterOrEquals], [lessOrEquals])
   /// instead of directly using this constructor.
 
-  Filter(this._filterType,
-      [this._attributeName, this._assertionValue, this._subFilters = const []]);
+  Filter(this._filterType, [this._attributeName, this._assertionValue, this._subFilters = const []]);
 
   /// Creates a [Filter] that matches an entry that has an attribute with the given value.
-  static Filter equals(String attributeName, dynamic attrValue) =>
-      Filter(TYPE_EQUALITY, attributeName, attrValue);
+  static Filter equals(String attributeName, dynamic attrValue) => Filter(TYPE_EQUALITY, attributeName, attrValue);
 
   /// Creates a [Filter] that matches entries that matches all of the [filters].
-  static Filter and(List<Filter> filters) =>
-      Filter(TYPE_AND, null, null, filters);
+  static Filter and(List<Filter> filters) => Filter(TYPE_AND, null, null, filters);
 
   /// Creates a [Filter] that matches entries that matches at least one of the [filters].
-  static Filter or(List<Filter> filters) =>
-      Filter(TYPE_OR, null, null, filters);
+  static Filter or(List<Filter> filters) => Filter(TYPE_OR, null, null, filters);
 
   /// Creates a [Filter] that matches entries that don't match on [f].
   static Filter not(Filter f) => Filter(TYPE_NOT, null, null, [f]);
@@ -90,8 +89,7 @@ class Filter {
   /// The _match_ must not be a single `*` (e.g. 'foo=*' is not permitted). If
   /// such a filter is required, use the [present] filter instead.
 
-  static Filter substring(String attribute, String pattern) =>
-      SubstringFilter.fromPattern(attribute, pattern);
+  static Filter substring(String attribute, String pattern) => SubstringFilter.fromPattern(attribute, pattern);
 
   /// Creates a [Filter] that matches an entry that contains the [attributeName]
   /// with a value that is greater than or equal to [attrValue].
@@ -160,8 +158,7 @@ class Filter {
         throw 'Not Done yet. Fix me!!';
 
       default:
-        throw LdapUsageException(
-            'Unexpected filter type = $filterType. This should never happen');
+        throw LdapUsageException('Unexpected filter type = $filterType. This should never happen');
     }
   }
 
@@ -174,6 +171,9 @@ class Filter {
   ASN1OctetString get assertionValueAsOctetString {
     if (_assertionValue is ASN1OctetString) {
       return _assertionValue as ASN1OctetString;
+    }
+    if (_assertionValue is DN) {
+      return _assertionValue.octetString;
     }
     return ASN1OctetString(LdapUtil.escapeString(_assertionValue!));
   }
@@ -204,8 +204,7 @@ class SubstringFilter extends Filter {
   /// The final component. Zero or more */
   String? get finalString => _final;
 
-  SubstringFilter.rfc224(String attributeName,
-      {String? initial, List<String> any = const [], String? finalValue})
+  SubstringFilter.rfc224(String attributeName, {String? initial, List<String> any = const [], String? finalValue})
       : _initial = initial,
         _any = any,
         _final = finalValue,
@@ -218,8 +217,7 @@ class SubstringFilter extends Filter {
         super(Filter.TYPE_SUBSTRING) {
     // todo: We probaby need to properly escape special chars = and *
     if (pattern.length <= 2 || !pattern.contains('*')) {
-      throw LdapUsageException(
-          'Invalid substring pattern: expecting attr=match: $pattern');
+      throw LdapUsageException('Invalid substring pattern: expecting attr=match: $pattern');
     }
 
     _attributeName = attributeName;
@@ -228,13 +226,11 @@ class SubstringFilter extends Filter {
     var x = pattern.split('*');
 
     if (x.length == 1) {
-      throw LdapUsageException(
-          'Invalid substring pattern: missing *: $pattern');
+      throw LdapUsageException('Invalid substring pattern: missing *: $pattern');
     }
 
     if (!x.any((s) => s.isNotEmpty)) {
-      throw LdapUsageException(
-          'Invalid substring pattern: use \'present\' filter instead: \'$pattern\'');
+      throw LdapUsageException('Invalid substring pattern: use \'present\' filter instead: \'$pattern\'');
     }
 
     /*
@@ -273,14 +269,12 @@ class SubstringFilter extends Filter {
       }
     }
     if (_final != null) {
-      sSeq.add(
-          ASN1OctetString(finalString, tag: SubstringFilter.TYPE_SUBFINAL));
+      sSeq.add(ASN1OctetString(finalString, tag: SubstringFilter.TYPE_SUBFINAL));
     }
     seq.add(sSeq);
     return seq;
   }
 
   @override
-  String toString() =>
-      'SubstringFilter(initial=$_initial, _any, ${_final != null ? 'final $_final' : ""})';
+  String toString() => 'SubstringFilter(initial=$_initial, _any, ${_final != null ? 'final $_final' : ""})';
 }

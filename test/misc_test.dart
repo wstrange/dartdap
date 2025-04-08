@@ -30,8 +30,7 @@ void main() {
 
     //print(c1.toString());
 
-    var f3 = Filter.or(
-        [Filter.equals('givenName', 'A'), Filter.equals('sn', 'Annas')]);
+    var f3 = Filter.or([Filter.equals('givenName', 'A'), Filter.equals('sn', 'Annas')]);
     //print('f3 = $f3 asn1=${f3.toASN1()}');
     // make sure this encodes without throwing exception.
     f3.toASN1().encodedBytes;
@@ -41,6 +40,8 @@ void main() {
     var a1 = Attribute('cn', 'Foo');
     var a2 = Attribute('cn', 'Foo');
 
+    expect(a1.hashCode, a2.hashCode);
+
     expect(a1, equals(a2));
   });
 
@@ -49,7 +50,7 @@ void main() {
     var m = {
       'cn': 'Foo',
       'sn': ['one', 'two'],
-      'objectclass': Attribute('objectclass', ['top', 'inetorgperson'])
+      'objectclass': ['top', 'inetorgperson'],
     };
 
     var m2 = Attribute.newAttributeMap(m);
@@ -58,10 +59,7 @@ void main() {
 
     expect(m2, containsPair('cn', Attribute('cn', 'Foo')));
     expect(m2, containsPair('sn', Attribute('sn', ['two', 'one'])));
-    expect(
-        m2,
-        containsPair(
-            'objectclass', Attribute('objectclass', ['top', 'inetorgperson'])));
+    expect(m2, containsPair('objectclass', Attribute('objectclass', ['top', 'inetorgperson'])));
   });
 /*
   test('Modifications',  () {
