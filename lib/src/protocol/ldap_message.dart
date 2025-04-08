@@ -63,8 +63,7 @@ class LDAPMessage {
   /// the total length of this encoded message in bytes
   int get messageLength => _obj.totalEncodedByteLength;
 
-  LDAPMessage(this._messageId, RequestOp rop,
-      [List<Control> controls = const <Control>[]])
+  LDAPMessage(this._messageId, RequestOp rop, [List<Control> controls = const <Control>[]])
       : _protocolTag = rop.protocolOpCode {
     _obj = rop.toASN1();
     if (controls.isNotEmpty) {
@@ -85,8 +84,7 @@ class LDAPMessage {
     }
 
     if (elements.length != 2 && elements.length != 3) {
-      throw LdapParseException(
-          'Expecting 2 or 3 elements: got ${elements.length} obj=$_obj');
+      throw LdapParseException('Expecting 2 or 3 elements: got ${elements.length} obj=$_obj');
     }
 
     var i = elements[0] as ASN1Integer;
@@ -103,8 +101,13 @@ class LDAPMessage {
         _controls = ASN1Sequence.fromBytes(c);
       }
     }
+    // https://github.com/wstrange/dartdap/issues/69
+    // Printing the protocolOp triggers a format exception if the
+    // embedded message containts binary data such as a jpeg
+    // TODO: Safely convert the protocolOp to a string for debugging
     loggerRecvLdap.fine(
-        () => 'LDAP message received: Id=$messageId protocolOp=$protocolOp');
+        // () => 'LDAP message received: Id=$messageId protocolOp=$protocolOp');
+        () => 'LDAP message received: Id=$messageId');
   }
 
   // Convert this LDAP message to a stream of ASN1 encoded bytes

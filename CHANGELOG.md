@@ -2,7 +2,7 @@
 
 ## 0.11.1
 
-- Improved filter parser to accept special accented characters.
+- Improved filter parser to accept special accented characters. Temporary wor around for #69
 
 
 ## 0.11.0
