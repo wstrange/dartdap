@@ -13,7 +13,6 @@ Filter parseQuery(String input) {
   // var result = trace(_parser, output: (x) => print(x)).parse(input);
   var result = _parser.parse(input);
   if (result is Success) {
-    print('Filter: ${result.value}');
     return result.value;
   } else {
     throw LdapParseException('Cant parse filter \'$input\'. Error is ${result.message}');

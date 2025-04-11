@@ -34,6 +34,7 @@ class AddRequest extends RequestOp {
       s.add(ASN1OctetString(attr.name));
       var ss = ASN1Set(); // fixes #21
       for (var val in attr.values) {
+        // print('adding value: ${val.runtimeType}');
         ss.add(val);
       }
       s.add(ss);
