@@ -45,7 +45,10 @@ class SearchResultEntry extends ResponseOp {
 
       searchEntry.attributes[attrName.utf8StringValue] = Attribute(attrName.utf8StringValue, valSet);
 
-      loggerRecvLdap.finest('attribute: ${attrName.stringValue}=$valSet');
+      // TODO: For #69 printing the string values is throwin a utf8 error
+      // if the value is not a utf-8 string.  Create a safe print option
+      // loggerRecvLdap.finest('attribute: ${attrName.stringValue}=$valSet');
+      loggerRecvLdap.finest('attribute: ${attrName.stringValue}');
     }
 
     // controls are optional.
