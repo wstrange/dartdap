@@ -412,6 +412,25 @@ class LdapConnection extends Ldap {
 
   bool get isReady => state == ConnectionState.ready || isBound;
 
+  Future<bool> healthCheck() async {
+    if (!isReady && !isBound) {
+      return Future.value(false);
+    }
+    try {
+      final result = await search(
+        DN(''), // Empty DN for root DSE
+        Filter.present('objectClass'), // Common filter for root DSE
+        ['objectClass'],
+        scope: SearchScope.BASE,
+      );
+      return result.resultCode == ResultCode.OK;
+    } catch (e) {
+      // Log the error or handle it as needed
+      loggerConnection.warning('Health check failed: $e');
+      return false;
+    }
+  }
+
   @override
   String toString() => 'LdapConnection($_host:$_port id=$_connectionId, state=$state)';
 }

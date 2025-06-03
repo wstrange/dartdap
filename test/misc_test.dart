@@ -71,3 +71,47 @@ void main() {
   });
 */
 }
+
+  group('LdapConnection Health Check Tests', () {
+    test('Health check on a healthy, bound connection', () async {
+      final ldap = defaultConnection();
+      try {
+        await ldap.open();
+        await ldap.bind();
+        expect(await ldap.healthCheck(), isTrue);
+      } finally {
+        await ldap.close();
+      }
+    });
+
+    test('Health check on a healthy, ready (not bound) connection', () async {
+      // This test assumes the LDAP server allows anonymous search for root DSE
+      final ldap = defaultConnection();
+      try {
+        await ldap.open();
+        // Note: We are not calling bind() here
+        expect(await ldap.healthCheck(), isTrue);
+      } finally {
+        await ldap.close();
+      }
+    });
+
+    test('Health check on a closed connection', () async {
+      final ldapUnopened = defaultConnection();
+      // Test before open() is ever called
+      expect(await ldapUnopened.healthCheck(), isFalse);
+
+      final ldapClosed = defaultConnection();
+      try {
+        await ldapClosed.open();
+        // Do nothing, just open and then close in finally
+      } finally {
+        await ldapClosed.close();
+      }
+      // Test after close() has been called
+      expect(await ldapClosed.healthCheck(), isFalse);
+    });
+
+    // It might be useful to have a test for a connection that becomes unhealthy,
+    // but that's harder to reliably simulate without manipulating the server or network.
+  });
