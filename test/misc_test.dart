@@ -70,7 +70,6 @@ void main() {
 
   });
 */
-}
 
   group('LdapConnection Health Check Tests', () {
     test('Health check on a healthy, bound connection', () async {
@@ -115,3 +114,4 @@ void main() {
     // It might be useful to have a test for a connection that becomes unhealthy,
     // but that's harder to reliably simulate without manipulating the server or network.
   });
+}

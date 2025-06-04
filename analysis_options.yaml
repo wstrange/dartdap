@@ -6,5 +6,16 @@ include: package:lints/recommended.yaml
 # This package was created before these constant rules were best practice.
 linter:
   rules:
+    # Already in recommended.yaml, but overridden here
     constant_identifier_names: false
     non_constant_identifier_names: false
+
+    # Additional rules
+    prefer_final_locals: true
+    avoid_relative_lib_imports: true
+    avoid_empty_else: true
+    prefer_is_empty: true
+    prefer_is_not_empty: true
+    avoid_print: true # Consider if too strict for this project
+    use_key_in_widget_constructors: true # Flutter specific, but good practice
+    no_duplicate_case_values: true
