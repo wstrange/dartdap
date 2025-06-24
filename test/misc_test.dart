@@ -3,6 +3,7 @@ library;
 
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
+import 'setup.dart';
 
 void main() {
   /*
@@ -61,16 +62,6 @@ void main() {
     expect(m2, containsPair('sn', Attribute('sn', ['two', 'one'])));
     expect(m2, containsPair('objectclass', Attribute('objectclass', ['top', 'inetorgperson'])));
   });
-/*
-  test('Modifications',  () {
-    var m = Modification.modList([
-      ['a','sn','Mickey Mouse']
-                                  ]);
-    //print('$m');
-
-  });
-*/
-}
 
   group('LdapConnection Health Check Tests', () {
     test('Health check on a healthy, bound connection', () async {
@@ -115,3 +106,4 @@ void main() {
     // It might be useful to have a test for a connection that becomes unhealthy,
     // but that's harder to reliably simulate without manipulating the server or network.
   });
+}

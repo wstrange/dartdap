@@ -412,6 +412,8 @@ class LdapConnection extends Ldap {
 
   bool get isReady => state == ConnectionState.ready || isBound;
 
+  /// Perform a health check on the connection.
+  /// Coded by AI.. todo: check if this is correct!
   Future<bool> healthCheck() async {
     if (!isReady && !isBound) {
       return Future.value(false);
@@ -421,9 +423,11 @@ class LdapConnection extends Ldap {
         DN(''), // Empty DN for root DSE
         Filter.present('objectClass'), // Common filter for root DSE
         ['objectClass'],
-        scope: SearchScope.BASE,
+        scope: SearchScope.BASE_LEVEL,
       );
-      return result.resultCode == ResultCode.OK;
+      var x = await result.getLdapResult();
+
+      return x.resultCode == ResultCode.OK;
     } catch (e) {
       // Log the error or handle it as needed
       loggerConnection.warning('Health check failed: $e');
