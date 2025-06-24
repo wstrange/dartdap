@@ -1,4 +1,7 @@
 # Dartdap Change Log
+## 0.11.3
+
+- Fix #73
 
 ## 0.11.1
 
