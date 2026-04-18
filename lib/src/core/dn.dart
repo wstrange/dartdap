@@ -38,10 +38,11 @@ class DN {
   // Create a DN from an ASN1OctetString. This is used when decoding a DN from a search result
   DN.fromOctetString(ASN1OctetString t) : _asn1OctetString = t;
 
-  get isEmpty => _asn1OctetString.utf8StringValue.isEmpty;
+  bool get isEmpty => _asn1OctetString.utf8StringValue.isEmpty;
 
   @override
-  bool operator ==(Object other) => identical(this, other) || other is DN && toString() == other.toString();
+  bool operator ==(Object other) =>
+      identical(this, other) || other is DN && toString() == other.toString();
 
   @override
   int get hashCode => toString().hashCode;

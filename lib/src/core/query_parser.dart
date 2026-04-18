@@ -15,7 +15,8 @@ Filter parseQuery(String input) {
   if (result is Success) {
     return result.value;
   } else {
-    throw LdapParseException('Cant parse filter \'$input\'. Error is ${result.message}');
+    throw LdapParseException(
+        'Cant parse filter \'$input\'. Error is ${result.message}');
   }
 }
 
@@ -61,10 +62,12 @@ class QueryParserDefinition extends QueryGrammarDefinition {
       });
 
   @override
-  Parser<Filter> and() => super.and().map((each) => Filter.and(List<Filter>.from(each[1])));
+  Parser<Filter> and() =>
+      super.and().map((each) => Filter.and(List<Filter>.from(each[1])));
 
   @override
-  Parser<Filter> or() => super.or().map((each) => Filter.or(List<Filter>.from(each[1])));
+  Parser<Filter> or() =>
+      super.or().map((each) => Filter.or(List<Filter>.from(each[1])));
 
   @override
   Parser<Filter> not() => super.not().map((each) => Filter.not(each[1]));
@@ -163,7 +166,8 @@ class QueryGrammarDefinition extends GrammarDefinition {
   Parser simple() => ref0(attr) & ref0(filtertype) & ref0(value);
 
   //  filtertype = equal / approx / greater / less
-  Parser filtertype() => ref0(EQUAL) | ref0(approx) | ref0(GREATER) | ref0(LESS);
+  Parser filtertype() =>
+      ref0(EQUAL) | ref0(approx) | ref0(GREATER) | ref0(LESS);
 
   //  present    = attr '=*'
   Parser present() => ref0(attr) & ref1(token, '=*');
@@ -175,7 +179,12 @@ class QueryGrammarDefinition extends GrammarDefinition {
   //  subtstring match
   //  substring  = attr '=' [initial] any [final]
   //  [notation] means 'optional'
-  Parser substring() => ref0(attr) & ref0(EQUAL) & ref0(initial).optional() & ref0(_any) & ref0(_final).optional();
+  Parser substring() =>
+      ref0(attr) &
+      ref0(EQUAL) &
+      ref0(initial).optional() &
+      ref0(_any) &
+      ref0(_final).optional();
 
   //  initial    = value
   Parser initial() => ref0(value);
@@ -210,5 +219,5 @@ class QueryGrammarDefinition extends GrammarDefinition {
     return any().where((char) => !_special_chars(char)).plus();
   }
 
-  _special_chars(String c) => c == '*' || c == '(' || c == ')';
+  bool _special_chars(String c) => c == '*' || c == '(' || c == ')';
 }

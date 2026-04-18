@@ -1,4 +1,8 @@
 # Dartdap Change Log
+## 0.11.4
+
+- update petitparser dependency
+
 ## 0.11.3
 
 - Fix #73

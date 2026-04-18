@@ -1,20 +1,3 @@
-///
-/// Test for #60 - improperly escaping search filters
-/// https://github.com/wstrange/dartdap/issues/60
-///
-///
-/// A good read for this is from the Ping LDAP sdk issue:
-/// https://github.com/pingidentity/ldapsdk/issues/10
-///
-/// "The syntax for escaping filters is different from the syntax for escaping DNs. "
-///
-/// https://ldap.com/ldap-dns-and-rdns/
-///
-///
-///// This is tested against an OpenLDAP server
-///
-import 'dart:math';
-
 import 'package:asn1lib/asn1lib.dart';
 import 'package:test/test.dart';
 import 'package:dartdap/dartdap.dart';
@@ -104,7 +87,8 @@ void main() async {
 
   // just here for debugging. Normally skipped
   test('server query', () async {
-    var r = await ldap.query(DN('dc=example,dc=com'), '(objectclass=*)', ['cn', 'dn', 'objectClass', 'roleOccupant']);
+    var r = await ldap.query(DN('dc=example,dc=com'), '(objectclass=*)',
+        ['cn', 'dn', 'objectClass', 'roleOccupant']);
     await for (final e in r.stream) {
       print('query: $e');
       // e.attributes.forEach((k, v) => print('  $k: $v'));
@@ -115,12 +99,14 @@ void main() async {
 
   test('Find the test users we just created', () async {
     // now serach by DN
-    var x = await ldap.query(testDN, '(objectClass=*)', ['cn', 'dn'], scope: SearchScope.BASE_LEVEL);
+    var x = await ldap.query(testDN, '(objectClass=*)', ['cn', 'dn'],
+        scope: SearchScope.BASE_LEVEL);
 
     var result = await x.getLdapResult();
     expect(result.resultCode, equals(ResultCode.OK));
 
-    x = await ldap.query(fredDN, '(objectClass=*)', ['cn', 'dn'], scope: SearchScope.BASE_LEVEL);
+    x = await ldap.query(fredDN, '(objectClass=*)', ['cn', 'dn'],
+        scope: SearchScope.BASE_LEVEL);
     result = await x.getLdapResult();
     expect(result.resultCode, equals(ResultCode.OK));
 
@@ -141,7 +127,8 @@ void main() async {
       for (var d in roleOccupant!.values) {
         var dn = DN.fromOctetString(d as ASN1OctetString);
         print('looking up $dn');
-        var x = await ldap.query(dn, '(objectClass=*)', ['cn', 'dn', 'sn'], scope: SearchScope.BASE_LEVEL);
+        var x = await ldap.query(dn, '(objectClass=*)', ['cn', 'dn', 'sn'],
+            scope: SearchScope.BASE_LEVEL);
         var result = await x.getLdapResult();
 
         expect(result.resultCode, equals(ResultCode.OK));
@@ -206,7 +193,9 @@ void main() async {
     expect(foundIt, true);
   });
 
-  test('query role for user using constructed Filter with a DN that contains ()', () async {
+  test(
+      'query role for user using constructed Filter with a DN that contains ()',
+      () async {
     // testDN contains parens
     final filter = Filter.equals('roleOccupant', testDN);
 
