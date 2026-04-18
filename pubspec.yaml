@@ -10,12 +10,12 @@ environment:
 dependencies:
   asn1lib: "^1.6.5"
   logging: "^1.0.0"
-  petitparser: ^6.0.2
+  petitparser: ^7.0.2
   collection: "^1.18.0"
 
 dev_dependencies:
   test: "^1.24.6"
-  lints: ^5.0.0
+  lints: ^6.1.0
 
 false_secrets:
   - test/**/*.pem
